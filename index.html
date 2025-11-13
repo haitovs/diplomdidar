@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Didar Network Simulation Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js" defer></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__content">
+      <p class="eyebrow">Faculty of Information Technologies</p>
+      <h1>Didar Network Simulation Lab</h1>
+      <p class="lead">
+        Interactive sandbox for planning digital classroom infrastructure. Explore simulated network
+        topologies, class schedules, and AI-assisted insights – using curated sample data ready for diploma
+        defense demos.
+      </p>
+      <div class="hero__actions draggable-pod" data-pod="hero-actions">
+        <button type="button" class="pod-handle" aria-label="Drag hero actions">⠿</button>
+        <button id="start-simulation" class="btn primary">Start Scenario Playback</button>
+        <button id="stop-simulation" class="btn secondary">Stop Playback</button>
+        <button id="toggle-dark" class="btn ghost">Toggle Theme</button>
+      </div>
+      <dl class="hero__metrics">
+        <div>
+          <dt>Simulated Campuses</dt>
+          <dd id="metric-campuses">3</dd>
+        </div>
+        <div>
+          <dt>Smart Classrooms</dt>
+          <dd id="metric-rooms">28</dd>
+        </div>
+        <div>
+          <dt>AI Assist Tickets</dt>
+          <dd id="metric-tickets">124</dd>
+        </div>
+      </dl>
+    </div>
+    <div class="hero__visual">
+      <div class="hero__glow"></div>
+      <img src="assets/blueprint.svg" alt="Network blueprint" />
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="control-sidebar" id="control-sidebar">
+      <article class="floating-card draggable-card" id="scenario-pod">
+        <header class="pod-header">
+          <h3>Scenario Builder</h3>
+          <button type="button" class="pod-handle" aria-label="Drag scenario pod">⠿</button>
+        </header>
+        <p>Choose a preset, tweak load levers, and watch the topology react.</p>
+        <label class="field">
+          <span>Scenario preset</span>
+          <select id="scenario-select"></select>
+        </label>
+        <label class="field">
+          <span>AI Load</span>
+          <input type="range" id="ai-load" min="0" max="1" step="0.1" value="0.4" />
+        </label>
+        <form id="scenario-form" class="scenario-form">
+          <label class="field">
+            <span>Concurrent classes</span>
+            <input type="number" id="input-classes" min="5" max="30" value="18" />
+          </label>
+          <label class="field">
+            <span>AR/VR labs</span>
+            <input type="number" id="input-labs" min="1" max="10" value="3" />
+          </label>
+          <label class="field">
+            <span>Guest network</span>
+            <select id="input-guest">
+              <option value="moderate">Moderate</option>
+              <option value="spike">Conference Spike</option>
+              <option value="low">Low</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Alert threshold</span>
+            <input type="range" id="input-threshold" min="60" max="95" value="75" />
+          </label>
+          <button class="btn secondary" type="submit">Apply Scenario</button>
+        </form>
+        <ul class="scenario-tags" id="scenario-tags"></ul>
+      </article>
+
+      <article class="floating-card draggable-card" id="instrument-pod">
+        <header class="pod-header">
+          <h3>Operations Instruments</h3>
+          <button type="button" class="pod-handle" aria-label="Drag instrument pod">⠿</button>
+        </header>
+        <p>Dial jitter budgets, sensor density, power modes, and safety toggles to stress the topology.</p>
+        <form id="instrument-form" class="instrument-form">
+          <label class="field">
+            <span>Packet jitter budget (ms)</span>
+            <input type="range" id="instrument-jitter" min="0" max="40" step="1" value="8" />
+          </label>
+          <label class="field">
+            <span>Sensor density</span>
+            <input type="range" id="instrument-sensors" min="1" max="5" step="1" value="3" />
+          </label>
+          <label class="field">
+            <span>Power mode</span>
+            <select id="instrument-power">
+              <option value="eco">Eco</option>
+              <option value="balanced" selected>Balanced</option>
+              <option value="turbo">Turbo</option>
+            </select>
+          </label>
+          <label class="field switch">
+            <input type="checkbox" id="instrument-failover" />
+            <span>Force failover drill</span>
+          </label>
+          <label class="field switch">
+            <input type="checkbox" id="instrument-lockdown" />
+            <span>Lock guest network</span>
+          </label>
+        </form>
+        <div class="instrument-stats" id="instrument-stats">
+          <div class="instrument-stat" data-key="throughput">
+            <div>
+              <span>Throughput headroom</span>
+              <strong>0%</strong>
+            </div>
+            <div class="stat-bar"><span style="width: 0%"></span></div>
+          </div>
+          <div class="instrument-stat" data-key="packet">
+            <div>
+              <span>Packet health</span>
+              <strong>0%</strong>
+            </div>
+            <div class="stat-bar"><span style="width: 0%"></span></div>
+          </div>
+          <div class="instrument-stat" data-key="sla">
+            <div>
+              <span>SLA confidence</span>
+              <strong>0%</strong>
+            </div>
+            <div class="stat-bar"><span style="width: 0%"></span></div>
+          </div>
+          <div class="instrument-stat" data-key="resilience">
+            <div>
+              <span>Resilience index</span>
+              <strong>0%</strong>
+            </div>
+            <div class="stat-bar"><span style="width: 0%"></span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="floating-card draggable-card" id="reliability-pod">
+        <header class="pod-header">
+          <h3>Reliability Notebook</h3>
+          <button type="button" class="pod-handle" aria-label="Drag reliability pod">⠿</button>
+        </header>
+        <p>Scrollable row of live status notes per industry preset.</p>
+        <div class="reliability-row" id="reliability-row"></div>
+      </article>
+
+      <article class="floating-card draggable-card" id="playbooks-pod">
+        <header class="pod-header">
+          <h3>Simulation Playbooks</h3>
+          <button type="button" class="pod-handle" aria-label="Drag playbook pod">⠿</button>
+        </header>
+        <p>Pre-written office, school, and market runs that auto-configure every control for demos.</p>
+        <ul class="playbooks" id="playbook-list"></ul>
+      </article>
+    </aside>
+
+    <section class="visual-stack">
+      <section class="panel" id="network-panel">
+        <div class="panel__header">
+          <div>
+            <h2>Dynamic Backbone</h2>
+            <p id="scenario-description">Layer-2 mesh with redundant fiber rings and classroom access points.</p>
+          </div>
+          <button id="toggle-handle-visibility" class="btn subtle">Toggle Wire Handles</button>
+        </div>
+        <div class="network__wrapper">
+          <canvas id="network-canvas" width="780" height="480"></canvas>
+          <div id="link-handle-layer"></div>
+          <div id="network-tooltip" class="tooltip" hidden></div>
+          <div class="network__legend">
+            <p><span class="dot" data-color="core"></span> Core node</p>
+            <p><span class="dot" data-color="edge"></span> Access / site</p>
+            <p><span class="dot" data-color="ai"></span> AI workload</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="timeline-panel">
+        <div class="panel__header">
+          <div>
+            <h2>Class Traffic Timeline</h2>
+            <p>Simulated lessons and bandwidth reservations across the teaching day.</p>
+          </div>
+          <button id="timeline-play" class="btn subtle">Play Waveform</button>
+        </div>
+        <div id="timeline-grid" class="timeline"></div>
+      </section>
+
+      <section class="panel grid" id="insights-panel">
+        <article class="card" id="utilization-card">
+          <h3>Utilization &amp; Health</h3>
+          <div class="insight-metrics">
+            <div>
+              <p>Average utilization</p>
+              <strong id="metric-utilization">62%</strong>
+            </div>
+            <div>
+              <p>Latency budget</p>
+              <strong id="metric-latency">14 ms</strong>
+            </div>
+            <div>
+              <p>Energy draw</p>
+              <strong id="metric-energy">8.1 kWh</strong>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="util-chart" height="180"></canvas>
+          </div>
+        </article>
+
+        <article class="card" id="ai-card">
+          <h3>AI Classroom Assistant</h3>
+          <p>Static showcase of how a natural-language assistant could summarize network posture.</p>
+          <div class="assistant-log" id="assistant-log"></div>
+          <form id="assistant-form">
+            <label class="field">
+              <span>Prompt</span>
+              <textarea id="assistant-input" rows="2" placeholder="e.g. Summarize Lecture Hall 02 readiness..."></textarea>
+            </label>
+            <button class="btn primary" type="submit">Generate Mock Insight</button>
+          </form>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>
+      <strong>Didar Network Simulation</strong>
+      <p>Template for diploma work &mdash; feel free to extend with live APIs or your own telemetry feed.</p>
+    </div>
+    <div class="footer__actions">
+      <a href="#" class="btn subtle">Download Report</a>
+      <a href="#" class="btn subtle">Export Slide</a>
+    </div>
+  </footer>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
