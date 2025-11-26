@@ -15,6 +15,8 @@ export class NetworkCanvas {
     this.handleElements = new Map();
     this.handlesVisible = true;
     this.draggedNode = null;
+    this.pointerDownNode = null;
+    this.dragMoved = false;
     this.activeHandle = null;
     this.instrumentation = {
       sensorBoost: 0,
@@ -24,6 +26,12 @@ export class NetworkCanvas {
     };
     this.aiIntensity = 0.4;
     this.paused = false;
+    this.packets = [];
+    this.linkHealth = new Map();
+    this.networkLoss = 0;
+    this.iconCache = new Map();
+    this.nodeSelectCallback = null;
+    this.flowScale = 1;
 
     this.handleResize = this.handleResize.bind(this);
     this.handlePointerMove = this.handlePointerMove.bind(this);
@@ -41,6 +49,10 @@ export class NetworkCanvas {
     window.addEventListener('pointermove', this.moveNodeDrag);
     window.addEventListener('pointerup', this.endNodeDrag);
     this.loop();
+  }
+
+  setNodeSelectCallback(cb) {
+    this.nodeSelectCallback = cb;
   }
 
   setMetricCallback(cb) {
@@ -61,6 +73,11 @@ export class NetworkCanvas {
       baseLoad: node.load ?? 0.5,
       displayLoad: node.load ?? 0.5,
       targetLoad: node.load ?? 0.5,
+      color: node.color,
+      icon: node.icon,
+      hardware: node.hardware || [],
+      software: node.software || [],
+      status: node.status || 'Operational',
     }));
     this.nodeMap = new Map(this.nodes.map((node) => [node.id, node]));
     this.links = links.map((link, idx) => ({
@@ -72,6 +89,8 @@ export class NetworkCanvas {
     }));
     this.handleResize();
     this.buildHandleElements();
+    this.preloadIcons();
+    this.seedPackets();
   }
 
   applyScenario(multipliers = {}) {
@@ -84,6 +103,7 @@ export class NetworkCanvas {
       failover = false,
     } = multipliers;
     this.instrumentation = { sensorBoost, jitterEffect, lockdownRelief, failover };
+    this.flowScale = load;
     this.nodes.forEach((node) => {
       const variance = node.type === 'core' ? 0.05 : 0.12;
       const aiBoost = node.label.includes('XR') || node.label.includes('AI') ? ai * 0.18 : 0;
@@ -99,6 +119,8 @@ export class NetworkCanvas {
       node.targetLoad = seeded;
     });
     this.aiIntensity = ai;
+    this.seedPackets();
+    this.recalculateLinkHealth(load, jitterEffect);
   }
 
   handleResize() {
@@ -121,6 +143,8 @@ export class NetworkCanvas {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     const target = this.findNodeAt(x, y);
+    this.pointerDownNode = target || null;
+    this.dragMoved = false;
     if (target) {
       this.draggedNode = { node: target, offsetX: target.x - x, offsetY: target.y - y };
       this.canvas.setPointerCapture(event.pointerId);
@@ -137,6 +161,7 @@ export class NetworkCanvas {
     this.draggedNode.node.y = y;
     this.draggedNode.node.position = { x: x / this.width, y: y / this.height };
     this.refreshHandlePositions();
+    this.dragMoved = true;
   }
 
   endNodeDrag(event) {
@@ -147,6 +172,11 @@ export class NetworkCanvas {
         // ignore
       }
     }
+    if (this.pointerDownNode && !this.dragMoved && typeof this.nodeSelectCallback === 'function') {
+      this.nodeSelectCallback(this.pointerDownNode);
+    }
+    this.pointerDownNode = null;
+    this.dragMoved = false;
     this.draggedNode = null;
   }
 
@@ -252,7 +282,8 @@ export class NetworkCanvas {
       this.tooltip.style.top = `${hover.y}px`;
       this.tooltip.innerHTML = `
         <strong>${hover.label}</strong><br />
-        ${Math.round(hover.displayLoad * 100)}% load · ${hover.campus}
+        ${Math.round(hover.displayLoad * 100)}% load · ${hover.campus}<br />
+        <small>${hover.status || 'Operational'}</small>
       `;
     } else {
       this.hideTooltip();
@@ -303,6 +334,52 @@ export class NetworkCanvas {
     });
   }
 
+  seedPackets() {
+    this.packets = [];
+    this.links.forEach((link) => {
+      const intensity = clamp(this.flowScale || 1, 0.4, 2.8);
+      const count = Math.max(2, Math.round(intensity * 3 + Math.random() * 2));
+      for (let i = 0; i < count; i++) {
+        this.packets.push({
+          linkId: link.id,
+          t: Math.random(),
+          speed: 0.003 + Math.random() * 0.006 * intensity,
+          hue: 160 + Math.random() * 80,
+        });
+      }
+    });
+  }
+
+  recalculateLinkHealth(loadFactor = 1, jitterEffect = 0) {
+    this.networkLoss = 0;
+    this.linkHealth = new Map();
+    const avgNodeLoad =
+      this.nodes.reduce((acc, node) => acc + node.targetLoad, 0) / (this.nodes.length || 1);
+    this.links.forEach((link) => {
+      const stress = loadFactor + avgNodeLoad + jitterEffect * 6 + (Math.random() * 0.4 - 0.2);
+      const loss = clamp((stress - 1) * 0.1 + jitterEffect * 0.5, 0, 0.35);
+      const status = loss > 0.24 ? 'down' : loss > 0.14 ? 'lossy' : stress > 1.4 ? 'degraded' : 'up';
+      const flow = status === 'down' ? 0 : status === 'lossy' ? 0.4 : status === 'degraded' ? 0.8 : 1;
+      this.linkHealth.set(link.id, { loss, status, flow });
+      this.networkLoss += loss;
+    });
+    if (this.links.length) {
+      this.networkLoss = this.networkLoss / this.links.length;
+    }
+  }
+
+  preloadIcons() {
+    this.nodes.forEach((node) => {
+      const key = node.icon || (node.type === 'core' ? 'router.svg' : 'switch.svg');
+      if (this.iconCache.has(key)) return;
+      const img = new Image();
+      img.src = `icons/${key}`;
+      img.onload = () => this.iconCache.set(key, img);
+      img.onerror = () => this.iconCache.set(key, null);
+      this.iconCache.set(key, img);
+    });
+  }
+
   collectMetrics() {
     const avgLoad =
       this.nodes.reduce((acc, node) => acc + node.displayLoad, 0) / (this.nodes.length || 1);
@@ -314,12 +391,14 @@ export class NetworkCanvas {
       5,
       14
     );
-    return { utilization, latency, energy };
+    const loss = clamp(this.networkLoss || 0, 0, 0.35);
+    return { utilization, latency, energy, loss };
   }
 
   drawScene() {
     this.ctx.clearRect(0, 0, this.width, this.height);
     this.drawLinks();
+    this.drawPackets();
     this.drawAIFlux();
     this.drawNodes();
   }
@@ -337,11 +416,33 @@ export class NetworkCanvas {
       const target = this.nodeMap.get(link.target);
       if (!source || !target) return;
       const control = this.getControlPointPx(link);
+      const health = this.linkHealth.get(link.id) || { status: 'up', loss: 0, flow: 1 };
       const gradient = this.ctx.createLinearGradient(source.x, source.y, target.x, target.y);
-      gradient.addColorStop(0, failover ? 'rgba(252, 176, 69, 0.6)' : 'rgba(108, 124, 255, 0.4)');
-      gradient.addColorStop(1, failover ? 'rgba(255, 99, 132, 0.6)' : 'rgba(78, 225, 193, 0.4)');
+      const colorA =
+        health.status === 'down'
+          ? 'rgba(255, 99, 132, 0.6)'
+          : health.status === 'lossy'
+          ? 'rgba(252, 176, 69, 0.8)'
+          : 'rgba(108, 124, 255, 0.6)';
+      const colorB =
+        health.status === 'down'
+          ? 'rgba(255, 99, 132, 0.3)'
+          : health.status === 'lossy'
+          ? 'rgba(252, 176, 69, 0.5)'
+          : 'rgba(78, 225, 193, 0.6)';
+      gradient.addColorStop(0, colorA);
+      gradient.addColorStop(1, colorB);
       this.ctx.lineWidth = link.type === 'fiber' ? 3 : 2;
       this.ctx.strokeStyle = gradient;
+      if (health.status === 'lossy' || health.status === 'down') {
+        this.ctx.setLineDash([10, 6]);
+        this.ctx.lineDashOffset = (this.frame % 60) * 1.4;
+      } else if (health.status === 'degraded') {
+        this.ctx.setLineDash([16, 12]);
+        this.ctx.lineDashOffset = (this.frame % 100) * 0.8;
+      } else if (!failover) {
+        this.ctx.setLineDash([]);
+      }
       this.ctx.beginPath();
       this.ctx.moveTo(source.x, source.y);
       this.ctx.quadraticCurveTo(control.x, control.y, target.x, target.y);
@@ -371,40 +472,82 @@ export class NetworkCanvas {
 
   drawNodes() {
     this.nodes.forEach((node) => {
-      const radius = node.type === 'core' ? 22 : 14;
-      const glow = node.type === 'core' ? 18 : 10;
-      const hue = node.type === 'core' ? 230 : node.label.includes('XR') ? 165 : 32;
-      const saturation = node.type === 'core' ? 80 : 65;
-      const lightness = 55 + node.displayLoad * 20;
+      const radius = node.type === 'core' ? 30 : 24;
+      const glow = node.type === 'core' ? 26 : 18;
+      const baseColor = node.color || (node.type === 'core' ? '#6c7cff' : '#4ee1c1');
 
-      const gradient = this.ctx.createRadialGradient(
-        node.x,
-        node.y,
-        4,
-        node.x,
-        node.y,
-        glow
-      );
-      gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness}%, 0.9)`);
+      const gradient = this.ctx.createRadialGradient(node.x, node.y, 4, node.x, node.y, glow);
+      gradient.addColorStop(0, `${baseColor}dd`);
       gradient.addColorStop(1, 'rgba(3,7,18,0)');
       this.ctx.fillStyle = gradient;
       this.ctx.beginPath();
       this.ctx.arc(node.x, node.y, glow, 0, Math.PI * 2);
       this.ctx.fill();
 
-      this.ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${45 + node.displayLoad * 30}%)`;
+      this.ctx.fillStyle = '#0b1220';
       this.ctx.beginPath();
       this.ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
       this.ctx.fill();
+      this.ctx.strokeStyle = `${baseColor}aa`;
+      this.ctx.lineWidth = 2;
+      this.ctx.stroke();
 
-      this.ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      this.ctx.font = '11px Inter';
-      this.ctx.textAlign = 'center';
-      if (node.type === 'core') {
-        this.ctx.fillText(node.label, node.x, node.y - radius - 8);
+      const iconKey = node.icon || (node.type === 'core' ? 'router.svg' : 'switch.svg');
+      const icon = this.iconCache.get(iconKey);
+      if (icon && icon.complete && icon.naturalWidth > 0) {
+        const size = node.type === 'core' ? 30 : 26;
+        this.ctx.drawImage(icon, node.x - size / 2, node.y - size / 2, size, size);
+      } else {
+        this.ctx.fillStyle = baseColor;
+        this.ctx.beginPath();
+        this.ctx.arc(node.x, node.y, 10, 0, Math.PI * 2);
+        this.ctx.fill();
       }
+
+      this.ctx.fillStyle = 'rgba(255,255,255,0.85)';
       this.ctx.font = '12px Inter';
+      this.ctx.textAlign = 'center';
       this.ctx.fillText(`${Math.round(node.displayLoad * 100)}%`, node.x, node.y + radius + 14);
+      this.ctx.font = '11px Inter';
+      this.ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      this.ctx.fillText(node.label, node.x, node.y - radius - 6);
+    });
+  }
+
+  drawPackets() {
+    if (!this.packets.length) return;
+    this.packets.forEach((packet) => {
+      const link = this.links.find((l) => l.id === packet.linkId);
+      if (!link) return;
+      const source = this.nodeMap.get(link.source);
+      const target = this.nodeMap.get(link.target);
+      if (!source || !target) return;
+      const health = this.linkHealth.get(link.id) || { flow: 1, loss: 0, status: 'up' };
+      if (health.status === 'down') return;
+      const control = this.getControlPointPx(link);
+      packet.t += packet.speed * health.flow;
+      if (packet.t > 1) {
+        packet.t = 0;
+        packet.speed = 0.003 + Math.random() * 0.006;
+      }
+      if (Math.random() < health.loss * 0.03) {
+        packet.lost = 1;
+      }
+      if (packet.lost) {
+        packet.lost -= 0.04;
+        if (packet.lost <= 0) {
+          packet.lost = 0;
+          packet.t = Math.random();
+        }
+      }
+      const t = packet.t;
+      const x = (1 - t) * (1 - t) * source.x + 2 * (1 - t) * t * control.x + t * t * target.x;
+      const y = (1 - t) * (1 - t) * source.y + 2 * (1 - t) * t * control.y + t * t * target.y;
+      const alpha = packet.lost ? Math.max(packet.lost, 0.2) : 0.9;
+      this.ctx.fillStyle = packet.lost ? 'rgba(255,99,132,0.9)' : `hsla(${packet.hue}, 75%, 60%, ${alpha})`;
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, 4, 0, Math.PI * 2);
+      this.ctx.fill();
     });
   }
 }

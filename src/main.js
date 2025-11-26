@@ -1,24 +1,61 @@
-﻿import { NetworkCanvas } from './components/networkCanvas.js';
+import { NetworkCanvas } from './components/networkCanvas.js';
 import { renderTimeline, pulseTimeline } from './components/timeline.js';
 import { AnalyticsPanel } from './components/analytics.js';
-import { AssistantPanel } from './components/assistant.js';
 import { ScenarioPanel } from './components/scenarioPanel.js';
-import {
-  scenarios,
-  schedules,
-  reliabilityLibrary,
-  simulationPlaybooks,
-  topologyPresets,
-} from './data/simulationData.js';
+import { scenarios, schedules, reliabilityLibrary, topologyPresets } from './data/simulationData.js';
 import { clamp } from './utils/dom.js';
 
+const defaultHardware = {
+  core: ['10GbE uplinks', 'Dual PSU shelf', 'Fiber ring', 'QoS ASIC'],
+  edge: ['Wi‑Fi 6 APs', 'PoE switches', '5GbE uplink'],
+  lab: ['XR render box', 'GPU workstation', 'LiDAR sensor'],
+  iot: ['BLE beacons', 'Camera NVR', 'UPS battery'],
+};
+
+const defaultSoftware = {
+  core: ['IOS XE 17.x', 'BGP / OSPF', 'NetFlow', 'IPS signatures'],
+  edge: ['Classroom QoS', 'Secure Browser', 'MDM agent'],
+  lab: ['Unity runtime', 'XR streaming', 'VNC daemon'],
+  iot: ['MQTT gateway', 'Edge cache', 'Sensor health agent'],
+};
+
+const defaultColors = { core: '#6c7cff', edge: '#4ee1c1', lab: '#fcb045', iot: '#38bdf8' };
+const defaultIcons = { core: 'router.svg', edge: 'switch.svg', lab: 'lab.svg', iot: 'sensor.svg' };
+
 const aiSlider = document.getElementById('ai-load');
-const instrumentControls = {
-  jitter: document.getElementById('instrument-jitter'),
-  sensors: document.getElementById('instrument-sensors'),
-  powerMode: document.getElementById('instrument-power'),
-  failover: document.getElementById('instrument-failover'),
-  lockdown: document.getElementById('instrument-lockdown'),
+const leverControls = {
+  bitrate: document.getElementById('instrument-bitrate'),
+  devices: document.getElementById('instrument-devices'),
+  guestLock: document.getElementById('instrument-guestlock'),
+};
+
+const inspectorEls = {
+  status: document.getElementById('inspector-status'),
+  name: document.getElementById('inspector-name'),
+  role: document.getElementById('inspector-role'),
+  campus: document.getElementById('inspector-campus'),
+  statusText: document.getElementById('inspector-status-text'),
+  hardware: document.getElementById('inspector-hardware'),
+  software: document.getElementById('inspector-software'),
+};
+
+const nodeFormEls = {
+  name: document.getElementById('node-name'),
+  role: document.getElementById('node-role'),
+  campus: document.getElementById('node-campus'),
+  icon: document.getElementById('node-icon'),
+  color: document.getElementById('node-color'),
+  hardware: document.getElementById('node-hardware'),
+  software: document.getElementById('node-software'),
+  placeBtn: document.getElementById('node-place'),
+  resetBtn: document.getElementById('node-reset'),
+  namePreview: document.getElementById('node-name-preview'),
+  iconPreview: document.getElementById('node-icon-preview'),
+  colorPreview: document.getElementById('node-color-preview'),
+  connectFrom: document.getElementById('connect-from'),
+  connectTo: document.getElementById('connect-to'),
+  connectBtn: document.getElementById('connect-add'),
+  applyBtn: document.getElementById('apply-custom-topology'),
 };
 
 const state = {
@@ -26,16 +63,19 @@ const state = {
   scenario: scenarios.default,
   overrides: { concurrent: 18, labs: 3, guest: 'moderate', threshold: 75 },
   aiLoad: parseFloat(aiSlider.value),
-  instruments: {
-    jitter: Number(instrumentControls.jitter.value),
-    sensors: Number(instrumentControls.sensors.value),
-    powerMode: instrumentControls.powerMode.value,
-    failover: instrumentControls.failover.checked,
-    lockdown: instrumentControls.lockdown.checked,
+  levers: {
+    bitrate: parseFloat(leverControls.bitrate.value),
+    devices: Number(leverControls.devices.value),
+    guestLock: leverControls.guestLock.checked,
   },
-  activePlaybook: null,
   handlesVisible: true,
   playbackActive: false,
+  timeline: [],
+  alerts: [],
+  customNodes: [],
+  customLinks: [],
+  currentTopology: null,
+  pendingPlacement: null,
 };
 
 const canvas = document.getElementById('network-canvas');
@@ -43,34 +83,46 @@ const tooltip = document.getElementById('network-tooltip');
 const network = new NetworkCanvas(canvas, tooltip);
 network.attachHandleLayer(document.getElementById('link-handle-layer'));
 const analytics = new AnalyticsPanel(document.getElementById('util-chart'));
-const assistant = new AssistantPanel(
-  document.getElementById('assistant-log'),
-  document.getElementById('assistant-form'),
-  document.getElementById('assistant-input')
-);
 
 const timelineEl = document.getElementById('timeline-grid');
 const instrumentStatsEl = document.getElementById('instrument-stats');
 const reliabilityRow = document.getElementById('reliability-row');
 const scenarioDescriptionEl = document.getElementById('scenario-description');
-const playbookList = document.getElementById('playbook-list');
+const runtimeStatusEl = document.getElementById('runtime-status');
+const simClockEl = document.getElementById('sim-clock');
+const networkHealthEl = document.getElementById('network-health');
+const liveFeedEl = document.getElementById('live-class-feed');
+const liveEventsEl = document.getElementById('live-events');
 const statDisplays = {
   throughput: instrumentStatsEl.querySelector('[data-key="throughput"]'),
   packet: instrumentStatsEl.querySelector('[data-key="packet"]'),
   sla: instrumentStatsEl.querySelector('[data-key="sla"]'),
   resilience: instrumentStatsEl.querySelector('[data-key="resilience"]'),
 };
+const valueDisplays = {
+  scenarioPreset: document.getElementById('scenario-select-display'),
+  aiLoad: document.getElementById('ai-load-display'),
+  classes: document.getElementById('input-classes-display'),
+  labs: document.getElementById('input-labs-display'),
+  threshold: document.getElementById('input-threshold-display'),
+  bitrate: document.getElementById('instrument-bitrate-display'),
+  devices: document.getElementById('instrument-devices-display'),
+  guestLock: document.getElementById('instrument-guestlock-display'),
+};
+
+let latestMetrics = { utilization: 0.62, latency: 14, energy: 8.1, loss: 0 };
+let liveSnapshot = { time: 8, activeSlots: [], activeClasses: 0, labsActive: 0, load: 1, bandwidth: 0 };
+let simTimer = null;
 
 network.setMetricCallback((metrics) => {
   if (!state.playbackActive && network.isPaused()) return;
+  latestMetrics = metrics;
   analytics.update(metrics);
-  assistant.updateContext({
-    utilization: metrics.utilization,
-    latency: metrics.latency,
-    scenario: state.scenario.title,
-    profile: state.scenario.profile,
-  });
+  renderInstrumentStats();
+  updateHeroMetrics();
+  updateNetworkHealth(metrics.loss || 0);
 });
+network.setNodeSelectCallback((node) => renderInspector(node));
 
 const scenarioPanel = new ScenarioPanel({
   selectEl: document.getElementById('scenario-select'),
@@ -83,66 +135,62 @@ scenarioPanel.onUpdate(({ scenarioKey, scenario, overrides }) => {
   state.scenarioKey = scenarioKey;
   state.scenario = scenario;
   state.overrides = overrides;
-  state.activePlaybook = null;
-  renderPlaybooks();
+  if (scenarioKey !== 'custom') {
+    state.customNodes = [];
+    state.customLinks = [];
+  }
+  updateValueDisplays();
   applyScenario({ refreshTopology: scenarioChanged, announce: scenarioChanged });
 });
 
 scenarioPanel.emit();
-renderPlaybooks();
 renderInstrumentStats();
 initDraggables();
+wireWorkshop();
 
 function applyScenario({ refreshTopology = false, announce = false } = {}) {
   const profile = state.scenario.profile || 'campus';
   if (refreshTopology) {
-    const topologyKey = state.scenario.topology || state.scenarioKey;
-    const topology = topologyPresets[topologyKey] || topologyPresets.campusWeekday;
+    const topology = enrichTopology(resolveTopology());
+    state.currentTopology = topology;
     network.setTopology(topology);
+    renderInspector(null);
   }
-  assistant.setProfile(profile, state.scenario.title);
   scenarioDescriptionEl.textContent = state.scenario.description;
+  state.timeline = deriveTimeline(schedules[state.scenarioKey] || schedules.default, state.overrides);
+  renderTimeline(timelineEl, state.timeline);
+  highlightTimeline(liveSnapshot.time);
+  seedAlerts(profile);
   updateHeroMetrics();
-  const multipliers = computeMultipliers();
-  network.applyScenario(multipliers);
-  const schedule = schedules[state.scenarioKey] || schedules.default;
-  const derivedTimeline = deriveTimeline(schedule, state.overrides);
-  renderTimeline(timelineEl, derivedTimeline);
-  renderReliability(profile, state.overrides);
-  renderInstrumentStats();
+  updateValueDisplays();
+  applyLiveMultipliers();
   if (announce) {
     pulseTimeline(timelineEl);
   }
 }
 
-function computeMultipliers() {
-  const { multipliers } = state.scenario;
-  const concurrencyFactor = clamp(state.overrides.concurrent / 18, 0.5, 2.2);
-  const labFactor = clamp(state.overrides.labs / 3, 0.5, 2);
-  const guestImpact = { low: -0.08, moderate: 0, spike: 0.12 }[state.overrides.guest] || 0;
-  const sensorBoost = (state.instruments.sensors - 3) * 0.06;
-  const jitterEffect = state.instruments.jitter / 120;
-  const failoverHeat = state.instruments.failover ? 0.08 : 0;
-  const lockdownRelief = state.instruments.lockdown ? -0.12 : 0;
-  let load =
-    multipliers.load *
-    (1 + (concurrencyFactor - 1) * 0.3 + labFactor * 0.05 + guestImpact + sensorBoost + jitterEffect + failoverHeat);
-  load = clamp(load, 0.35, 2.4);
-  let ai = state.aiLoad * multipliers.ai;
-  if (state.instruments.powerMode === 'eco') ai *= 0.85;
-  if (state.instruments.powerMode === 'turbo') ai *= 1.2;
-  const energy =
-    multipliers.energy *
-    (state.instruments.powerMode === 'eco' ? 0.85 : state.instruments.powerMode === 'turbo' ? 1.18 : 1);
-  return {
-    load,
-    ai,
-    energy,
-    sensorBoost,
-    jitterEffect,
-    lockdownRelief,
-    failover: state.instruments.failover,
-  };
+function resolveTopology() {
+  if (state.scenarioKey === 'custom' && state.customNodes.length) {
+    return buildCustomTopology();
+  }
+  const topologyKey = state.scenario.topology || state.scenarioKey;
+  return topologyPresets[topologyKey] || topologyPresets.campusWeekday;
+}
+
+function enrichTopology(topology = { nodes: [], links: [] }) {
+  const nodes = (topology.nodes || []).map((node, idx) => {
+    const role = node.type || node.role || 'edge';
+    return {
+      ...node,
+      color: node.color || defaultColors[role] || defaultColors.edge,
+      icon: node.icon || defaultIcons[role] || defaultIcons.edge,
+      hardware: node.hardware || defaultHardware[role] || defaultHardware.edge,
+      software: node.software || defaultSoftware[role] || defaultSoftware.edge,
+      status: node.status || (idx % 5 === 0 ? 'Degraded' : 'Operational'),
+      position: node.position || { x: Math.random() * 0.8 + 0.1, y: Math.random() * 0.7 + 0.15 },
+    };
+  });
+  return { nodes, links: topology.links || [] };
 }
 
 function deriveTimeline(blocks = [], overrides) {
@@ -169,183 +217,304 @@ function deriveTimeline(blocks = [], overrides) {
   });
 }
 
-function renderReliability(profileKey, overrides) {
-  reliabilityRow.innerHTML = '';
-  const notes = reliabilityLibrary[profileKey] || reliabilityLibrary.campus;
-  const badges = {
-    exam: 'Invigilation VLAN prioritized. Highlight secure browser posture.',
-    maintenance: 'QoS rerouted to Core Alpha. Document firmware progress.',
-    school: 'Guide captive tours; keep robotics uplink in spotlight.',
-    office: 'Quarter-end drills active. Capture SD-WAN failover in report.',
-    market: 'Promo beacons synced. Call out checkout redundancy.',
-    default: 'Telemetry streaming nominal. Take screenshots for slides.',
-  };
-  const entries = [
-    { title: state.scenario.title, detail: badges[state.scenarioKey] || badges.default, status: 'info' },
-    ...notes,
-  ];
-  if (overrides.threshold > 85) {
-    entries.push({
-      title: 'Aggressive alerting',
-      detail: `Threshold locked at ${overrides.threshold}% showcasing proactive monitoring.`,
-      status: 'alert',
+function computeLiveLoad(time) {
+  const activeSlots = [];
+  (state.timeline || []).forEach((block) => {
+    block.slots.forEach((slot) => {
+      const start = slot.start;
+      const end = slot.start + slot.duration;
+      if (time >= start && time <= end) {
+        activeSlots.push({ ...slot, room: block.room, color: block.color });
+      }
     });
-  }
-  entries.forEach((note) => {
-    const chip = document.createElement('div');
-    chip.className = 'reliability-chip';
-    if (note.status) chip.dataset.status = note.status;
-    chip.innerHTML = `<strong>${note.title}</strong><span>${note.detail}</span>`;
-    reliabilityRow.appendChild(chip);
   });
+
+  const activeClasses = activeSlots.length;
+  const labsActive = activeSlots.filter((slot) => /lab|xr|vr|makers|studio/i.test(slot.room)).length;
+  const densityFactor = clamp(state.overrides.concurrent / 18, 0.5, 2.2);
+  const baseLoad = state.scenario.multipliers.load * densityFactor;
+  const activityHeat = 1 + activeClasses * 0.08 + labsActive * 0.12;
+  const deviceImpact = 1 + (state.levers.devices - 3) * 0.12;
+  const guestImpact = state.levers.guestLock
+    ? -0.12
+    : { low: -0.06, moderate: 0, spike: 0.16 }[state.overrides.guest] || 0;
+  const load = clamp(baseLoad * activityHeat * state.levers.bitrate * deviceImpact + guestImpact, 0.35, 2.6);
+  const bandwidth = Math.round(load * 520 + activeClasses * 14);
+  return { time, activeSlots, activeClasses, labsActive, load, bandwidth };
 }
 
-function updateHeroMetrics() {
-  const hero = state.scenario.hero || { campuses: 3, rooms: 24, tickets: 110 };
-  const rooms = Math.round(hero.rooms + state.overrides.labs * 1.5 + state.instruments.sensors * 1.2);
-  const tickets = Math.round(hero.tickets * state.aiLoad + state.overrides.concurrent * 1.2);
-  document.getElementById('metric-campuses').textContent = hero.campuses;
-  document.getElementById('metric-rooms').textContent = rooms;
-  document.getElementById('metric-tickets').textContent = tickets;
+function computeMultipliers(live = liveSnapshot) {
+  const { multipliers } = state.scenario;
+  const ai = state.aiLoad * multipliers.ai;
+  const sensorBoost = clamp((state.levers.devices - 3) * 0.05, -0.2, 0.3);
+  const jitterEffect = clamp((state.levers.bitrate - 1) * 0.06, 0, 0.3);
+  const lockdownRelief = state.levers.guestLock ? -0.15 : 0;
+  const energy =
+    multipliers.energy * (1 + live.activeClasses * 0.04 + (state.levers.devices - 3) * 0.06 + ai * 0.05);
+  return {
+    load: live.load,
+    ai,
+    energy,
+    sensorBoost,
+    jitterEffect,
+    lockdownRelief,
+    failover: false,
+  };
 }
 
-function computeInstrumentStats() {
-  const { jitter, sensors, powerMode, failover, lockdown } = state.instruments;
-  const throughput = clamp(
-    0.55 + sensors * 0.08 - jitter * 0.01 + (powerMode === 'turbo' ? 0.12 : 0) - (powerMode === 'eco' ? 0.05 : 0),
-    0,
-    1
-  );
-  const packetHealth = clamp(0.96 - jitter * 0.012 - (failover ? 0.04 : 0) + (lockdown ? 0.03 : 0), 0.35, 1);
-  const sla = clamp(0.78 + throughput * 0.25 + packetHealth * 0.2 + (lockdown ? 0.06 : 0) - (failover ? 0.03 : 0), 0, 1);
-  const resilience = clamp(0.55 + sensors * 0.04 + (failover ? 0.25 : 0.05) + (lockdown ? 0.08 : 0), 0, 1);
-  return { throughput, packet: packetHealth, sla, resilience };
+function applyLiveMultipliers() {
+  const multipliers = computeMultipliers(liveSnapshot);
+  network.applyScenario(multipliers);
+  updateValueDisplays();
+}
+
+function setPlaybackVisuals(isRunning) {
+  state.playbackActive = isRunning;
+  document.body.classList.toggle('scenario-playing', isRunning);
+  if (runtimeStatusEl) {
+    runtimeStatusEl.textContent = isRunning ? 'Streaming' : 'Idle';
+    runtimeStatusEl.dataset.state = isRunning ? 'live' : 'idle';
+  }
+}
+
+function startSimulation() {
+  if (simTimer) return;
+  setPlaybackVisuals(true);
+  network.play();
+  advanceSimulation();
+  simTimer = setInterval(() => advanceSimulation(), 1100);
+}
+
+function stopSimulation() {
+  if (simTimer) {
+    clearInterval(simTimer);
+    simTimer = null;
+  }
+  setPlaybackVisuals(false);
+  network.pause();
+}
+
+function advanceSimulation() {
+  liveSnapshot.time = (liveSnapshot.time || 8) + 0.18;
+  if (liveSnapshot.time > 18.5) {
+    liveSnapshot.time = 8 + (liveSnapshot.time - 18.5);
+  }
+  updateClock();
+  liveSnapshot = computeLiveLoad(liveSnapshot.time);
+  applyLiveMultipliers();
+  highlightTimeline(liveSnapshot.time);
+  updateLiveFeed(liveSnapshot);
+  checkAlerts();
+}
+
+function updateClock() {
+  if (!simClockEl) return;
+  const hours = Math.floor(liveSnapshot.time);
+  const minutes = Math.round((liveSnapshot.time - hours) * 60);
+  const padded = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  simClockEl.textContent = padded;
 }
 
 function renderInstrumentStats() {
-  const stats = computeInstrumentStats();
+  const headroom = clamp(1 - latestMetrics.utilization, 0, 1);
+  const videoHealth = clamp(
+    1 - Math.abs(state.levers.bitrate - 1) * 0.4 - latestMetrics.latency / 80 + (state.levers.guestLock ? 0.08 : 0),
+    0,
+    1
+  );
+  const sla = clamp(
+    0.92 - Math.max(0, latestMetrics.latency - state.overrides.threshold / 3) / 60 + headroom * 0.4,
+    0,
+    1
+  );
+  const resilience = clamp(0.55 + (state.levers.devices - 2) * 0.02 + (state.levers.guestLock ? 0.08 : 0), 0, 1);
+  const stats = { throughput: headroom, packet: videoHealth, sla, resilience };
+
   Object.entries(stats).forEach(([key, value]) => {
     const el = statDisplays[key];
     if (!el) return;
     const percent = Math.round(value * 100);
     const strong = el.querySelector('strong');
     const bar = el.querySelector('.stat-bar span');
-    strong.textContent = key === 'packet' ? `${percent}% healthy` : `${percent}%`;
+    strong.textContent = key === 'packet' ? `${percent}% smooth` : `${percent}%`;
     bar.style.width = `${percent}%`;
   });
 }
 
+function updateNetworkHealth(loss = 0) {
+  if (!networkHealthEl) return;
+  const pct = Math.round(loss * 100);
+  let label = 'Healthy';
+  let stateAttr = 'live';
+  if (loss > 0.22) {
+    label = `Downstream loss ${pct}%`;
+    stateAttr = 'warn';
+  } else if (loss > 0.12) {
+    label = `Lossy ${pct}%`;
+    stateAttr = 'warn';
+  } else if (loss > 0.06) {
+    label = `Degraded ${pct}%`;
+    stateAttr = 'warn';
+  }
+  networkHealthEl.textContent = label;
+  networkHealthEl.dataset.state = stateAttr;
+}
+
+function updateValueDisplays() {
+  if (valueDisplays.scenarioPreset) valueDisplays.scenarioPreset.textContent = state.scenario.title;
+  if (valueDisplays.aiLoad) valueDisplays.aiLoad.textContent = `${Math.round(state.aiLoad * 100)}%`;
+  if (valueDisplays.classes) valueDisplays.classes.textContent = state.overrides.concurrent;
+  if (valueDisplays.labs) valueDisplays.labs.textContent = state.overrides.labs;
+  if (valueDisplays.threshold) valueDisplays.threshold.textContent = `${state.overrides.threshold}%`;
+  if (valueDisplays.bitrate) {
+    const label = state.levers.bitrate >= 1.4 ? '4K' : state.levers.bitrate >= 1.1 ? 'HD' : 'SD';
+    valueDisplays.bitrate.textContent = label;
+  }
+  if (valueDisplays.devices) valueDisplays.devices.textContent = state.levers.devices;
+  if (valueDisplays.guestLock) valueDisplays.guestLock.textContent = state.levers.guestLock ? '(locked)' : '(open)';
+}
+
+function updateHeroMetrics() {
+  const activeEl = document.getElementById('metric-active-classes');
+  const streamEl = document.getElementById('metric-stream');
+  const alertsEl = document.getElementById('metric-alerts');
+  if (activeEl) activeEl.textContent = liveSnapshot.activeClasses;
+  if (streamEl) streamEl.textContent = `${Math.max(0, liveSnapshot.bandwidth)} Mbps`;
+  if (alertsEl) alertsEl.textContent = state.alerts.length;
+}
+
+function highlightTimeline(time) {
+  timelineEl.querySelectorAll('.timeline-slot').forEach((slot) => {
+    const start = parseFloat(slot.dataset.start);
+    const end = parseFloat(slot.dataset.end);
+    const playing = time >= start && time <= end;
+    slot.classList.toggle('playing', playing);
+    slot.classList.toggle('live', playing);
+  });
+}
+
+function updateLiveFeed(live) {
+  liveFeedEl.innerHTML = '';
+  if (!live.activeSlots.length) {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="room">No classes active</span><span class="load">Playback fast-forwards time.</span>`;
+    liveFeedEl.appendChild(li);
+    return;
+  }
+  live.activeSlots.slice(0, 5).forEach((slot) => {
+    const li = document.createElement('li');
+    const pill = document.createElement('span');
+    pill.className = 'pill';
+    pill.textContent = slot.label;
+    const room = document.createElement('span');
+    room.className = 'room';
+    room.textContent = slot.room;
+    const load = document.createElement('span');
+    load.className = 'load';
+    load.textContent = `${Math.round(state.levers.bitrate * 100)}% video · ${Math.round(slot.duration * 45)} min`;
+    li.appendChild(room);
+    li.appendChild(pill);
+    li.appendChild(load);
+    liveFeedEl.appendChild(li);
+  });
+}
+
+function seedAlerts(profileKey) {
+  const notes = reliabilityLibrary[profileKey] || reliabilityLibrary.campus || [];
+  state.alerts = notes.slice(0, 3).map((note) => ({
+    title: note.title,
+    detail: note.detail,
+    tone: note.status === 'alert' ? 'alert' : note.status === 'scheduled' ? 'warn' : 'info',
+  }));
+  renderAlerts();
+}
+
+function addAlert(detail, tone = 'info') {
+  const last = state.alerts[state.alerts.length - 1];
+  if (last && last.detail === detail && last.tone === tone) return;
+  const entry = { title: 'Live event', detail, tone };
+  state.alerts.push(entry);
+  if (state.alerts.length > 12) state.alerts.shift();
+  renderAlerts();
+}
+
+function renderAlerts() {
+  reliabilityRow.innerHTML = '';
+  state.alerts.slice(-5).forEach((note) => {
+    const chip = document.createElement('div');
+    chip.className = 'reliability-chip';
+    chip.dataset.status = note.tone === 'alert' ? 'alert' : note.tone === 'warn' ? 'scheduled' : 'info';
+    chip.innerHTML = `<strong>${note.title}</strong><span>${note.detail}</span>`;
+    reliabilityRow.appendChild(chip);
+  });
+
+  liveEventsEl.innerHTML = '';
+  state.alerts
+    .slice()
+    .reverse()
+    .slice(0, 4)
+    .forEach((note) => {
+      const item = document.createElement('div');
+      item.className = 'live-event';
+      item.dataset.tone = note.tone;
+      item.textContent = note.detail;
+      liveEventsEl.appendChild(item);
+    });
+  updateHeroMetrics();
+}
+
+function checkAlerts() {
+  const utilizationPct = Math.round(latestMetrics.utilization * 100);
+  const threshold = state.overrides.threshold;
+  if (utilizationPct > threshold) addAlert(`Load reached ${utilizationPct}% (over ${threshold}% threshold).`, 'alert');
+  if (state.levers.guestLock && state.overrides.guest === 'spike') {
+    addAlert('Guest Wi‑Fi locked while a spike scenario is running.', 'warn');
+  }
+  if (liveSnapshot.activeClasses >= 4 && state.levers.bitrate > 1.3) {
+    addAlert('Multiple HD classes detected — expect higher jitter.', 'warn');
+  }
+}
+
 aiSlider.addEventListener('input', (event) => {
   state.aiLoad = parseFloat(event.target.value);
-  applyScenario();
+  updateValueDisplays();
+  applyLiveMultipliers();
 });
 
-Object.entries(instrumentControls).forEach(([key, input]) => {
-  const eventName = input.type === 'checkbox' || input.tagName === 'SELECT' ? 'change' : 'input';
+Object.entries(leverControls).forEach(([key, input]) => {
+  const eventName = input.type === 'checkbox' ? 'change' : 'input';
   input.addEventListener(eventName, () => {
-    if (key === 'powerMode') {
-      state.instruments.powerMode = input.value;
-    } else if (key === 'failover' || key === 'lockdown') {
-      state.instruments[key] = input.checked;
-    } else {
-      state.instruments[key] = Number(input.value);
-    }
-    state.activePlaybook = null;
-    renderPlaybooks();
-    applyScenario();
+    if (key === 'guestLock') state.levers.guestLock = input.checked;
+    else if (key === 'devices') state.levers.devices = Number(input.value);
+    else state.levers.bitrate = parseFloat(input.value);
+    updateValueDisplays();
+    applyLiveMultipliers();
   });
 });
-
-function renderPlaybooks() {
-  playbookList.innerHTML = '';
-  simulationPlaybooks.forEach((play) => {
-    const li = document.createElement('li');
-    li.className = 'playbook-entry';
-    if (state.activePlaybook === play.id) {
-      li.dataset.active = 'true';
-    }
-    li.innerHTML = `<h4>${play.title}</h4><p>${play.blurb}</p>`;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = state.activePlaybook === play.id ? 'btn ghost' : 'btn secondary';
-    btn.textContent = state.activePlaybook === play.id ? 'Active' : 'Load Playbook';
-    btn.disabled = state.activePlaybook === play.id;
-    btn.addEventListener('click', () => loadPlaybook(play));
-    li.appendChild(btn);
-    playbookList.appendChild(li);
-  });
-}
-
-function loadPlaybook(playbook) {
-  state.activePlaybook = playbook.id;
-  scenarioPanel.setScenario(playbook.scenario, { silent: true });
-  state.scenarioKey = playbook.scenario;
-  state.scenario = scenarios[playbook.scenario];
-  state.overrides = { ...playbook.overrides };
-  state.aiLoad = playbook.aiLoad;
-  aiSlider.value = playbook.aiLoad;
-  document.getElementById('input-classes').value = playbook.overrides.concurrent;
-  document.getElementById('input-labs').value = playbook.overrides.labs;
-  document.getElementById('input-guest').value = playbook.overrides.guest;
-  document.getElementById('input-threshold').value = playbook.overrides.threshold;
-  Object.entries(playbook.instruments).forEach(([key, value]) => {
-    const control = instrumentControls[key];
-    if (!control) return;
-    if (typeof value === 'boolean') {
-      state.instruments[key] = value;
-      control.checked = value;
-    } else if (key === 'powerMode') {
-      state.instruments.powerMode = value;
-      control.value = value;
-    } else {
-      state.instruments[key] = Number(value);
-      control.value = value;
-    }
-  });
-  renderPlaybooks();
-  applyScenario({ refreshTopology: true, announce: true });
-}
 
 const timelineBtn = document.getElementById('timeline-play');
 timelineBtn.addEventListener('click', () => {
-  state.playbackActive = true;
-  network.play();
+  startSimulation();
   pulseTimeline(timelineEl);
 });
 
 const startBtn = document.getElementById('start-simulation');
 const stopBtn = document.getElementById('stop-simulation');
 
-startBtn.addEventListener('click', (event) => {
-  state.playbackActive = true;
-  const btn = event.currentTarget;
-  btn.textContent = 'Scenario playing...';
-  network.play();
-  const burst = computeMultipliers();
-  burst.load = clamp(burst.load + 0.2, 0.5, 2.6);
-  network.applyScenario(burst);
-  pulseTimeline(timelineEl);
-  setTimeout(() => {
-    btn.textContent = 'Start Scenario Playback';
-    applyScenario();
-  }, 2200);
+startBtn.addEventListener('click', () => {
+  startSimulation();
+  startBtn.textContent = 'Streaming...';
+  stopBtn.textContent = 'Pause';
 });
 
 stopBtn.addEventListener('click', () => {
-  state.playbackActive = false;
-  network.pause();
-  startBtn.textContent = 'Start Scenario Playback';
-  resetTimelinePulse();
+  stopSimulation();
+  startBtn.textContent = 'Resume Streaming';
+  stopBtn.textContent = 'Paused';
 });
-
-function resetTimelinePulse() {
-  timelineEl.querySelectorAll('.timeline-slot').forEach((slot) => slot.classList.remove('playing'));
-}
 
 const toggleBtn = document.getElementById('toggle-dark');
-toggleBtn.addEventListener('click', () => {
-  document.body.classList.toggle('light');
-});
+toggleBtn.addEventListener('click', () => document.body.classList.toggle('light'));
 
 const handleToggleBtn = document.getElementById('toggle-handle-visibility');
 handleToggleBtn.addEventListener('click', () => {
@@ -354,6 +523,192 @@ handleToggleBtn.addEventListener('click', () => {
   handleToggleBtn.textContent = state.handlesVisible ? 'Hide Wire Handles' : 'Show Wire Handles';
 });
 handleToggleBtn.textContent = 'Hide Wire Handles';
+setPlaybackVisuals(false);
+
+const sidebarToggleBtn = document.getElementById('toggle-sidebar');
+sidebarToggleBtn.addEventListener('click', () => {
+  document.body.classList.toggle('sidebar-hidden');
+  sidebarToggleBtn.textContent = document.body.classList.contains('sidebar-hidden') ? 'Show Controls' : 'Hide Controls';
+});
+sidebarToggleBtn.textContent = 'Hide Controls';
+
+function wireWorkshop() {
+  if (!nodeFormEls.placeBtn) return;
+  nodeFormEls.name.addEventListener('input', syncFormPreview);
+  nodeFormEls.icon.addEventListener('input', syncFormPreview);
+  nodeFormEls.color.addEventListener('input', syncFormPreview);
+
+  nodeFormEls.placeBtn.addEventListener('click', () => {
+    const payload = collectNodeForm();
+    state.pendingPlacement = payload;
+    setInspectorStatus('Click the main canvas to place this node', 'live');
+    const handle = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width;
+      const y = (event.clientY - rect.top) / rect.height;
+      addCustomNode({ ...payload, position: { x: clamp(x, 0.05, 0.95), y: clamp(y, 0.05, 0.95) } });
+      state.pendingPlacement = null;
+      setInspectorStatus('Node added to custom topology', 'live');
+    };
+    canvas.addEventListener(
+      'click',
+      (event) => {
+        event.stopPropagation();
+        handle(event);
+      },
+      { once: true }
+    );
+  });
+
+  nodeFormEls.resetBtn.addEventListener('click', resetNodeForm);
+  nodeFormEls.connectBtn.addEventListener('click', addCustomLink);
+  nodeFormEls.applyBtn.addEventListener('click', applyCustomTopology);
+  syncFormPreview();
+}
+
+function collectNodeForm() {
+  const role = nodeFormEls.role.value || 'edge';
+  const name = nodeFormEls.name.value.trim() || `Node ${state.customNodes.length + 1}`;
+  const campus = nodeFormEls.campus.value.trim() || 'Custom';
+  const icon = (nodeFormEls.icon.value.trim() || defaultIcons[role] || 'router.svg').replace(/^\//, '');
+  const color = nodeFormEls.color.value || defaultColors[role];
+  const hardware =
+    nodeFormEls.hardware.value
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean) || defaultHardware[role];
+  const software =
+    nodeFormEls.software.value
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean) || defaultSoftware[role];
+  return { label: name, type: role, campus, icon, color, hardware: hardware.length ? hardware : defaultHardware[role], software: software.length ? software : defaultSoftware[role], status: 'Operational' };
+}
+
+function addCustomNode(node) {
+  const id = `${node.label.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
+  state.customNodes.push({ ...node, id, position: node.position || { x: Math.random(), y: Math.random() } });
+  syncConnectOptions();
+  state.scenarioKey = 'custom';
+  state.scenario = scenarios.custom;
+  scenarioPanel.setScenario('custom', { silent: true });
+  applyScenario({ refreshTopology: true, announce: true });
+}
+
+function addCustomLink() {
+  syncCustomPositionsFromCanvas();
+  const fromId = nodeFormEls.connectFrom.value;
+  const toId = nodeFormEls.connectTo.value;
+  if (!fromId || !toId || fromId === toId) {
+    setInspectorStatus('Pick two different nodes to connect', 'warn');
+    return;
+  }
+  const exists = state.customLinks.some(
+    (link) => (link.source === fromId && link.target === toId) || (link.source === toId && link.target === fromId)
+  );
+  if (exists) {
+    setInspectorStatus('These nodes are already linked', 'warn');
+    return;
+  }
+  state.customLinks.push({
+    id: `link-${Date.now()}`,
+    source: fromId,
+    target: toId,
+    latency: 1 + Math.random() * 2,
+    type: 'custom',
+  });
+  setInspectorStatus('Link added', 'live');
+  applyScenario({ refreshTopology: true });
+}
+
+function syncConnectOptions() {
+  const options = state.customNodes.map((node) => `<option value="${node.id}">${node.label}</option>`).join('');
+  nodeFormEls.connectFrom.innerHTML = options;
+  nodeFormEls.connectTo.innerHTML = options;
+}
+
+function buildCustomTopology() {
+  return { nodes: state.customNodes, links: state.customLinks };
+}
+
+function applyCustomTopology() {
+  syncCustomPositionsFromCanvas();
+  if (!state.customNodes.length) {
+    setInspectorStatus('Add at least one node before applying', 'warn');
+    return;
+  }
+  state.scenarioKey = 'custom';
+  state.scenario = scenarios.custom;
+  scenarioPanel.setScenario('custom', { silent: true });
+  applyScenario({ refreshTopology: true, announce: true });
+}
+
+function resetNodeForm() {
+  nodeFormEls.name.value = '';
+  nodeFormEls.campus.value = '';
+  nodeFormEls.icon.value = '';
+  nodeFormEls.hardware.value = '';
+  nodeFormEls.software.value = '';
+  nodeFormEls.color.value = '#6c7cff';
+  syncFormPreview();
+}
+
+function syncFormPreview() {
+  nodeFormEls.namePreview.textContent = nodeFormEls.name.value.trim() || 'Node';
+  nodeFormEls.iconPreview.textContent = nodeFormEls.icon.value.trim() || 'router';
+  nodeFormEls.colorPreview.textContent = nodeFormEls.color.value || '#6c7cff';
+}
+
+function renderInspector(node) {
+  if (!node) {
+    inspectorEls.status.textContent = 'Awaiting selection';
+    inspectorEls.status.dataset.state = 'idle';
+    inspectorEls.name.textContent = '—';
+    inspectorEls.role.textContent = '—';
+    inspectorEls.campus.textContent = '—';
+    inspectorEls.statusText.textContent = '—';
+    inspectorEls.hardware.innerHTML = '';
+    inspectorEls.software.innerHTML = '';
+    return;
+  }
+  inspectorEls.status.textContent = node.status || 'Operational';
+  inspectorEls.status.dataset.state = node.status && node.status.toLowerCase().includes('degraded') ? 'warn' : 'live';
+  inspectorEls.name.textContent = node.label;
+  inspectorEls.role.textContent = node.type;
+  inspectorEls.campus.textContent = node.campus || 'N/A';
+  inspectorEls.statusText.textContent = `${Math.round(node.displayLoad * 100)}% load`;
+  renderList(inspectorEls.hardware, node.hardware || []);
+  renderList(inspectorEls.software, node.software || []);
+}
+
+function syncCustomPositionsFromCanvas() {
+  if (state.scenarioKey !== 'custom' || !Array.isArray(state.customNodes) || !network.nodes) return;
+  const positionMap = new Map(network.nodes.map((node) => [node.id, node.position]));
+  state.customNodes = state.customNodes.map((node) =>
+    positionMap.has(node.id) ? { ...node, position: positionMap.get(node.id) } : node
+  );
+}
+
+function renderList(el, items) {
+  el.innerHTML = '';
+  if (!items.length) {
+    const li = document.createElement('li');
+    li.textContent = 'Not documented yet';
+    el.appendChild(li);
+    return;
+  }
+  items.forEach((item) => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    el.appendChild(li);
+  });
+}
+
+function setInspectorStatus(text, state = 'idle') {
+  if (!inspectorEls.status) return;
+  inspectorEls.status.textContent = text;
+  inspectorEls.status.dataset.state = state === 'live' ? 'live' : state === 'warn' ? 'warn' : 'idle';
+}
 
 function initDraggables() {
   if (!window.interact) return;
@@ -381,4 +736,7 @@ function initDraggables() {
 }
 
 applyScenario({ refreshTopology: true });
+updateClock();
+updateLiveFeed(liveSnapshot);
 pulseTimeline(timelineEl);
+setPlaybackVisuals(false);

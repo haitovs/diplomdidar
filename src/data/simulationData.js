@@ -120,6 +120,19 @@
       { source: 'node-ar', target: 'node-checkout', latency: 1.2, type: 'mesh' },
     ],
   },
+  custom: {
+    nodes: [
+      {
+        id: 'custom-core',
+        label: 'Custom Core',
+        type: 'core',
+        campus: 'Custom',
+        load: 0.5,
+        position: { x: 0.5, y: 0.4 },
+      },
+    ],
+    links: [],
+  },
 };
 
 export const scenarios = {
@@ -177,9 +190,18 @@ export const scenarios = {
     hero: { campuses: 4, rooms: 26, tickets: 110 },
     topology: 'marketWeekend',
   },
+  custom: {
+    title: 'Custom Playfield',
+    description: 'Design and stream your own topology from the sandbox playfield.',
+    tags: ['DIY nodes', 'Manual wiring', 'Local storage'],
+    multipliers: { load: 1, ai: 1, energy: 1 },
+    profile: 'campus',
+    hero: { campuses: 1, rooms: 12, tickets: 64 },
+    topology: 'custom',
+  },
 };
 
-export const scenarioOrder = ['default', 'exam', 'maintenance', 'school', 'office', 'market'];
+export const scenarioOrder = ['default', 'exam', 'maintenance', 'school', 'office', 'market', 'custom'];
 
 export const schedules = {
   default: [

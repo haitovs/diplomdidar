@@ -23,6 +23,8 @@ export const renderTimeline = (container, blocks = []) => {
       dot.style.width = `${(slot.duration / DAY_RANGE) * 100}%`;
       dot.style.animationDelay = `${index * 0.15}s`;
       dot.dataset.label = `${slot.label}`;
+      dot.dataset.start = slot.start;
+      dot.dataset.end = slot.start + slot.duration;
       track.appendChild(dot);
     });
 
@@ -36,7 +38,7 @@ export const pulseTimeline = (container) => {
     slot.classList.remove('playing');
     requestAnimationFrame(() => {
       setTimeout(() => slot.classList.add('playing'), idx * 40);
-      setTimeout(() => slot.classList.remove('playing'), 1600 + idx * 40);
+      setTimeout(() => slot.classList.remove('playing'), 2000 + idx * 40);
     });
   });
 };

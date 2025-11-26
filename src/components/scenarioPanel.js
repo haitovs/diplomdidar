@@ -20,6 +20,7 @@ export class ScenarioPanel {
       event.preventDefault();
       this.emit();
     });
+    this.formEl.addEventListener('input', () => this.emit());
   }
 
   populateOptions() {
