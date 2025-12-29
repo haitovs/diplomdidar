@@ -1,32 +1,28 @@
-import { NetworkCanvas } from './components/networkCanvas.js';
-import { renderTimeline, pulseTimeline } from './components/timeline.js';
 import { AnalyticsPanel } from './components/analytics.js';
+import { NetworkCanvas } from './components/networkCanvas.js';
 import { ScenarioPanel } from './components/scenarioPanel.js';
-import { scenarios, schedules, reliabilityLibrary, topologyPresets } from './data/simulationData.js';
-import { clamp } from './utils/dom.js';
+import { pulseTimeline, renderTimeline } from './components/timeline.js';
+import {
+    DEFAULT_COLORS,
+    DEFAULT_HARDWARE,
+    DEFAULT_ICONS,
+    DEFAULT_SOFTWARE
+} from './config.js';
+import { reliabilityLibrary, scenarios, schedules, topologyPresets } from './data/simulationData.js';
+import { clamp, getElement } from './utils/dom.js';
+import { initKeyboardShortcuts, showShortcutsHelp } from './utils/keyboard.js';
 
-const defaultHardware = {
-  core: ['10GbE uplinks', 'Dual PSU shelf', 'Fiber ring', 'QoS ASIC'],
-  edge: ['Wi‑Fi 6 APs', 'PoE switches', '5GbE uplink'],
-  lab: ['XR render box', 'GPU workstation', 'LiDAR sensor'],
-  iot: ['BLE beacons', 'Camera NVR', 'UPS battery'],
-};
+// Use config constants for defaults
+const defaultHardware = DEFAULT_HARDWARE;
+const defaultSoftware = DEFAULT_SOFTWARE;
+const defaultColors = DEFAULT_COLORS;
+const defaultIcons = DEFAULT_ICONS;
 
-const defaultSoftware = {
-  core: ['IOS XE 17.x', 'BGP / OSPF', 'NetFlow', 'IPS signatures'],
-  edge: ['Classroom QoS', 'Secure Browser', 'MDM agent'],
-  lab: ['Unity runtime', 'XR streaming', 'VNC daemon'],
-  iot: ['MQTT gateway', 'Edge cache', 'Sensor health agent'],
-};
-
-const defaultColors = { core: '#6c7cff', edge: '#4ee1c1', lab: '#fcb045', iot: '#38bdf8' };
-const defaultIcons = { core: 'router.svg', edge: 'switch.svg', lab: 'lab.svg', iot: 'sensor.svg' };
-
-const aiSlider = document.getElementById('ai-load');
+const aiSlider = getElement('ai-load');
 const leverControls = {
-  bitrate: document.getElementById('instrument-bitrate'),
-  devices: document.getElementById('instrument-devices'),
-  guestLock: document.getElementById('instrument-guestlock'),
+  bitrate: getElement('instrument-bitrate'),
+  devices: getElement('instrument-devices'),
+  guestLock: getElement('instrument-guestlock'),
 };
 
 const inspectorEls = {
@@ -740,3 +736,48 @@ updateClock();
 updateLiveFeed(liveSnapshot);
 pulseTimeline(timelineEl);
 setPlaybackVisuals(false);
+
+// Initialize keyboard shortcuts
+initKeyboardShortcuts({
+  togglePlayback: () => {
+    if (state.playbackActive) {
+      stopSimulation();
+      startBtn.textContent = 'Resume Streaming';
+      stopBtn.textContent = 'Paused';
+    } else {
+      startSimulation();
+      startBtn.textContent = 'Streaming...';
+      stopBtn.textContent = 'Pause';
+    }
+  },
+  stopPlayback: () => {
+    stopSimulation();
+    startBtn.textContent = 'Start Streaming';
+    stopBtn.textContent = 'Pause';
+  },
+  toggleDarkMode: () => document.body.classList.toggle('light'),
+  toggleSidebar: () => {
+    document.body.classList.toggle('sidebar-hidden');
+    sidebarToggleBtn.textContent = document.body.classList.contains('sidebar-hidden') 
+      ? 'Show Controls' 
+      : 'Hide Controls';
+  },
+  toggleHandles: () => {
+    state.handlesVisible = !state.handlesVisible;
+    network.setHandlesVisible(state.handlesVisible);
+    handleToggleBtn.textContent = state.handlesVisible ? 'Hide Wire Handles' : 'Show Wire Handles';
+    updateAriaStates({ handlesVisible: state.handlesVisible });
+  },
+  showHelp: () => showShortcutsHelp(),
+  resetView: () => applyScenario({ refreshTopology: true }),
+  exportPNG: () => exportCanvasPNG(canvas),
+  exportPDF: () => exportPDFReport(),
+});
+
+// Initialize accessibility features
+initAccessibility();
+
+// Initialize export buttons
+initExportButtons({ canvas, getState: () => state });
+
+console.log('Didar Network Simulation initialized. Press ? for keyboard shortcuts.');

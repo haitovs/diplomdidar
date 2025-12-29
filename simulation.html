@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Didar Network - Full Simulation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0a0f1a;
+      color: #f8fafc;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      padding: 12px 20px;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-controls { display: flex; gap: 12px; flex: 1; justify-content: center; }
+    .header-actions { display: flex; gap: 8px; }
+
+    .time-display {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: monospace;
+      background: linear-gradient(135deg, #22c55e, #14b8a6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .speed-controls { display: flex; gap: 4px; align-items: center; }
+    
+    .speed-btn {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    
+    .speed-btn:hover { background: rgba(255, 255, 255, 0.1); }
+    .speed-btn.active { background: rgba(99, 102, 241, 0.3); border-color: #6366f1; color: #a5b4fc; }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+    .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; }
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .btn:hover { transform: translateY(-1px); }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr 280px;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      background: rgba(15, 23, 42, 0.8);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .sidebar-right { border-right: none; border-left: 1px solid rgba(255, 255, 255, 0.1); }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .pattern-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    
+    .pattern-btn {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      color: #e2e8f0;
+      cursor: pointer;
+      font-size: 11px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    
+    .pattern-btn:hover { background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); }
+    .pattern-btn.active { background: rgba(99, 102, 241, 0.2); border-color: #6366f1; }
+    .pattern-btn .icon { font-size: 18px; display: block; margin-bottom: 4px; }
+
+    .failure-list { display: flex; flex-direction: column; gap: 8px; }
+    
+    .failure-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 3px solid #ef4444;
+      border-radius: 6px;
+    }
+    
+    .failure-item.warning { background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; }
+    .failure-icon { font-size: 16px; }
+    .failure-content { flex: 1; }
+    .failure-title { font-size: 12px; font-weight: 600; }
+    .failure-target { font-size: 11px; color: #94a3b8; }
+    .failure-action { background: none; border: none; color: #22c55e; cursor: pointer; font-size: 11px; }
+
+    .metrics-mini { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    
+    .metric-box {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    
+    .metric-value { font-size: 22px; font-weight: 700; color: #22c55e; }
+    .metric-label { font-size: 10px; color: #64748b; text-transform: uppercase; }
+
+    .canvas-area {
+      position: relative;
+      background: #0a0f1a;
+    }
+
+    #simulation-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .toast-container {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease;
+    }
+    
+    .toast.error { background: rgba(239, 68, 68, 0.9); }
+    .toast.warning { background: rgba(245, 158, 11, 0.9); color: #0f172a; }
+    .toast.info { background: rgba(34, 197, 94, 0.9); }
+    
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+    .event-log {
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 11px;
+      font-family: monospace;
+    }
+    
+    .log-entry {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .log-time { color: #64748b; margin-right: 8px; }
+    .log-msg { color: #e2e8f0; }
+    .log-entry.error .log-msg { color: #f87171; }
+    .log-entry.recovery .log-msg { color: #4ade80; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">⚡ Didar Network Simulation</div>
+    
+    <div class="header-controls">
+      <button class="btn btn-secondary" id="btn-rewind">⏪</button>
+      <div class="time-display" id="sim-time">08:00</div>
+      <div class="speed-controls">
+        <button class="speed-btn" data-speed="0.5">0.5×</button>
+        <button class="speed-btn active" data-speed="1">1×</button>
+        <button class="speed-btn" data-speed="2">2×</button>
+        <button class="speed-btn" data-speed="5">5×</button>
+        <button class="speed-btn" data-speed="10">10×</button>
+      </div>
+    </div>
+    
+    <div class="header-actions">
+      <button class="btn btn-primary" id="btn-play">▶ Start</button>
+      <button class="btn btn-warning" id="btn-failure">💥 Failure</button>
+      <button class="btn btn-danger" id="btn-cascade">🔥 Cascade</button>
+      <button class="btn btn-secondary" id="btn-recover">🔧 Recover All</button>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar">
+      <div class="panel">
+        <div class="panel-title">Traffic Pattern</div>
+        <div class="pattern-grid" id="pattern-grid"></div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-title">Active Failures</div>
+        <div class="failure-list" id="failure-list">
+          <div style="color: #64748b; font-size: 12px; text-align: center; padding: 16px;">No active failures</div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-title">Event Log</div>
+        <div class="event-log" id="event-log"></div>
+      </div>
+    </aside>
+
+    <section class="canvas-area">
+      <canvas id="simulation-canvas"></canvas>
+      <div class="toast-container" id="toast-container"></div>
+    </section>
+
+    <aside class="sidebar sidebar-right">
+      <div class="panel">
+        <div class="panel-title">Network Status</div>
+        <div class="metrics-mini">
+          <div class="metric-box">
+            <div class="metric-value" id="m-nodes">0</div>
+            <div class="metric-label">Nodes</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-value" id="m-links">0</div>
+            <div class="metric-label">Links</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-value" id="m-util">0%</div>
+            <div class="metric-label">Utilization</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-value" id="m-failures">0</div>
+            <div class="metric-label">Failures</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-title">Simulation Info</div>
+        <div style="font-size: 12px; color: #94a3b8; line-height: 1.8;">
+          <div><strong>Pattern:</strong> <span id="info-pattern">Classroom</span></div>
+          <div><strong>Speed:</strong> <span id="info-speed">1×</span></div>
+          <div><strong>Frames:</strong> <span id="info-frames">0</span></div>
+          <div><strong>Status:</strong> <span id="info-status">Stopped</span></div>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <div class="panel-title">Quick Actions</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button class="btn btn-secondary" id="btn-spike" style="width: 100%;">📈 Traffic Spike</button>
+          <button class="btn btn-secondary" id="btn-screenshot" style="width: 100%;">📷 Screenshot</button>
+          <button class="btn btn-secondary" id="btn-reset" style="width: 100%;">🔄 Reset</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script type="module">
+    import { CanvasRenderer } from './src/rendering/CanvasRenderer.js';
+    import { SimulationController, TRAFFIC_PATTERNS, FAILURE_TYPES } from './src/engine/SimulationController.js';
+    import { MetricsCollector } from './src/analytics/MetricsCollector.js';
+
+    // Demo topology
+    const topology = {
+      nodes: [
+        { id: 'internet', label: 'Internet', type: 'cloud', position: { x: 0.5, y: 0.08 } },
+        { id: 'firewall', label: 'Firewall', type: 'firewall', position: { x: 0.5, y: 0.22 } },
+        { id: 'core1', label: 'Core-1', type: 'coreRouter', position: { x: 0.3, y: 0.4 } },
+        { id: 'core2', label: 'Core-2', type: 'coreRouter', position: { x: 0.7, y: 0.4 } },
+        { id: 'sw1', label: 'Switch-A', type: 'switch', position: { x: 0.15, y: 0.6 } },
+        { id: 'sw2', label: 'Switch-B', type: 'switch', position: { x: 0.5, y: 0.6 } },
+        { id: 'sw3', label: 'Switch-C', type: 'switch', position: { x: 0.85, y: 0.6 } },
+        { id: 'ap1', label: 'AP-Lab', type: 'accessPoint', position: { x: 0.1, y: 0.82 } },
+        { id: 'srv1', label: 'App Server', type: 'server', position: { x: 0.3, y: 0.82 } },
+        { id: 'srv2', label: 'DB Server', type: 'server', position: { x: 0.5, y: 0.82 } },
+        { id: 'lab1', label: 'XR Lab', type: 'lab', position: { x: 0.7, y: 0.82 } },
+        { id: 'iot1', label: 'Sensors', type: 'iot', position: { x: 0.9, y: 0.82 } },
+      ],
+      links: [
+        { id: 'l1', source: 'internet', target: 'firewall', type: 'wan' },
+        { id: 'l2', source: 'firewall', target: 'core1', type: 'fiber' },
+        { id: 'l3', source: 'firewall', target: 'core2', type: 'fiber' },
+        { id: 'l4', source: 'core1', target: 'core2', type: 'fiber' },
+        { id: 'l5', source: 'core1', target: 'sw1', type: 'ethernet' },
+        { id: 'l6', source: 'core1', target: 'sw2', type: 'ethernet' },
+        { id: 'l7', source: 'core2', target: 'sw2', type: 'ethernet' },
+        { id: 'l8', source: 'core2', target: 'sw3', type: 'ethernet' },
+        { id: 'l9', source: 'sw1', target: 'ap1', type: 'ethernet' },
+        { id: 'l10', source: 'sw1', target: 'srv1', type: 'ethernet' },
+        { id: 'l11', source: 'sw2', target: 'srv2', type: 'ethernet' },
+        { id: 'l12', source: 'sw3', target: 'lab1', type: 'ethernet' },
+        { id: 'l13', source: 'sw3', target: 'iot1', type: 'wireless' },
+      ],
+    };
+
+    // Initialize
+    const canvas = document.getElementById('simulation-canvas');
+    const renderer = new CanvasRenderer(canvas, { showGrid: true });
+    const metricsCollector = new MetricsCollector();
+
+    // Preload icons
+    const iconCache = new Map();
+    const iconNames = ['router', 'switch', 'server', 'firewall', 'wifi', 'sensor', 'cloud', 'lab'];
+    
+    Promise.all(iconNames.map(name => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = `icons/${name}.svg`;
+        img.onload = () => { iconCache.set(name + '.svg', img); iconCache.set(name, img); resolve(); };
+        img.onerror = () => resolve();
+      });
+    })).then(() => {
+      renderer.setIconCache(iconCache);
+      renderer.setTopology(topology);
+      updateStats();
+    });
+
+    // Initialize simulation controller
+    const simController = new SimulationController(renderer, {
+      onTick: (state) => {
+        document.getElementById('sim-time').textContent = state.formattedTime;
+        document.getElementById('info-frames').textContent = state.frame;
+        metricsCollector.update({
+          nodes: renderer.nodes,
+          links: renderer.links,
+          particles: renderer.particleSystem.getCount(),
+        });
+        updateStats();
+      },
+      onAlert: (alert) => {
+        showToast(alert.message, alert.type === 'failure' ? 'error' : 'info');
+        addLogEntry(alert.message, alert.type);
+        updateFailureList();
+      },
+    });
+
+    // Render pattern buttons
+    const patternGrid = document.getElementById('pattern-grid');
+    const patternIcons = {
+      classroom: '📚', exam: '📝', lab: '🔬', streaming: '🎥',
+      idle: '😴', ddos: '☠️', backup: '💾',
+    };
+    
+    Object.entries(TRAFFIC_PATTERNS).forEach(([key, pattern]) => {
+      const btn = document.createElement('button');
+      btn.className = `pattern-btn ${key === 'classroom' ? 'active' : ''}`;
+      btn.dataset.pattern = key;
+      btn.innerHTML = `<span class="icon">${patternIcons[key] || '📊'}</span>${pattern.label}`;
+      btn.addEventListener('click', () => {
+        patternGrid.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        simController.setTrafficPattern(key);
+        document.getElementById('info-pattern').textContent = pattern.label;
+      });
+      patternGrid.appendChild(btn);
+    });
+
+    // UI Controls
+    const playBtn = document.getElementById('btn-play');
+    let isRunning = false;
+    
+    playBtn.addEventListener('click', () => {
+      if (isRunning) {
+        simController.pause();
+        playBtn.innerHTML = '▶ Resume';
+        document.getElementById('info-status').textContent = 'Paused';
+      } else {
+        simController.start();
+        playBtn.innerHTML = '⏸ Pause';
+        document.getElementById('info-status').textContent = 'Running';
+      }
+      isRunning = !isRunning;
+    });
+
+    document.getElementById('btn-rewind').addEventListener('click', () => {
+      simController.setTime(8.0);
+    });
+
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const speed = parseFloat(btn.dataset.speed);
+        simController.setSpeed(speed);
+        document.getElementById('info-speed').textContent = speed + '×';
+      });
+    });
+
+    document.getElementById('btn-failure').addEventListener('click', () => {
+      const failure = simController.triggerRandomFailure();
+      if (failure) {
+        addLogEntry(`Triggered: ${failure.label} on ${failure.targetId}`, 'error');
+      }
+    });
+
+    document.getElementById('btn-cascade').addEventListener('click', () => {
+      const randomNode = renderer.nodes[Math.floor(Math.random() * renderer.nodes.length)];
+      simController.triggerCascade(randomNode.id);
+      addLogEntry(`Cascade started from ${randomNode.id}`, 'error');
+    });
+
+    document.getElementById('btn-recover').addEventListener('click', () => {
+      const recovered = simController.recoverAll();
+      addLogEntry(`Recovered ${recovered.length} failures`, 'recovery');
+      updateFailureList();
+    });
+
+    document.getElementById('btn-spike').addEventListener('click', () => {
+      const randomNode = renderer.nodes[Math.floor(Math.random() * renderer.nodes.length)];
+      simController.createTrafficSpike(randomNode.id, 1.0, 5000);
+      showToast(`Traffic spike on ${randomNode.label}`, 'warning');
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      simController.reset();
+      addLogEntry('Simulation reset', 'recovery');
+    });
+
+    document.getElementById('btn-screenshot').addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = `simulation-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // Helper functions
+    function updateStats() {
+      const metrics = metricsCollector.getCurrent();
+      document.getElementById('m-nodes').textContent = renderer.nodes.length;
+      document.getElementById('m-links').textContent = renderer.links.length;
+      document.getElementById('m-util').textContent = metrics.utilization + '%';
+      document.getElementById('m-failures').textContent = simController.failureSim.getActiveFailures().length;
+    }
+
+    function updateFailureList() {
+      const list = document.getElementById('failure-list');
+      const failures = simController.failureSim.getActiveFailures();
+      
+      if (failures.length === 0) {
+        list.innerHTML = '<div style="color: #64748b; font-size: 12px; text-align: center; padding: 16px;">No active failures</div>';
+        return;
+      }
+      
+      list.innerHTML = failures.map(f => `
+        <div class="failure-item ${f.severity}">
+          <span class="failure-icon">${f.severity === 'critical' ? '🔴' : '🟡'}</span>
+          <div class="failure-content">
+            <div class="failure-title">${f.label}</div>
+            <div class="failure-target">${f.targetId}</div>
+          </div>
+          <button class="failure-action" data-id="${f.id}">Recover</button>
+        </div>
+      `).join('');
+      
+      list.querySelectorAll('.failure-action').forEach(btn => {
+        btn.addEventListener('click', () => {
+          simController.failureSim.recover(btn.dataset.id);
+          updateFailureList();
+        });
+      });
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${type === 'error' ? '⚠️' : type === 'warning' ? '📢' : '✅'}</span>${message}`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    function addLogEntry(message, type = 'info') {
+      const log = document.getElementById('event-log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+      entry.innerHTML = `<span class="log-time">${time}</span><span class="log-msg">${message}</span>`;
+      log.insertBefore(entry, log.firstChild);
+      if (log.children.length > 50) log.lastChild.remove();
+    }
+
+    // Start with renderer visible
+    renderer.start();
+  </script>
+</body>
+</html>

@@ -1,4 +1,13 @@
-﻿import { clamp, lerp } from '../utils/dom.js';
+﻿import { clamp, debounce, lerp } from '../utils/dom.js';
+
+// Performance configuration
+const PERFORMANCE = {
+  TARGET_FPS: 30,
+  MIN_FRAME_TIME: 1000 / 60, // 16.67ms
+  MAX_FRAME_TIME: 1000 / 15, // 66ms
+  RESIZE_DEBOUNCE_MS: 150,
+  METRIC_INTERVAL: 40, // frames between metric updates
+};
 
 export class NetworkCanvas {
   constructor(canvas, tooltip) {
@@ -33,6 +42,16 @@ export class NetworkCanvas {
     this.nodeSelectCallback = null;
     this.flowScale = 1;
 
+    // Performance tracking
+    this.lastFrameTime = 0;
+    this.frameTime = 0;
+    this.targetFrameTime = 1000 / PERFORMANCE.TARGET_FPS;
+    this.dirty = true; // Flag to track if redraw is needed
+    this.rafId = null;
+    this.fps = 0;
+    this.fpsCounter = 0;
+    this.lastFpsUpdate = 0;
+
     this.handleResize = this.handleResize.bind(this);
     this.handlePointerMove = this.handlePointerMove.bind(this);
     this.hideTooltip = this.hideTooltip.bind(this);
@@ -41,14 +60,47 @@ export class NetworkCanvas {
     this.endNodeDrag = this.endNodeDrag.bind(this);
     this.loop = this.loop.bind(this);
 
+    // Debounced resize handler
+    this._debouncedResize = debounce(this.handleResize, PERFORMANCE.RESIZE_DEBOUNCE_MS);
+
     this.handleResize();
-    window.addEventListener('resize', this.handleResize);
+    window.addEventListener('resize', this._debouncedResize);
     canvas.addEventListener('pointermove', this.handlePointerMove);
     canvas.addEventListener('pointerleave', this.hideTooltip);
     canvas.addEventListener('pointerdown', this.beginNodeDrag);
     window.addEventListener('pointermove', this.moveNodeDrag);
     window.addEventListener('pointerup', this.endNodeDrag);
     this.loop();
+  }
+
+  /**
+   * Cleanup method to remove event listeners
+   */
+  destroy() {
+    window.removeEventListener('resize', this._debouncedResize);
+    this.canvas.removeEventListener('pointermove', this.handlePointerMove);
+    this.canvas.removeEventListener('pointerleave', this.hideTooltip);
+    this.canvas.removeEventListener('pointerdown', this.beginNodeDrag);
+    window.removeEventListener('pointermove', this.moveNodeDrag);
+    window.removeEventListener('pointerup', this.endNodeDrag);
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+  }
+
+  /**
+   * Mark canvas as needing redraw
+   */
+  markDirty() {
+    this.dirty = true;
+  }
+
+  /**
+   * Get current FPS for debugging
+   */
+  getFPS() {
+    return this.fps;
   }
 
   setNodeSelectCallback(cb) {
@@ -315,17 +367,43 @@ export class NetworkCanvas {
     return this.paused;
   }
 
-  loop() {
-    this.frame += 1;
-    if (!this.paused) {
-      this.updateLoads();
-      if (this.frame % 40 === 0 && this.metricCallback) {
-        const metrics = this.collectMetrics();
-        this.metricCallback(metrics);
+  loop(timestamp = 0) {
+    // Frame budgeting - skip frames if we're ahead of target
+    const elapsed = timestamp - this.lastFrameTime;
+    
+    // Update FPS counter
+    this.fpsCounter++;
+    if (timestamp - this.lastFpsUpdate >= 1000) {
+      this.fps = this.fpsCounter;
+      this.fpsCounter = 0;
+      this.lastFpsUpdate = timestamp;
+    }
+
+    // Only process if enough time has passed (frame budget)
+    if (elapsed >= this.targetFrameTime) {
+      this.frameTime = elapsed;
+      this.lastFrameTime = timestamp - (elapsed % this.targetFrameTime);
+      this.frame += 1;
+
+      if (!this.paused) {
+        this.updateLoads();
+        this.dirty = true; // Loads changed, need redraw
+        
+        // Emit metrics at interval
+        if (this.frame % PERFORMANCE.METRIC_INTERVAL === 0 && this.metricCallback) {
+          const metrics = this.collectMetrics();
+          this.metricCallback(metrics);
+        }
+      }
+
+      // Only redraw if dirty (something changed)
+      if (this.dirty) {
+        this.drawScene();
+        this.dirty = false;
       }
     }
-    this.drawScene();
-    requestAnimationFrame(this.loop);
+
+    this.rafId = requestAnimationFrame(this.loop);
   }
 
   updateLoads() {

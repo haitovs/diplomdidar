@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Didar Network - Analytics Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0a0f1a;
+      color: #f8fafc;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      padding: 12px 20px;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #22c55e, #14b8a6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      color: #22c55e;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 320px 280px;
+      overflow: hidden;
+    }
+
+    .canvas-area {
+      position: relative;
+      background: #0a0f1a;
+    }
+
+    #analytics-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .time-control {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 24px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+    }
+
+    .time-display {
+      font-size: 24px;
+      font-weight: 700;
+      font-family: monospace;
+      color: #22c55e;
+    }
+
+    .speed-control {
+      display: flex;
+      gap: 4px;
+    }
+
+    .speed-btn {
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .speed-btn.active {
+      background: rgba(34, 197, 94, 0.2);
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+
+    .sidebar {
+      background: rgba(15, 23, 42, 0.8);
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      overflow-y: auto;
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">📊 Analytics Dashboard</div>
+    <div class="header-controls">
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span id="sim-status">Running</span>
+      </div>
+      <button class="btn btn-secondary" id="btn-pause">⏸ Pause</button>
+      <button class="btn btn-primary" id="btn-screenshot">📷 Screenshot</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="canvas-area">
+      <canvas id="analytics-canvas"></canvas>
+      <div class="time-control">
+        <button class="btn btn-secondary" id="btn-rewind">⏪</button>
+        <div class="time-display" id="sim-time">08:00</div>
+        <div class="speed-control">
+          <button class="speed-btn" data-speed="0.5">0.5x</button>
+          <button class="speed-btn active" data-speed="1">1x</button>
+          <button class="speed-btn" data-speed="2">2x</button>
+          <button class="speed-btn" data-speed="5">5x</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="sidebar" id="analytics-sidebar">
+      <div class="sidebar-title">Live Metrics</div>
+      <div id="analytics-panel"></div>
+    </aside>
+
+    <aside class="sidebar" id="detail-sidebar">
+      <div class="sidebar-title">Node Details</div>
+      <div id="node-detail"></div>
+    </aside>
+  </main>
+
+  <script type="module">
+    import { CanvasRenderer } from './src/rendering/CanvasRenderer.js';
+    import { MetricsCollector } from './src/analytics/MetricsCollector.js';
+    import { AnalyticsPanel } from './src/analytics/AnalyticsPanel.js';
+    import { NodeDetailView } from './src/analytics/NodeDetailView.js';
+
+    // Demo topology
+    const demoTopology = {
+      nodes: [
+        { id: 'internet', label: 'Internet', type: 'cloud', position: { x: 0.5, y: 0.08 }, load: 0.4 },
+        { id: 'firewall', label: 'Firewall', type: 'firewall', position: { x: 0.5, y: 0.22 }, load: 0.6 },
+        { id: 'core1', label: 'Core-1', type: 'coreRouter', position: { x: 0.3, y: 0.4 }, load: 0.7 },
+        { id: 'core2', label: 'Core-2', type: 'coreRouter', position: { x: 0.7, y: 0.4 }, load: 0.65 },
+        { id: 'sw1', label: 'Switch-A', type: 'switch', position: { x: 0.15, y: 0.6 }, load: 0.5 },
+        { id: 'sw2', label: 'Switch-B', type: 'switch', position: { x: 0.45, y: 0.6 }, load: 0.45 },
+        { id: 'sw3', label: 'Switch-C', type: 'switch', position: { x: 0.75, y: 0.6 }, load: 0.55 },
+        { id: 'ap1', label: 'AP-Lab', type: 'accessPoint', position: { x: 0.1, y: 0.82 }, load: 0.7 },
+        { id: 'srv1', label: 'App Server', type: 'server', position: { x: 0.3, y: 0.82 }, load: 0.85 },
+        { id: 'srv2', label: 'DB Server', type: 'server', position: { x: 0.5, y: 0.82 }, load: 0.6 },
+        { id: 'lab1', label: 'XR Lab', type: 'lab', position: { x: 0.7, y: 0.82 }, load: 0.9 },
+        { id: 'iot1', label: 'Sensors', type: 'iot', position: { x: 0.9, y: 0.82 }, load: 0.25 },
+      ],
+      links: [
+        { id: 'l1', source: 'internet', target: 'firewall', type: 'wan' },
+        { id: 'l2', source: 'firewall', target: 'core1', type: 'fiber' },
+        { id: 'l3', source: 'firewall', target: 'core2', type: 'fiber' },
+        { id: 'l4', source: 'core1', target: 'core2', type: 'fiber' },
+        { id: 'l5', source: 'core1', target: 'sw1', type: 'ethernet' },
+        { id: 'l6', source: 'core1', target: 'sw2', type: 'ethernet' },
+        { id: 'l7', source: 'core2', target: 'sw2', type: 'ethernet' },
+        { id: 'l8', source: 'core2', target: 'sw3', type: 'ethernet' },
+        { id: 'l9', source: 'sw1', target: 'ap1', type: 'ethernet' },
+        { id: 'l10', source: 'sw1', target: 'srv1', type: 'ethernet' },
+        { id: 'l11', source: 'sw2', target: 'srv2', type: 'ethernet' },
+        { id: 'l12', source: 'sw3', target: 'lab1', type: 'ethernet' },
+        { id: 'l13', source: 'sw3', target: 'iot1', type: 'wireless' },
+      ],
+    };
+
+    // Initialize canvas renderer
+    const canvas = document.getElementById('analytics-canvas');
+    const renderer = new CanvasRenderer(canvas, { showGrid: true });
+
+    // Preload icons
+    const iconCache = new Map();
+    const iconNames = ['router', 'switch', 'server', 'firewall', 'wifi', 'sensor', 'cloud', 'lab'];
+    
+    Promise.all(iconNames.map(name => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = `icons/${name}.svg`;
+        img.onload = () => {
+          iconCache.set(name + '.svg', img);
+          iconCache.set(name, img);
+          resolve();
+        };
+        img.onerror = () => resolve();
+      });
+    })).then(() => {
+      renderer.setIconCache(iconCache);
+      renderer.setTopology(demoTopology);
+      renderer.start();
+      
+      // Start simulation loop
+      startSimulation();
+    });
+
+    // Initialize metrics collector
+    const metricsCollector = new MetricsCollector();
+
+    // Initialize analytics panel
+    const analyticsPanel = new AnalyticsPanel(
+      document.getElementById('analytics-panel'),
+      metricsCollector
+    );
+
+    // Initialize node detail view
+    const nodeDetailView = new NodeDetailView(
+      document.getElementById('node-detail'),
+      metricsCollector
+    );
+
+    // Track simulation time
+    let simTime = 8.0; // 8:00 AM
+    let simSpeed = 1;
+    let isPaused = false;
+
+    // Simulation loop
+    function startSimulation() {
+      setInterval(() => {
+        if (isPaused) return;
+        
+        // Advance simulation time
+        simTime += 0.01 * simSpeed;
+        if (simTime >= 18) simTime = 8;
+        
+        // Update time display
+        const hours = Math.floor(simTime);
+        const minutes = Math.floor((simTime - hours) * 60);
+        document.getElementById('sim-time').textContent = 
+          `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        
+        // Simulate varying load based on time
+        const busyHours = simTime >= 9 && simTime <= 12 || simTime >= 14 && simTime <= 17;
+        const loadMultiplier = busyHours ? 1.2 : 0.7;
+        
+        renderer.nodes.forEach(node => {
+          const baseLoad = 0.3 + Math.random() * 0.4;
+          node.targetLoad = Math.min(1, baseLoad * loadMultiplier + Math.random() * 0.2);
+        });
+        
+        // Update metrics
+        metricsCollector.update({
+          nodes: renderer.nodes,
+          links: renderer.links,
+          particles: renderer.particleSystem.getCount(),
+          networkLoss: renderer.networkLoss || 0,
+        });
+        
+      }, 100);
+    }
+
+    // Canvas click handler
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const node = renderer.findNodeAt(x, y);
+      
+      if (node) {
+        renderer.selectNode(node.id);
+        nodeDetailView.showNode(node);
+      } else {
+        renderer.selectNode(null);
+        nodeDetailView.clear();
+      }
+    });
+
+    // Pause button
+    document.getElementById('btn-pause').addEventListener('click', function() {
+      isPaused = !isPaused;
+      this.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
+      document.getElementById('sim-status').textContent = isPaused ? 'Paused' : 'Running';
+      
+      const dot = document.querySelector('.status-dot');
+      dot.style.background = isPaused ? '#f59e0b' : '#22c55e';
+    });
+
+    // Speed buttons
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        simSpeed = parseFloat(this.dataset.speed);
+      });
+    });
+
+    // Rewind button
+    document.getElementById('btn-rewind').addEventListener('click', () => {
+      simTime = 8.0;
+    });
+
+    // Screenshot button
+    document.getElementById('btn-screenshot').addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = `network-analytics-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+  </script>
+</body>
+</html>

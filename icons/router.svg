@@ -1,3 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg width="800px" height="800px" viewBox="0 0 1024 1024" class="icon"  version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M77 403.4v228.5c1.5 93.7 195.7 183.5 435 183.5s433.4-89.8 435-183.5V403.4H77z" fill="#1B9BDB" /><path d="M947 402.7c0 99.4-194.8 194-435 194s-435-94.6-435-194 194.8-180 435-180 435 80.5 435 180z" fill="#3ED6FF" /><path d="M474.1 311.4H503l0.1 63.2h29.5l-0.7-63.2h28.9l-43.7-75.1zM533 417.2h-29.9l0.1 73.9h-30.6l46.2 75.2 45.5-75.2h-30.6zM654.5 380.9l-1.4-30-72.1 45 76.4 45.1-1.4-30h126.2l-2.6-30.1zM381.1 380.9h-125l-2.3 30.1H380l-1.1 30 75.9-45.1-72.5-45z" fill="#FFFFFF" /></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="routerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <!-- Main body -->
+  <rect x="8" y="20" width="48" height="24" rx="4" fill="url(#routerGrad)" opacity="0.9"/>
+  <!-- Ports -->
+  <circle cx="18" cy="32" r="3" fill="#22c55e"/>
+  <circle cx="28" cy="32" r="3" fill="#22c55e"/>
+  <circle cx="38" cy="32" r="3" fill="#f59e0b"/>
+  <circle cx="48" cy="32" r="3" fill="#6b7280"/>
+  <!-- Antennas -->
+  <line x1="20" y1="20" x2="16" y2="10" stroke="#e2e8f0" stroke-width="2" stroke-linecap="round"/>
+  <line x1="44" y1="20" x2="48" y2="10" stroke="#e2e8f0" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="16" cy="8" r="3" fill="#22c55e"/>
+  <circle cx="48" cy="8" r="3" fill="#22c55e"/>
+  <!-- LEDs -->
+  <rect x="12" y="22" width="6" height="2" rx="1" fill="#22c55e"/>
+  <rect x="20" y="22" width="6" height="2" rx="1" fill="#22c55e"/>
+</svg>

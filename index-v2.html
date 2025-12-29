@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Didar Network Simulation v2</title>
+  <meta name="description" content="Interactive network simulation lab for planning digital classroom infrastructure" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/design-system.css" />
+  <link rel="stylesheet" href="styles/micro-interactions.css" />
+  <link rel="stylesheet" href="styles/responsive.css" />
+  <style>
+    /* Home page specific styles */
+    .hero {
+      min-height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-8) var(--space-4);
+      background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.5;
+    }
+
+    .hero-content {
+      position: relative;
+      max-width: 800px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-sm);
+      color: var(--accent-primary);
+      margin-bottom: var(--space-6);
+      animation: slideUp 0.6s ease backwards;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: var(--font-weight-bold);
+      line-height: var(--line-height-tight);
+      margin-bottom: var(--space-4);
+      animation: slideUp 0.6s ease 0.1s backwards;
+    }
+
+    .hero-description {
+      font-size: var(--font-size-lg);
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto var(--space-8);
+      animation: slideUp 0.6s ease 0.2s backwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: var(--space-4);
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: slideUp 0.6s ease 0.3s backwards;
+    }
+
+    .hero-actions .btn {
+      padding: var(--space-3) var(--space-6);
+      font-size: var(--font-size-base);
+    }
+
+    .features {
+      padding: var(--space-12) var(--space-4);
+    }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: var(--space-10);
+    }
+
+    .features-title {
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      margin-bottom: var(--space-3);
+    }
+
+    .features-subtitle {
+      color: var(--text-muted);
+      font-size: var(--font-size-md);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-6);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      transition: all var(--transition-normal);
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-primary);
+      box-shadow: 0 10px 40px rgba(99, 102, 241, 0.15);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-4);
+    }
+
+    .feature-title {
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: var(--space-2);
+    }
+
+    .feature-description {
+      color: var(--text-muted);
+      font-size: var(--font-size-sm);
+      line-height: var(--line-height-relaxed);
+    }
+
+    .stats {
+      padding: var(--space-10) var(--space-4);
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-default);
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-6);
+      max-width: 1000px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .stat-item {
+      padding: var(--space-4);
+    }
+
+    .stat-value {
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: var(--space-2);
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: var(--font-size-sm);
+    }
+
+    .footer {
+      padding: var(--space-8) var(--space-4);
+      text-align: center;
+    }
+
+    .footer-text {
+      color: var(--text-dim);
+      font-size: var(--font-size-sm);
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-6);
+      margin-top: var(--space-4);
+    }
+
+    .footer-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: var(--font-size-sm);
+      transition: color var(--transition-fast);
+    }
+
+    .footer-link:hover {
+      color: var(--accent-primary);
+    }
+
+    /* Responsive */
+    @media (max-width: 767px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .hero-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .hero-actions .btn {
+        width: 100%;
+        max-width: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="app-header glass">
+    <div class="container flex items-center justify-between">
+      <a href="index-v2.html" class="logo text-gradient text-xl font-bold" style="text-decoration: none;">
+        🌐 Didar Network
+      </a>
+      
+      <div class="flex gap-2 md-hide">
+        <a href="demo-v2.html" class="btn btn-ghost">Demo</a>
+        <a href="playground-v2.html" class="btn btn-ghost">Playground</a>
+        <a href="analytics.html" class="btn btn-ghost">Analytics</a>
+        <a href="simulation.html" class="btn btn-primary btn-ripple">▶ Simulation</a>
+      </div>
+      
+      <button class="btn btn-icon btn-ghost sm-show" id="menu-toggle" style="display: none;">☰</button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span>✨</span>
+        <span>Faculty of Information Technologies</span>
+      </div>
+      
+      <h1 class="hero-title">
+        <span class="text-gradient">Didar Network</span><br>
+        Simulation Lab
+      </h1>
+      
+      <p class="hero-description">
+        Interactive sandbox for planning digital classroom infrastructure. 
+        Design, simulate, and analyze network topologies in real-time with 
+        professional-grade visualization tools.
+      </p>
+      
+      <div class="hero-actions">
+        <a href="simulation.html" class="btn btn-primary btn-lg btn-ripple btn-shine">
+          ▶ Launch Simulation
+        </a>
+        <a href="playground-v2.html" class="btn btn-secondary btn-lg btn-ripple">
+          🎮 Open Playground
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="features-header">
+      <h2 class="features-title">Powerful Features</h2>
+      <p class="features-subtitle">Everything you need to design and test network infrastructure</p>
+    </div>
+    
+    <div class="features-grid list-stagger">
+      <a href="demo-v2.html" class="feature-card card-lift">
+        <div class="feature-icon">🎨</div>
+        <h3 class="feature-title">Enhanced Visualization</h3>
+        <p class="feature-description">
+          Professional-grade network rendering with animated data flows, 
+          glow effects, and real-time load indicators.
+        </p>
+      </a>
+      
+      <a href="playground-v2.html" class="feature-card card-lift">
+        <div class="feature-icon">🎮</div>
+        <h3 class="feature-title">Drag & Drop Editor</h3>
+        <p class="feature-description">
+          Build custom topologies with an intuitive editor. 
+          Add devices, create connections, and export your designs.
+        </p>
+      </a>
+      
+      <a href="analytics.html" class="feature-card card-lift">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">Live Analytics</h3>
+        <p class="feature-description">
+          Monitor throughput, latency, packet loss, and utilization 
+          with real-time charts and metrics dashboards.
+        </p>
+      </a>
+      
+      <a href="simulation.html" class="feature-card card-lift">
+        <div class="feature-icon">⚙️</div>
+        <h3 class="feature-title">Traffic Simulation</h3>
+        <p class="feature-description">
+          Simulate classroom, exam, lab, and DDoS traffic patterns. 
+          Test how your network handles different scenarios.
+        </p>
+      </a>
+      
+      <a href="simulation.html" class="feature-card card-lift">
+        <div class="feature-icon">💥</div>
+        <h3 class="feature-title">Failure Scenarios</h3>
+        <p class="feature-description">
+          Test network resilience with node failures, link outages, 
+          and cascading failure simulations.
+        </p>
+      </a>
+      
+      <a href="demo-v2.html" class="feature-card card-lift">
+        <div class="feature-icon">🖼️</div>
+        <h3 class="feature-title">Export & Share</h3>
+        <p class="feature-description">
+          Export topologies as JSON, capture screenshots, 
+          and generate PDF reports for presentations.
+        </p>
+      </a>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value">8+</div>
+        <div class="stat-label">Device Types</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">7</div>
+        <div class="stat-label">Traffic Patterns</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">60</div>
+        <div class="stat-label">FPS Rendering</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">∞</div>
+        <div class="stat-label">Possibilities</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p class="footer-text">
+      © 2024 Didar Network Simulation Lab · Faculty of Information Technologies
+    </p>
+    <div class="footer-links">
+      <a href="demo-v2.html" class="footer-link">Demo</a>
+      <a href="playground-v2.html" class="footer-link">Playground</a>
+      <a href="analytics.html" class="footer-link">Analytics</a>
+      <a href="simulation.html" class="footer-link">Simulation</a>
+    </div>
+  </footer>
+
+  <!-- Mobile Navigation -->
+  <nav class="mobile-nav">
+    <div class="mobile-nav-items">
+      <a href="index-v2.html" class="mobile-nav-item active">
+        <span class="mobile-nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="demo-v2.html" class="mobile-nav-item">
+        <span class="mobile-nav-icon">🎨</span>
+        <span>Demo</span>
+      </a>
+      <a href="playground-v2.html" class="mobile-nav-item">
+        <span class="mobile-nav-icon">🎮</span>
+        <span>Build</span>
+      </a>
+      <a href="simulation.html" class="mobile-nav-item">
+        <span class="mobile-nav-icon">▶️</span>
+        <span>Run</span>
+      </a>
+    </div>
+  </nav>
+
+  <script>
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    if (menuToggle) {
+      menuToggle.addEventListener('click', () => {
+        // Toggle mobile menu (implement as needed)
+      });
+    }
+  </script>
+</body>
+</html>
