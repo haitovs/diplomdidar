@@ -11,13 +11,13 @@ echo.
 cd /d "%~dp0"
 
 echo Server will be available at:
-echo   http://localhost:4173
+echo   http://localhost:4173/index-v2.html
 echo.
 echo Press Ctrl+C to stop the server
 echo ===============================================
 echo.
 
-start "" "http://localhost:4173"
+start "" "http://localhost:4173/index-v2.html"
 
 python -m http.server 4173
 
