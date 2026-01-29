@@ -69,10 +69,19 @@
     .btn-secondary {
       background: rgba(255, 255, 255, 0.1);
       color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    a.btn {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .btn-danger {
@@ -80,154 +89,151 @@
       color: white;
     }
 
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+    }
+
     main {
       flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 300px;
-      gap: 0;
+      padding: 24px;
+      display: flex;
+      gap: 24px;
     }
 
     .canvas-container {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       position: relative;
-      background: #0a0f1a;
       overflow: hidden;
     }
 
-    #demo-canvas {
+    canvas {
+      display: block;
       width: 100%;
       height: 100%;
-      display: block;
     }
 
     .stats-bar {
       position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: rgba(15, 23, 42, 0.9);
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(12px);
-      border-radius: 12px;
-      padding: 16px;
+      padding: 16px 24px;
       display: flex;
-      gap: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      gap: 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .stat {
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .stat-value {
-      font-size: 1.5rem;
+      font-size: 24px;
       font-weight: 700;
-      background: linear-gradient(135deg, #22c55e, #14b8a6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #6366f1;
     }
 
     .stat-label {
-      font-size: 0.75rem;
+      font-size: 12px;
       color: #94a3b8;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
-    .sidebar {
-      background: rgba(15, 23, 42, 0.95);
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    .panel {
-      background: rgba(255, 255, 255, 0.03);
+    .controls-panel {
+      width: 320px;
+      background: rgba(15, 23, 42, 0.5);
       border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
     }
 
-    .panel-title {
-      font-size: 0.875rem;
-      font-weight: 600;
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .control-label {
+      font-size: 13px;
       color: #94a3b8;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 12px;
+      font-weight: 600;
     }
 
-    .slider-group {
-      margin-bottom: 16px;
-    }
-
-    .slider-group label {
+    .slider-control {
       display: flex;
-      justify-content: space-between;
-      font-size: 0.875rem;
-      margin-bottom: 8px;
-    }
-
-    .slider-group input[type="range"] {
-      width: 100%;
-      height: 6px;
-      -webkit-appearance: none;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-    }
-
-    .slider-group input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border-radius: 50%;
-      cursor: pointer;
-    }
-
-    .device-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      flex-direction: column;
       gap: 8px;
     }
 
-    .device-btn {
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      color: #e2e8f0;
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .slider-value {
+      font-size: 14px;
+      color: #6366f1;
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
       cursor: pointer;
-      font-size: 0.75rem;
-      text-align: center;
-      transition: all 0.2s;
     }
 
-    .device-btn:hover {
-      background: rgba(99, 102, 241, 0.2);
-      border-color: #6366f1;
-    }
-
-    .device-btn img {
-      width: 32px;
-      height: 32px;
-      margin-bottom: 4px;
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      cursor: pointer;
+      border: none;
     }
 
     .status-indicator {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      background: rgba(34, 197, 94, 0.1);
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(99, 102, 241, 0.1);
       border-radius: 8px;
-      margin-bottom: 8px;
+      border: 1px solid rgba(99, 102, 241, 0.2);
     }
 
     .status-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #22c55e;
-      animation: pulse 2s infinite;
+      background: #4ade80;
+      animation: pulse 2s ease-in-out infinite;
     }
 
     @keyframes pulse {
@@ -237,15 +243,16 @@
 
     .legend {
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
+      gap: 8px;
+      font-size: 12px;
+      color: #94a3b8;
     }
 
     .legend-color {
@@ -259,9 +266,11 @@
   <header>
     <h1>🌐 Didar Network v2 - Enhanced Visualization Demo</h1>
     <div class="controls">
+      <a href="index-v2.html" class="btn btn-secondary">← Back to Menu</a>
       <button id="btn-play" class="btn btn-primary">▶ Start Simulation</button>
       <button id="btn-reset" class="btn btn-secondary">⟳ Reset</button>
-      <button id="btn-chaos" class="btn btn-danger">💥 Trigger Failure</button>
+      <button id="btn-screenshot" class="btn btn-secondary">📷 Screenshot</button>
+      <button id="btn-export" class="btn btn-secondary">💾 Export JSON</button>
     </div>
   </header>
 
@@ -282,106 +291,72 @@
           <div class="stat-label">Packets</div>
         </div>
         <div class="stat">
-          <div class="stat-value" id="stat-fps">0</div>
+          <div class="stat-value" id="stat-fps">60</div>
           <div class="stat-label">FPS</div>
         </div>
       </div>
     </div>
 
-    <aside class="sidebar">
-      <div class="panel">
-        <div class="panel-title">Status</div>
+    <div class="controls-panel">
+      <div class="control-group">
+        <div class="control-label">Simulation Status</div>
         <div class="status-indicator">
           <div class="status-dot"></div>
-          <span id="status-text">Idle</span>
+          <span id="status-text">Ready</span>
         </div>
       </div>
 
-      <div class="panel">
-        <div class="panel-title">Simulation Controls</div>
-        <div class="slider-group">
-          <label>
-            Traffic Intensity
-            <span id="traffic-value">50%</span>
-          </label>
+      <div class="control-group">
+        <div class="control-label">Traffic Intensity</div>
+        <div class="slider-control">
+          <div class="slider-header">
+            <span>Load</span>
+            <span class="slider-value" id="traffic-value">50%</span>
+          </div>
           <input type="range" id="traffic-slider" min="0" max="100" value="50" />
         </div>
-        <div class="slider-group">
-          <label>
-            Packet Loss
-            <span id="loss-value">0%</span>
-          </label>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Packet Loss</div>
+        <div class="slider-control">
+          <div class="slider-header">
+            <span>Loss Rate</span>
+            <span class="slider-value" id="loss-value">0%</span>
+          </div>
           <input type="range" id="loss-slider" min="0" max="50" value="0" />
         </div>
-        <div class="slider-group">
-          <label>
-            Animation Speed
-            <span id="speed-value">1x</span>
-          </label>
-          <input type="range" id="speed-slider" min="1" max="10" value="1" />
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Animation Speed</div>
+        <div class="slider-control">
+          <div class="slider-header">
+            <span>Speed</span>
+            <span class="slider-value" id="speed-value">1x</span>
+          </div>
+          <input type="range" id="speed-slider" min="0.1" max="3" step="0.1" value="1" />
         </div>
       </div>
 
-      <div class="panel">
-        <div class="panel-title">Device Types</div>
-        <div class="device-grid">
-          <div class="device-btn">
-            <img src="icons/router.svg" alt="Router" />
-            <div>Router</div>
-          </div>
-          <div class="device-btn">
-            <img src="icons/switch.svg" alt="Switch" />
-            <div>Switch</div>
-          </div>
-          <div class="device-btn">
-            <img src="icons/server.svg" alt="Server" />
-            <div>Server</div>
-          </div>
-          <div class="device-btn">
-            <img src="icons/firewall.svg" alt="Firewall" />
-            <div>Firewall</div>
-          </div>
-          <div class="device-btn">
-            <img src="icons/wifi.svg" alt="AP" />
-            <div>Access Point</div>
-          </div>
-          <div class="device-btn">
-            <img src="icons/sensor.svg" alt="IoT" />
-            <div>IoT Sensor</div>
-          </div>
-          <div class="device-btn">
-            <img src="icons/cloud.svg" alt="Cloud" />
-            <div>Cloud</div>
-          </div>
-          <div class="device-btn">
-            <img src="icons/lab.svg" alt="Lab" />
-            <div>Lab</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title">Link Status Legend</div>
+      <div class="control-group">
+        <div class="control-label">Node Status Legend</div>
         <div class="legend">
           <div class="legend-item">
-            <div class="legend-color" style="background: #22c55e;"></div>
-            <span>Healthy</span>
+            <div class="legend-color" style="background: #4ade80"></div>
+            <span>Healthy (< 60%)</span>
           </div>
           <div class="legend-item">
-            <div class="legend-color" style="background: #eab308;"></div>
-            <span>Degraded</span>
+            <div class="legend-color" style="background: #fbbf24"></div>
+            <span>Warning (60-80%)</span>
           </div>
           <div class="legend-item">
-            <div class="legend-color" style="background: #f59e0b;"></div>
-            <span>Lossy</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color" style="background: #ef4444;"></div>
-            <span>Down</span>
+            <div class="legend-color" style="background: #f87171"></div>
+            <span>Critical (> 80%)</span>
           </div>
         </div>
       </div>
-    </aside>
+    </div>
   </main>
 
   <script type="module">
@@ -448,47 +423,55 @@
     // UI Controls
     const playBtn = document.getElementById('btn-play');
     const resetBtn = document.getElementById('btn-reset');
-    const chaosBtn = document.getElementById('btn-chaos');
-    const statusText = document.getElementById('status-text');
+    const screenshotBtn = document.getElementById('btn-screenshot');
+    const exportBtn = document.getElementById('btn-export');
     const trafficSlider = document.getElementById('traffic-slider');
     const lossSlider = document.getElementById('loss-slider');
     const speedSlider = document.getElementById('speed-slider');
+    const statusText = document.getElementById('status-text');
 
     let isPlaying = false;
 
     playBtn.addEventListener('click', () => {
-      isPlaying = !isPlaying;
       if (isPlaying) {
-        renderer.start();
+        renderer.pause();
+        playBtn.textContent = '▶ Start Simulation';
+        statusText.textContent = 'Paused';
+      } else {
+        renderer.resume();
         playBtn.textContent = '⏸ Pause';
         statusText.textContent = 'Running';
-      } else {
-        renderer.pause();
-        playBtn.textContent = '▶ Resume';
-        statusText.textContent = 'Paused';
       }
+      isPlaying = !isPlaying;
     });
 
     resetBtn.addEventListener('click', () => {
       renderer.setTopology(demoTopology);
       trafficSlider.value = 50;
       lossSlider.value = 0;
+      speedSlider.value = 1;
       updateSliderLabels();
       updateStats();
     });
 
-    chaosBtn.addEventListener('click', () => {
-      // Trigger random link failure
-      const linkIds = demoTopology.links.map(l => l.id);
-      const randomLink = linkIds[Math.floor(Math.random() * linkIds.length)];
-      renderer.updateLinkHealth(randomLink, { status: 'down', flow: 0, loss: 1 });
-      
-      // Add burst of error particles
-      renderer.particleSystem.addBurst(randomLink, 10, 'error');
-      
-      setTimeout(() => {
-        renderer.updateLinkHealth(randomLink, { status: 'up', flow: 1, loss: 0 });
-      }, 5000);
+    // Screenshot functionality
+    screenshotBtn.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = `network-viz-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // Export JSON functionality
+    exportBtn.addEventListener('click', () => {
+      const data = JSON.stringify(demoTopology, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `topology-${Date.now()}.json`;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
     });
 
     trafficSlider.addEventListener('input', () => {
@@ -505,8 +488,13 @@
       });
     });
 
+    // Fixed speed slider to actually affect particle animation
     speedSlider.addEventListener('input', () => {
       updateSliderLabels();
+      const speed = parseFloat(speedSlider.value);
+      if (renderer.particleSystem && renderer.particleSystem.setSpeed) {
+        renderer.particleSystem.setSpeed(speed);
+      }
     });
 
     function updateSliderLabels() {

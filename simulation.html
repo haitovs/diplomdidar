@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,8 +9,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'Inter', system-ui, sans-serif;
       background: #0a0f1a;
@@ -37,8 +42,17 @@
       -webkit-text-fill-color: transparent;
     }
 
-    .header-controls { display: flex; gap: 12px; flex: 1; justify-content: center; }
-    .header-actions { display: flex; gap: 8px; }
+    .header-controls {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
 
     .time-display {
       font-size: 28px;
@@ -51,8 +65,12 @@
       text-align: center;
     }
 
-    .speed-controls { display: flex; gap: 4px; align-items: center; }
-    
+    .speed-controls {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
     .speed-btn {
       padding: 6px 12px;
       background: rgba(255, 255, 255, 0.05);
@@ -63,9 +81,16 @@
       font-size: 12px;
       transition: all 0.2s;
     }
-    
-    .speed-btn:hover { background: rgba(255, 255, 255, 0.1); }
-    .speed-btn.active { background: rgba(99, 102, 241, 0.3); border-color: #6366f1; color: #a5b4fc; }
+
+    .speed-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .speed-btn.active {
+      background: rgba(99, 102, 241, 0.3);
+      border-color: #6366f1;
+      color: #a5b4fc;
+    }
 
     .btn {
       padding: 8px 16px;
@@ -79,12 +104,30 @@
       gap: 6px;
       transition: all 0.2s;
     }
-    
-    .btn-primary { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
-    .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; }
-    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-    .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
 
     main {
       flex: 1;
@@ -99,8 +142,11 @@
       overflow-y: auto;
       padding: 16px;
     }
-    
-    .sidebar-right { border-right: none; border-left: 1px solid rgba(255, 255, 255, 0.1); }
+
+    .sidebar-right {
+      border-right: none;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
     .panel {
       background: rgba(255, 255, 255, 0.02);
@@ -119,8 +165,12 @@
       margin-bottom: 12px;
     }
 
-    .pattern-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    
+    .pattern-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
     .pattern-btn {
       padding: 10px;
       background: rgba(255, 255, 255, 0.03);
@@ -132,13 +182,29 @@
       text-align: center;
       transition: all 0.2s;
     }
-    
-    .pattern-btn:hover { background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); }
-    .pattern-btn.active { background: rgba(99, 102, 241, 0.2); border-color: #6366f1; }
-    .pattern-btn .icon { font-size: 18px; display: block; margin-bottom: 4px; }
 
-    .failure-list { display: flex; flex-direction: column; gap: 8px; }
-    
+    .pattern-btn:hover {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .pattern-btn.active {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: #6366f1;
+    }
+
+    .pattern-btn .icon {
+      font-size: 18px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .failure-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
     .failure-item {
       display: flex;
       align-items: center;
@@ -148,25 +214,62 @@
       border-left: 3px solid #ef4444;
       border-radius: 6px;
     }
-    
-    .failure-item.warning { background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; }
-    .failure-icon { font-size: 16px; }
-    .failure-content { flex: 1; }
-    .failure-title { font-size: 12px; font-weight: 600; }
-    .failure-target { font-size: 11px; color: #94a3b8; }
-    .failure-action { background: none; border: none; color: #22c55e; cursor: pointer; font-size: 11px; }
 
-    .metrics-mini { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    
+    .failure-item.warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: #f59e0b;
+    }
+
+    .failure-icon {
+      font-size: 16px;
+    }
+
+    .failure-content {
+      flex: 1;
+    }
+
+    .failure-title {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .failure-target {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .failure-action {
+      background: none;
+      border: none;
+      color: #22c55e;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .metrics-mini {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
     .metric-box {
       background: rgba(255, 255, 255, 0.02);
       border-radius: 8px;
       padding: 12px;
       text-align: center;
     }
-    
-    .metric-value { font-size: 22px; font-weight: 700; color: #22c55e; }
-    .metric-label { font-size: 10px; color: #64748b; text-transform: uppercase; }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #22c55e;
+    }
+
+    .metric-label {
+      font-size: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+    }
 
     .canvas-area {
       position: relative;
@@ -197,12 +300,29 @@
       gap: 10px;
       animation: slideIn 0.3s ease;
     }
-    
-    .toast.error { background: rgba(239, 68, 68, 0.9); }
-    .toast.warning { background: rgba(245, 158, 11, 0.9); color: #0f172a; }
-    .toast.info { background: rgba(34, 197, 94, 0.9); }
-    
-    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+    .toast.error {
+      background: rgba(239, 68, 68, 0.9);
+    }
+
+    .toast.warning {
+      background: rgba(245, 158, 11, 0.9);
+      color: #0f172a;
+    }
+
+    .toast.info {
+      background: rgba(34, 197, 94, 0.9);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
 
     .event-log {
       max-height: 200px;
@@ -210,23 +330,38 @@
       font-size: 11px;
       font-family: monospace;
     }
-    
+
     .log-entry {
       padding: 6px 8px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
-    
-    .log-time { color: #64748b; margin-right: 8px; }
-    .log-msg { color: #e2e8f0; }
-    .log-entry.error .log-msg { color: #f87171; }
-    .log-entry.recovery .log-msg { color: #4ade80; }
+
+    .log-time {
+      color: #64748b;
+      margin-right: 8px;
+    }
+
+    .log-msg {
+      color: #e2e8f0;
+    }
+
+    .log-entry.error .log-msg {
+      color: #f87171;
+    }
+
+    .log-entry.recovery .log-msg {
+      color: #4ade80;
+    }
   </style>
 </head>
+
 <body>
   <header>
     <div class="logo">⚡ Didar Network Simulation</div>
-    
+
     <div class="header-controls">
+      <a href="index-v2.html" class="btn btn-secondary" style="text-decoration: none; margin-right: 12px;">← Back to
+        Menu</a>
       <button class="btn btn-secondary" id="btn-rewind">⏪</button>
       <div class="time-display" id="sim-time">08:00</div>
       <div class="speed-controls">
@@ -237,7 +372,7 @@
         <button class="speed-btn" data-speed="10">10×</button>
       </div>
     </div>
-    
+
     <div class="header-actions">
       <button class="btn btn-primary" id="btn-play">▶ Start</button>
       <button class="btn btn-warning" id="btn-failure">💥 Failure</button>
@@ -252,14 +387,14 @@
         <div class="panel-title">Traffic Pattern</div>
         <div class="pattern-grid" id="pattern-grid"></div>
       </div>
-      
+
       <div class="panel">
         <div class="panel-title">Active Failures</div>
         <div class="failure-list" id="failure-list">
           <div style="color: #64748b; font-size: 12px; text-align: center; padding: 16px;">No active failures</div>
         </div>
       </div>
-      
+
       <div class="panel">
         <div class="panel-title">Event Log</div>
         <div class="event-log" id="event-log"></div>
@@ -293,7 +428,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="panel">
         <div class="panel-title">Simulation Info</div>
         <div style="font-size: 12px; color: #94a3b8; line-height: 1.8;">
@@ -303,7 +438,7 @@
           <div><strong>Status:</strong> <span id="info-status">Stopped</span></div>
         </div>
       </div>
-      
+
       <div class="panel">
         <div class="panel-title">Quick Actions</div>
         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -361,7 +496,7 @@
     // Preload icons
     const iconCache = new Map();
     const iconNames = ['router', 'switch', 'server', 'firewall', 'wifi', 'sensor', 'cloud', 'lab'];
-    
+
     Promise.all(iconNames.map(name => {
       return new Promise((resolve) => {
         const img = new Image();
@@ -400,7 +535,7 @@
       classroom: '📚', exam: '📝', lab: '🔬', streaming: '🎥',
       idle: '😴', ddos: '☠️', backup: '💾',
     };
-    
+
     Object.entries(TRAFFIC_PATTERNS).forEach(([key, pattern]) => {
       const btn = document.createElement('button');
       btn.className = `pattern-btn ${key === 'classroom' ? 'active' : ''}`;
@@ -418,7 +553,7 @@
     // UI Controls
     const playBtn = document.getElementById('btn-play');
     let isRunning = false;
-    
+
     playBtn.addEventListener('click', () => {
       if (isRunning) {
         simController.pause();
@@ -434,47 +569,188 @@
 
     document.getElementById('btn-rewind').addEventListener('click', () => {
       simController.setTime(8.0);
+      logEvent('Time reset to 08:00');
     });
 
-    document.querySelectorAll('.speed-btn').forEach(btn => {
+    // Get button references
+    const failureBtn = document.getElementById('btn-failure');
+    const cascadeBtn = document.getElementById('btn-cascade');
+    const recoverBtn = document.getElementById('btn-recover');
+    const spikeBtn = document.getElementById('btn-spike');
+    const resetBtn = document.getElementById('btn-reset');
+
+    // Reset button handler
+    resetBtn?.addEventListener('click', () => {
+      simController.reset();
+      simController.setTime(8); // Reset to 08:00
+      logEvent('Simulation reset');
+    });
+
+    // Traffic pattern buttons - FIXED
+    document.querySelectorAll('.pattern-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const speed = parseFloat(btn.dataset.speed);
-        simController.setSpeed(speed);
-        document.getElementById('info-speed').textContent = speed + '×';
+        const pattern = btn.dataset.pattern;
+        if (simController && simController.setTrafficPattern) {
+          simController.setTrafficPattern(pattern);
+
+          // Visual feedback
+          document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          logEvent(`Traffic pattern changed to: ${btn.textContent.trim()}`);
+        }
       });
     });
 
-    document.getElementById('btn-failure').addEventListener('click', () => {
+    // Speed buttons - FIXED
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const speed = parseFloat(btn.dataset.speed);
+        if (simController && simController.setSpeed) {
+          simController.setSpeed(speed);
+
+          // Visual feedback
+          document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          logEvent(`Speed set to ${speed}×`);
+        }
+      });
+    });
+
+    // Failure button - IMPROVED
+    failureBtn?.addEventListener('click', () => {
+      if (!simController) return;
+
       const failure = simController.triggerRandomFailure();
       if (failure) {
-        addLogEntry(`Triggered: ${failure.label} on ${failure.targetId}`, 'error');
+        logEvent(`⚠️ ${failure.label || 'Failure triggered'}: ${failure.targetId}`, 'error');
+
+        // Visual flash effect
+        canvas.style.transition = 'filter 0.2s';
+        canvas.style.filter = 'brightness(1.3) hue-rotate(15deg)';
+        setTimeout(() => {
+          canvas.style.filter = 'brightness(1)';
+        }, 200);
       }
     });
 
-    document.getElementById('btn-cascade').addEventListener('click', () => {
-      const randomNode = renderer.nodes[Math.floor(Math.random() * renderer.nodes.length)];
+    // Cascade failure - IMPROVED
+    cascadeBtn?.addEventListener('click', () => {
+      if (!simController || !renderer || !renderer.nodes || renderer.nodes.length === 0) return;
+
+      const nodes = renderer.nodes;
+      const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
+
+      logEvent(`🔥 Cascading failure initiated from ${randomNode.label}!`, 'error');
       simController.triggerCascade(randomNode.id);
-      addLogEntry(`Cascade started from ${randomNode.id}`, 'error');
+
+      // Visual effect
+      canvas.style.animation = 'shake 0.3s';
+      setTimeout(() => { canvas.style.animation = ''; }, 300);
     });
 
-    document.getElementById('btn-recover').addEventListener('click', () => {
-      const recovered = simController.recoverAll();
-      addLogEntry(`Recovered ${recovered.length} failures`, 'recovery');
-      updateFailureList();
+    // Recover all
+    recoverBtn?.addEventListener('click', () => {
+      if (simController && simController.recoverAll) {
+        simController.recoverAll();
+        logEvent('✅ All failures recovered', 'recovery');
+      }
     });
 
-    document.getElementById('btn-spike').addEventListener('click', () => {
-      const randomNode = renderer.nodes[Math.floor(Math.random() * renderer.nodes.length)];
-      simController.createTrafficSpike(randomNode.id, 1.0, 5000);
-      showToast(`Traffic spike on ${randomNode.label}`, 'warning');
+    // Traffic spike
+    spikeBtn?.addEventListener('click', () => {
+      if (!renderer || !renderer.nodes || renderer.nodes.length === 0) return;
+
+      const nodes = renderer.nodes;
+      const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
+
+      if (simController && simController.createTrafficSpike) {
+        simController.createTrafficSpike(randomNode.id, 2.0, 3000);
+        logEvent(`📈 Traffic spike on ${randomNode.label}`, 'warning');
+      }
     });
 
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      simController.reset();
-      addLogEntry('Simulation reset', 'recovery');
+    // Rewind button
+    document.getElementById('btn-rewind')?.addEventListener('click', () => {
+      simController.setTime(8); // Back to 08:00
+      logEvent('Time reset to 08:00');
     });
+
+    // Node dragging functionality - NEW
+    let draggedNode = null;
+    let isDraggingNode = false;
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (renderer && renderer.findNodeAt) {
+        draggedNode = renderer.findNodeAt(x, y);
+        if (draggedNode) {
+          isDraggingNode = true;
+          canvas.style.cursor = 'grabbing';
+        }
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDraggingNode || !draggedNode) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+
+      if (renderer && renderer.updateNodePosition) {
+        renderer.updateNodePosition(draggedNode.id, x, y);
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      if (isDraggingNode) {
+        isDraggingNode = false;
+        draggedNode = null;
+        canvas.style.cursor = 'default';
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      if (isDraggingNode) {
+        isDraggingNode = false;
+        draggedNode = null;
+        canvas.style.cursor = 'default';
+      }
+    });
+
+    // Event logging helper
+    function logEvent(message, type = 'info') {
+      const logContainer = document.getElementById('event-log');
+      if (!logContainer) return;
+
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+
+      const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+      entry.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-msg">${message}</span>
+      `;
+
+      logContainer.insertBefore(entry, logContainer.firstChild);
+
+      // Keep only last 100 entries
+      while (logContainer.children.length > 100) {
+        logContainer.removeChild(logContainer.lastChild);
+      }
+    }
+
+    // Auto-start simulation
+    setTimeout(() => {
+      if (playBtn && !isRunning) {
+        playBtn.click();
+      }
+    }, 500);
 
     document.getElementById('btn-screenshot').addEventListener('click', () => {
       const link = document.createElement('a');
@@ -495,12 +771,12 @@
     function updateFailureList() {
       const list = document.getElementById('failure-list');
       const failures = simController.failureSim.getActiveFailures();
-      
+
       if (failures.length === 0) {
         list.innerHTML = '<div style="color: #64748b; font-size: 12px; text-align: center; padding: 16px;">No active failures</div>';
         return;
       }
-      
+
       list.innerHTML = failures.map(f => `
         <div class="failure-item ${f.severity}">
           <span class="failure-icon">${f.severity === 'critical' ? '🔴' : '🟡'}</span>
@@ -511,7 +787,7 @@
           <button class="failure-action" data-id="${f.id}">Recover</button>
         </div>
       `).join('');
-      
+
       list.querySelectorAll('.failure-action').forEach(btn => {
         btn.addEventListener('click', () => {
           simController.failureSim.recover(btn.dataset.id);
@@ -543,4 +819,5 @@
     renderer.start();
   </script>
 </body>
+
 </html>

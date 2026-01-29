@@ -89,6 +89,15 @@ export class ParticleSystem {
     this.ctx = ctx;
     this.particles = [];
     this.links = new Map(); // linkId -> { source, target, control, health }
+    this.speedMultiplier = 1; // Animation speed multiplier
+  }
+
+  /**
+   * Set animation speed multiplier
+   * @param {number} multiplier - Speed multiplier (0.1 to 3)
+   */
+  setSpeed(multiplier) {
+    this.speedMultiplier = Math.max(0.1, Math.min(3, multiplier || 1));
   }
 
   /**
@@ -156,8 +165,8 @@ export class ParticleSystem {
         return;
       }
 
-      // Apply flow modifier
-      const flow = health.flow * intensity;
+      // Apply flow modifier and speed multiplier
+      const flow = health.flow * intensity * (this.speedMultiplier || 1);
       particle.update(flow);
 
       // Random packet loss

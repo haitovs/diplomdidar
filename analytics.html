@@ -154,13 +154,45 @@
     }
 
     .sidebar {
+      width: 320px;
       background: rgba(15, 23, 42, 0.8);
       border-left: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 20px;
       overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* Hide sidebar scrollbar */
+    .sidebar::-webkit-scrollbar {
+      width: 0;
+      display: none;
+    }
+
+    .sidebar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Fix chart overflow */
+    #analytics-panel {
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .chart-wrapper {
+      max-height: 300px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .chart-wrapper canvas {
+      max-width: 100%;
+      height: auto !important;
     }
 
     .sidebar-title {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       color: #64748b;
       text-transform: uppercase;
@@ -174,6 +206,7 @@
   <header>
     <div class="logo">📊 Analytics Dashboard</div>
     <div class="header-controls">
+      <a href="index-v2.html" class="btn btn-secondary" style="text-decoration: none; margin-right: 12px;">← Back to Menu</a>
       <div class="status-badge">
         <div class="status-dot"></div>
         <span id="sim-status">Running</span>
@@ -291,8 +324,8 @@
       metricsCollector
     );
 
-    // Track simulation time
-    let simTime = 8.0; // 8:00 AM
+    // Track simulation time (in minutes from midnight)
+    let simMinutes = 8 * 60; // 8:00 AM = 480 minutes
     let simSpeed = 1;
     let isPaused = false;
 
@@ -302,17 +335,18 @@
         if (isPaused) return;
         
         // Advance simulation time
-        simTime += 0.01 * simSpeed;
-        if (simTime >= 18) simTime = 8;
+        simMinutes += 1 * simSpeed;
+        if (simMinutes >= 18 * 60) simMinutes = 8 * 60;
         
         // Update time display
-        const hours = Math.floor(simTime);
-        const minutes = Math.floor((simTime - hours) * 60);
+        const hours = Math.floor(simMinutes / 60);
+        const minutes = Math.floor(simMinutes % 60);
         document.getElementById('sim-time').textContent = 
           `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         
         // Simulate varying load based on time
-        const busyHours = simTime >= 9 && simTime <= 12 || simTime >= 14 && simTime <= 17;
+        const currentHour = simMinutes / 60;
+        const busyHours = currentHour >= 9 && currentHour <= 12 || currentHour >= 14 && currentHour <= 17;
         const loadMultiplier = busyHours ? 1.2 : 0.7;
         
         renderer.nodes.forEach(node => {
@@ -368,7 +402,7 @@
 
     // Rewind button
     document.getElementById('btn-rewind').addEventListener('click', () => {
-      simTime = 8.0;
+      simMinutes = 8 * 60;
     });
 
     // Screenshot button

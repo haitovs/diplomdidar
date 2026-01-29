@@ -1,300 +1,74 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Didar Network Simulation Lab</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles/main.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="0; url=index-v2.html">
+  <title>Redirecting to Didar Network Simulation</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #0a0f1a 0%, #1a1f2e 100%);
+      color: #f8fafc;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p {
+      color: #94a3b8;
+      margin-bottom: 1.5rem;
+    }
+    a {
+      color: #6366f1;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border: 1px solid #6366f1;
+      border-radius: 8px;
+      display: inline-block;
+      transition: all 0.2s;
+    }
+    a:hover {
+      background: #6366f1;
+      color: white;
+    }
+    .spinner {
+      border: 3px solid rgba(99, 102, 241, 0.1);
+      border-top: 3px solid #6366f1;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+  <script>
+    // Immediate redirect
+    window.location.href = 'index-v2.html';
+  </script>
 </head>
 <body>
-  <header class="hero">
-    <div class="hero__content">
-      <p class="eyebrow">Faculty of Information Technologies</p>
-      <h1>Didar Network Simulation Lab</h1>
-      <p class="lead">
-        Interactive sandbox for planning digital classroom infrastructure. Press play to watch how classes,
-        exams, and guest traffic reshape the network in real time — every number on the page is driven by
-        the schedule below.
-      </p>
-      <div class="hero__actions draggable-pod" data-pod="hero-actions">
-        <button type="button" class="pod-handle" aria-label="Drag hero actions">⠿</button>
-        <div class="hero__action-buttons">
-          <button id="start-simulation" class="btn primary">Start Streaming</button>
-          <button id="stop-simulation" class="btn secondary">Pause</button>
-          <button id="toggle-sidebar" class="btn ghost">Show / Hide Controls</button>
-          <button id="toggle-dark" class="btn ghost">Toggle Theme</button>
-          <a class="btn secondary" href="playground.html">Open Playground</a>
-        </div>
-        <span id="runtime-status" class="status-pill" data-state="idle">Idle</span>
-        <span id="sim-clock" class="status-pill status-clock">08:00</span>
-      </div>
-      <dl class="hero__metrics">
-        <div>
-          <dt>Active classes now</dt>
-          <dd id="metric-active-classes">0</dd>
-        </div>
-        <div>
-          <dt>Streaming load</dt>
-          <dd id="metric-stream">0 Mbps</dd>
-        </div>
-        <div>
-          <dt>Alerts triggered</dt>
-          <dd id="metric-alerts">0</dd>
-        </div>
-      </dl>
-    </div>
-    <div class="hero__visual">
-      <div class="hero__glow"></div>
-      <img src="assets/blueprint.svg" alt="Network blueprint" />
-    </div>
-  </header>
-
-  <main class="workspace">
-    <aside class="control-sidebar" id="control-sidebar">
-      <article class="floating-card draggable-card" id="scenario-pod">
-        <header class="pod-header">
-          <h3>Scenario Builder</h3>
-          <button type="button" class="pod-handle" aria-label="Drag scenario pod">⠿</button>
-        </header>
-        <p>Choose a preset, tweak load levers, and watch the topology react.</p>
-        <label class="field with-indicator">
-          <div class="field__row">
-            <span>Scenario preset</span>
-            <span class="value-pill" id="scenario-select-display">Weekday Peak</span>
-          </div>
-          <select id="scenario-select"></select>
-        </label>
-        <label class="field with-indicator">
-          <div class="field__row">
-            <span>AI Load</span>
-            <span class="value-pill" id="ai-load-display">40%</span>
-          </div>
-          <input type="range" id="ai-load" min="0" max="1" step="0.1" value="0.4" />
-        </label>
-        <form id="scenario-form" class="scenario-form">
-          <label class="field with-indicator">
-            <div class="field__row">
-              <span>Concurrent classes</span>
-              <span class="value-pill" id="input-classes-display">18</span>
-            </div>
-            <input type="number" id="input-classes" min="5" max="30" value="18" />
-          </label>
-          <label class="field with-indicator">
-            <div class="field__row">
-              <span>AR/VR labs</span>
-              <span class="value-pill" id="input-labs-display">3</span>
-            </div>
-            <input type="number" id="input-labs" min="1" max="10" value="3" />
-          </label>
-          <label class="field">
-            <span>Guest network</span>
-            <select id="input-guest">
-              <option value="moderate">Moderate</option>
-              <option value="spike">Conference Spike</option>
-              <option value="low">Low</option>
-            </select>
-          </label>
-          <label class="field with-indicator">
-            <div class="field__row">
-              <span>Alert threshold</span>
-              <span class="value-pill" id="input-threshold-display">75%</span>
-            </div>
-            <input type="range" id="input-threshold" min="60" max="95" value="75" />
-          </label>
-          <button class="btn secondary" type="submit">Apply Scenario</button>
-        </form>
-        <ul class="scenario-tags" id="scenario-tags"></ul>
-      </article>
-
-      <article class="floating-card draggable-card" id="instrument-pod">
-        <header class="pod-header">
-          <h3>Class Load Levers</h3>
-          <button type="button" class="pod-handle" aria-label="Drag instrument pod">⠿</button>
-        </header>
-        <p>Tell the simulator how heavy the lessons are. These levers directly change the canvas glow, the chart, and the alert log.</p>
-        <form id="instrument-form" class="instrument-form">
-          <label class="field with-indicator">
-            <div class="field__row">
-              <span>Streaming quality</span>
-              <span class="value-pill" id="instrument-bitrate-display">HD</span>
-            </div>
-            <input type="range" id="instrument-bitrate" min="0.8" max="1.6" step="0.1" value="1.1" />
-          </label>
-          <label class="field with-indicator">
-            <div class="field__row">
-              <span>Devices per student</span>
-              <span class="value-pill" id="instrument-devices-display">3</span>
-            </div>
-            <input type="range" id="instrument-devices" min="1" max="5" step="1" value="3" />
-          </label>
-          <label class="field switch">
-            <input type="checkbox" id="instrument-guestlock" />
-            <span>Lock guest Wi‑Fi during exams <small id="instrument-guestlock-display">(off)</small></span>
-          </label>
-        </form>
-        <div class="instrument-stats" id="instrument-stats">
-          <div class="instrument-stat" data-key="throughput">
-            <div>
-              <span>Headroom left</span>
-              <strong>0%</strong>
-            </div>
-            <div class="stat-bar"><span style="width: 0%"></span></div>
-          </div>
-          <div class="instrument-stat" data-key="packet">
-            <div>
-              <span>Video stability</span>
-              <strong>0%</strong>
-            </div>
-            <div class="stat-bar"><span style="width: 0%"></span></div>
-          </div>
-          <div class="instrument-stat" data-key="sla">
-            <div>
-              <span>Lesson SLA</span>
-              <strong>0%</strong>
-            </div>
-            <div class="stat-bar"><span style="width: 0%"></span></div>
-          </div>
-          <div class="instrument-stat" data-key="resilience">
-            <div>
-              <span>Resilience</span>
-              <strong>0%</strong>
-            </div>
-            <div class="stat-bar"><span style="width: 0%"></span></div>
-          </div>
-        </div>
-      </article>
-
-      <article class="floating-card draggable-card" id="reliability-pod">
-        <header class="pod-header">
-          <h3>Live Alerts</h3>
-          <button type="button" class="pod-handle" aria-label="Drag reliability pod">⠿</button>
-        </header>
-        <p>Threshold crossings and contextual notes appear here while playback runs.</p>
-        <div class="reliability-row" id="reliability-row"></div>
-      </article>
-
-    </aside>
-
-    <section class="visual-stack">
-      <section class="panel" id="network-panel">
-        <div class="panel__header">
-          <div>
-            <h2>Dynamic Backbone</h2>
-            <p id="scenario-description">Layer-2 mesh with redundant fiber rings and classroom access points.</p>
-          </div>
-          <span id="network-health" class="status-pill">Healthy</span>
-          <button id="toggle-handle-visibility" class="btn subtle">Toggle Wire Handles</button>
-        </div>
-        <div class="network__wrapper">
-          <canvas id="network-canvas" width="780" height="480"></canvas>
-          <div id="link-handle-layer"></div>
-          <div id="network-tooltip" class="tooltip" hidden></div>
-          <div class="network__legend">
-            <p><span class="dot" data-color="core"></span> Core node</p>
-            <p><span class="dot" data-color="edge"></span> Access / site</p>
-            <p><span class="dot" data-color="ai"></span> AI workload</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" id="inspector-panel">
-        <div class="panel__header">
-          <div>
-            <h2>Node Inspector</h2>
-            <p>Click any icon on the canvas to read hardware, software, and status.</p>
-          </div>
-          <span id="inspector-status" class="status-pill">Awaiting selection</span>
-        </div>
-        <div class="inspector-grid">
-          <div>
-            <p class="muted">Name</p>
-            <strong id="inspector-name">—</strong>
-          </div>
-          <div>
-            <p class="muted">Role</p>
-            <strong id="inspector-role">—</strong>
-          </div>
-          <div>
-            <p class="muted">Campus</p>
-            <strong id="inspector-campus">—</strong>
-          </div>
-          <div>
-            <p class="muted">Network status</p>
-            <strong id="inspector-status-text">—</strong>
-          </div>
-        </div>
-        <div class="inspector-columns">
-          <div>
-            <p class="muted">Hardware</p>
-            <ul id="inspector-hardware" class="inspector-list"></ul>
-          </div>
-          <div>
-            <p class="muted">Software</p>
-            <ul id="inspector-software" class="inspector-list"></ul>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" id="timeline-panel">
-        <div class="panel__header">
-          <div>
-            <h2>Class Traffic Timeline</h2>
-            <p>Simulated lessons and bandwidth reservations across the teaching day.</p>
-          </div>
-          <button id="timeline-play" class="btn subtle">Play Waveform</button>
-        </div>
-        <div id="timeline-grid" class="timeline"></div>
-      </section>
-
-      <section class="panel grid" id="insights-panel">
-        <article class="card" id="utilization-card">
-          <h3>Utilization &amp; Health</h3>
-          <div class="insight-metrics">
-            <div>
-              <p>Average utilization</p>
-              <strong id="metric-utilization">62%</strong>
-            </div>
-            <div>
-              <p>Latency budget</p>
-              <strong id="metric-latency">14 ms</strong>
-            </div>
-            <div>
-              <p>Energy draw</p>
-              <strong id="metric-energy">8.1 kWh</strong>
-            </div>
-          </div>
-          <div class="chart-wrapper">
-            <canvas id="util-chart" height="180"></canvas>
-          </div>
-        </article>
-
-        <article class="card" id="live-classes-card">
-          <h3>Live Class Feed</h3>
-          <p>Who is teaching right now, how heavy their stream is, and which rooms stress the network.</p>
-          <ul class="live-feed" id="live-class-feed"></ul>
-          <div class="live-event-log" id="live-events"></div>
-        </article>
-      </section>
-
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div>
-      <strong>Didar Network Simulation</strong>
-      <p>Template for diploma work &mdash; feel free to extend with live APIs or your own telemetry feed.</p>
-    </div>
-    <div class="footer__actions">
-      <a href="#" class="btn subtle">Download Report</a>
-      <a href="#" class="btn subtle">Export Slide</a>
-    </div>
-  </footer>
-
-  <script type="module" src="src/main.js"></script>
+  <div class="container">
+    <div class="spinner"></div>
+    <h1>🌐 Didar Network Simulation</h1>
+    <p>Redirecting to the new interface...</p>
+    <a href="index-v2.html">Click here if not redirected automatically</a>
+  </div>
 </body>
 </html>

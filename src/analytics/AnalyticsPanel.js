@@ -15,10 +15,10 @@ export class AnalyticsPanel {
       showCharts: true,
       ...options,
     };
-    
+
     this.charts = {};
     this.updateTimer = null;
-    
+
     this.render();
     this.startUpdates();
   }
@@ -88,16 +88,7 @@ export class AnalyticsPanel {
         </div>
       </div>
       
-      <div class="chart-section">
-        <div class="chart-header">
-          <span class="chart-title">Traffic Over Time</span>
-          <div class="chart-legend">
-            <span class="legend-item"><span class="dot" style="background:#22c55e"></span>Throughput</span>
-            <span class="legend-item"><span class="dot" style="background:#f59e0b"></span>Latency</span>
-          </div>
-        </div>
-        <canvas id="traffic-chart" height="120"></canvas>
-      </div>
+
       
       <div class="top-talkers">
         <div class="section-header">
@@ -114,9 +105,9 @@ export class AnalyticsPanel {
         <div id="alerts-list" class="alerts-list"></div>
       </div>
     `;
-    
+
     this.addStyles();
-    this.setupChart();
+
     this.setupEventListeners();
   }
 
@@ -130,68 +121,7 @@ export class AnalyticsPanel {
     });
   }
 
-  /**
-   * Setup chart using Chart.js (if available)
-   */
-  setupChart() {
-    const canvas = this.container.querySelector('#traffic-chart');
-    if (!canvas || typeof Chart === 'undefined') {
-      // Fallback: simple canvas drawing
-      this.useSimpleChart = true;
-      return;
-    }
-    
-    this.charts.traffic = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: 'Throughput',
-            data: [],
-            borderColor: '#22c55e',
-            backgroundColor: 'rgba(34, 197, 94, 0.1)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 0,
-          },
-          {
-            label: 'Latency',
-            data: [],
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 0,
-            yAxisID: 'latency',
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 0 },
-        plugins: {
-          legend: { display: false },
-        },
-        scales: {
-          x: {
-            display: false,
-          },
-          y: {
-            position: 'left',
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#64748b', font: { size: 10 } },
-          },
-          latency: {
-            position: 'right',
-            grid: { display: false },
-            ticks: { color: '#64748b', font: { size: 10 } },
-          },
-        },
-      },
-    });
-  }
+
 
   /**
    * Start periodic updates
@@ -220,32 +150,31 @@ export class AnalyticsPanel {
     const history = this.collector.getHistory();
     const topTalkers = this.collector.getTopTalkers();
     const alerts = this.collector.getAlerts(5);
-    
+
     // Update main metrics
     this.updateMetric('throughput', metrics.throughput);
     this.updateMetric('latency', metrics.latency);
     this.updateMetric('packetLoss', metrics.packetLoss);
     this.updateMetric('utilization', metrics.utilization);
-    
+
     // Update mini metrics
     this.setElementText('m-connections', metrics.activeConnections);
     this.setElementText('m-jitter', `${metrics.jitter} ms`);
     this.setElementText('m-energy', `${metrics.energy} kW`);
-    
+
     // Update utilization bar
     const bar = this.container.querySelector('#utilization-bar');
     if (bar) {
       bar.style.width = `${metrics.utilization}%`;
-      bar.style.background = metrics.utilization > 80 ? '#ef4444' : 
-                             metrics.utilization > 60 ? '#f59e0b' : '#22c55e';
+      bar.style.background = metrics.utilization > 80 ? '#ef4444' :
+        metrics.utilization > 60 ? '#f59e0b' : '#22c55e';
     }
-    
-    // Update chart
-    this.updateChart(history);
-    
+
+
+
     // Update top talkers
     this.updateTopTalkers(topTalkers);
-    
+
     // Update alerts
     this.updateAlerts(alerts);
   }
@@ -257,7 +186,7 @@ export class AnalyticsPanel {
     const el = this.container.querySelector(`#m-${key}`);
     if (el) {
       el.textContent = value;
-      
+
       // Add animation class
       el.classList.add('updated');
       setTimeout(() => el.classList.remove('updated'), 300);
@@ -272,60 +201,7 @@ export class AnalyticsPanel {
     if (el) el.textContent = text;
   }
 
-  /**
-   * Update the traffic chart
-   */
-  updateChart(history) {
-    if (this.charts.traffic) {
-      this.charts.traffic.data.labels = history.labels.slice(-30);
-      this.charts.traffic.data.datasets[0].data = history.throughput.slice(-30);
-      this.charts.traffic.data.datasets[1].data = history.latency.slice(-30);
-      this.charts.traffic.update('none');
-    } else if (this.useSimpleChart) {
-      this.drawSimpleChart(history);
-    }
-  }
 
-  /**
-   * Draw simple chart fallback
-   */
-  drawSimpleChart(history) {
-    const canvas = this.container.querySelector('#traffic-chart');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width = canvas.offsetWidth;
-    const height = canvas.height = canvas.offsetHeight;
-    
-    ctx.clearRect(0, 0, width, height);
-    
-    const data = history.throughput.slice(-30);
-    if (data.length < 2) return;
-    
-    const max = Math.max(...data, 100);
-    const step = width / (data.length - 1);
-    
-    // Draw line
-    ctx.beginPath();
-    ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 2;
-    
-    data.forEach((val, i) => {
-      const x = i * step;
-      const y = height - (val / max) * (height - 20);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    
-    ctx.stroke();
-    
-    // Fill
-    ctx.lineTo(width, height);
-    ctx.lineTo(0, height);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
-    ctx.fill();
-  }
 
   /**
    * Update top talkers list
@@ -333,7 +209,7 @@ export class AnalyticsPanel {
   updateTopTalkers(talkers) {
     const list = this.container.querySelector('#top-talkers-list');
     if (!list) return;
-    
+
     list.innerHTML = talkers.map((node, i) => `
       <div class="talker-item">
         <span class="talker-rank">#${i + 1}</span>
@@ -351,12 +227,12 @@ export class AnalyticsPanel {
   updateAlerts(alerts) {
     const list = this.container.querySelector('#alerts-list');
     if (!list) return;
-    
+
     if (alerts.length === 0) {
       list.innerHTML = '<div class="no-alerts">No recent alerts</div>';
       return;
     }
-    
+
     list.innerHTML = alerts.map(alert => `
       <div class="alert-item ${alert.severity}">
         <span class="alert-icon">${alert.severity === 'critical' ? '🔴' : '🟡'}</span>
@@ -382,7 +258,7 @@ export class AnalyticsPanel {
    */
   addStyles() {
     if (document.getElementById('analytics-panel-styles')) return;
-    
+
     const style = document.createElement('style');
     style.id = 'analytics-panel-styles';
     style.textContent = `
@@ -479,48 +355,7 @@ export class AnalyticsPanel {
         color: #e2e8f0;
       }
       
-      .chart-section {
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 16px;
-      }
-      
-      .chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-      }
-      
-      .chart-title {
-        font-size: 13px;
-        font-weight: 600;
-        color: #94a3b8;
-      }
-      
-      .chart-legend {
-        display: flex;
-        gap: 12px;
-      }
-      
-      .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        color: #64748b;
-      }
-      
-      .legend-item .dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-      }
-      
-      #traffic-chart {
-        width: 100%;
-      }
+
       
       .section-header {
         display: flex;

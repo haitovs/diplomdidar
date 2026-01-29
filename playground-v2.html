@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -45,7 +46,15 @@
     .toolbar {
       display: flex;
       gap: 8px;
+      align-items: center;
       flex: 1;
+    }
+
+    .divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0 8px;
     }
 
     .toolbar-group {
@@ -125,11 +134,45 @@
     }
 
     /* Left sidebar - Device Palette */
-    .sidebar-left {
+    .sidebar-left,
+    .sidebar-right {
       background: rgba(15, 23, 42, 0.8);
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
       overflow-y: auto;
+      overflow-x: hidden;
+      /* Added to hide horizontal scrollbar */
       padding: 16px;
+    }
+
+    .sidebar-left {
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-right {
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Hide scrollbars but keep functionality */
+    .sidebar-left::-webkit-scrollbar,
+    .sidebar-right::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar-left::-webkit-scrollbar-thumb,
+    .sidebar-right::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+
+    .sidebar-left::-webkit-scrollbar-track,
+    .sidebar-right::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* Firefox */
+    .sidebar-left,
+    .sidebar-right {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
     }
 
     /* Canvas area */
@@ -286,17 +329,23 @@
     }
   </style>
 </head>
+
 <body>
-  <header>
-    <div class="logo">🌐 Network Playground</div>
-    
-    <div class="toolbar">
-      <div class="toolbar-group">
-        <button class="tool-btn active" data-mode="select" title="Select (V)">
-          <span class="icon">👆</span> Select
+  <header class="app-toolbar">
+    <div class="container">
+      <div class="logo">🎮 Network Topology Editor</div>
+      <div class="toolbar">
+        <a href="index-v2.html" class="tool-btn" style="text-decoration: none;">
+          <span class="icon">←</span> Back to Menu
+        </a>
+
+        <div class="divider"></div>
+
+        <button class="tool-btn" id="tool-select" data-mode="select">
+          <span class="icon">🖱</span> Select
         </button>
-        <button class="tool-btn" data-mode="addNode" title="Add Node (N)">
-          <span class="icon">➕</span> Add
+        <button class="tool-btn" id="tool-addNode" data-mode="addNode">
+          <span class="icon">➕</span> Add Node
         </button>
         <button class="tool-btn" data-mode="addLink" title="Add Link (L)">
           <span class="icon">🔗</span> Link
@@ -305,7 +354,7 @@
           <span class="icon">🗑️</span> Delete
         </button>
       </div>
-      
+
       <div class="toolbar-group">
         <button class="tool-btn" id="btn-undo" title="Undo (Ctrl+Z)">
           <span class="icon">↩️</span>
@@ -314,7 +363,7 @@
           <span class="icon">↪️</span>
         </button>
       </div>
-      
+
       <div class="toolbar-group">
         <button class="tool-btn" id="btn-clear" title="Clear all">
           <span class="icon">🧹</span> Clear
@@ -324,7 +373,7 @@
         </button>
       </div>
     </div>
-    
+
     <div class="header-actions">
       <button class="btn btn-secondary" id="btn-import">
         <span>📁</span> Import
@@ -343,16 +392,16 @@
       <div class="sidebar-title">Device Palette</div>
       <div id="device-palette"></div>
     </aside>
-    
+
     <section class="canvas-area">
       <canvas id="playground-canvas"></canvas>
-      
+
       <div class="canvas-overlay">
         <div class="overlay-panel mode-indicator">
           <div class="mode-dot" id="mode-dot"></div>
           <span class="mode-text" id="mode-text">Select Mode</span>
         </div>
-        
+
         <div class="overlay-panel zoom-controls">
           <button class="zoom-btn" id="zoom-out">−</button>
           <span class="zoom-level" id="zoom-level">100%</span>
@@ -360,11 +409,11 @@
         </div>
       </div>
     </section>
-    
+
     <aside class="sidebar-right">
       <div class="sidebar-title">Properties</div>
       <div id="property-editor"></div>
-      
+
       <div class="instructions">
         <h4>💡 Quick Tips</h4>
         <ul>
@@ -377,7 +426,7 @@
           <li><kbd>Ctrl+Y</kbd> Redo</li>
         </ul>
       </div>
-      
+
       <div class="sidebar-title">Topology Stats</div>
       <div class="topology-stats">
         <div class="stat-card">
@@ -407,7 +456,7 @@
     // Preload icons
     const iconCache = new Map();
     const iconNames = ['router', 'switch', 'server', 'firewall', 'wifi', 'sensor', 'cloud', 'lab'];
-    
+
     Promise.all(iconNames.map(name => {
       return new Promise((resolve) => {
         const img = new Image();
@@ -423,6 +472,107 @@
       renderer.setIconCache(iconCache);
       renderer.start();
     });
+
+    // ==========================================
+    // Pan & Zoom Logic (Bug Fix Implementation)
+    // ==========================================
+
+    // Canvas transform state
+    let canvasTransform = {
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+      isDragging: false,
+      dragStart: { x: 0, y: 0 }
+    };
+
+    // Zoom with mouse wheel
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      const newScale = Math.min(Math.max(0.5, canvasTransform.scale * delta), 3);
+
+      // Zoom towards mouse position
+      canvasTransform.offsetX = mouseX - (mouseX - canvasTransform.offsetX) * (newScale / canvasTransform.scale);
+      canvasTransform.offsetY = mouseY - (mouseY - canvasTransform.offsetY) * (newScale / canvasTransform.scale);
+      canvasTransform.scale = newScale;
+
+      // Update zoom display
+      document.getElementById('zoom-level').textContent = Math.round(newScale * 100) + '%';
+
+      if (renderer.setTransform) {
+        renderer.setTransform(canvasTransform);
+      }
+    });
+
+    // Pan with middle mouse or shift+drag
+    canvas.addEventListener('mousedown', (e) => {
+      // Middle mouse or Shift+Left Click for panning
+      if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
+        e.preventDefault();
+        canvasTransform.isDragging = true;
+        canvasTransform.dragStart = { x: e.clientX, y: e.clientY };
+        canvas.style.cursor = 'grabbing';
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (canvasTransform.isDragging) {
+        // Calculate delta
+        const dx = e.clientX - canvasTransform.dragStart.x;
+        const dy = e.clientY - canvasTransform.dragStart.y;
+
+        canvasTransform.offsetX += dx;
+        canvasTransform.offsetY += dy;
+        canvasTransform.dragStart = { x: e.clientX, y: e.clientY };
+
+        if (renderer.setTransform) {
+          renderer.setTransform(canvasTransform);
+        }
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      if (canvasTransform.isDragging) {
+        canvasTransform.isDragging = false;
+        // Reset cursor based on current mode
+        canvas.style.cursor = editor && editor.mode === 'select' ? 'default' : 'crosshair';
+      }
+    });
+
+    // Override existing zoom buttons
+    // We use a slight delay to ensure we override any previous listeners if possible, 
+    // or just rely on this being executed after DOM load
+    const zoomInBtn = document.getElementById('zoom-in');
+    const zoomOutBtn = document.getElementById('zoom-out');
+
+    if (zoomInBtn) {
+      // Clone to remove old listeners
+      const newZoomIn = zoomInBtn.cloneNode(true);
+      zoomInBtn.parentNode.replaceChild(newZoomIn, zoomInBtn);
+
+      newZoomIn.addEventListener('click', () => {
+        canvasTransform.scale = Math.min(canvasTransform.scale * 1.2, 3);
+        document.getElementById('zoom-level').textContent = Math.round(canvasTransform.scale * 100) + '%';
+        if (renderer.setTransform) renderer.setTransform(canvasTransform);
+      });
+    }
+
+    if (zoomOutBtn) {
+      const newZoomOut = zoomOutBtn.cloneNode(true);
+      zoomOutBtn.parentNode.replaceChild(newZoomOut, zoomOutBtn);
+
+      newZoomOut.addEventListener('click', () => {
+        canvasTransform.scale = Math.max(canvasTransform.scale * 0.8, 0.5);
+        document.getElementById('zoom-level').textContent = Math.round(canvasTransform.scale * 100) + '%';
+        if (renderer.setTransform) renderer.setTransform(canvasTransform);
+      });
+    }
+
 
     // Initialize editor
     const editor = new TopologyEditor(canvas, renderer, {
@@ -508,18 +658,18 @@
 
     // Import/Export
     const fileInput = document.getElementById('file-import');
-    
+
     document.getElementById('btn-import').addEventListener('click', () => {
       fileInput.click();
     });
-    
+
     fileInput.addEventListener('change', (e) => {
       if (e.target.files[0]) {
         editor.importJSON(e.target.files[0]);
         e.target.value = '';
       }
     });
-    
+
     document.getElementById('btn-export').addEventListener('click', () => {
       editor.exportJSON();
     });
@@ -532,20 +682,20 @@
     });
 
     // Update mode indicator
-    function updateModeIndicator(mode, deviceType = null) {
-      const modeDot = document.getElementById('mode-dot');
+    function updateModeIndicator(mode, detail = '') {
       const modeText = document.getElementById('mode-text');
-      
+      const modeDot = document.getElementById('mode-dot');
+
       const modes = {
-        select: { color: '#22c55e', text: 'Select Mode' },
-        addNode: { color: '#6366f1', text: deviceType ? `Adding ${deviceType}` : 'Add Node Mode' },
-        addLink: { color: '#f59e0b', text: 'Link Mode - Click two nodes' },
-        delete: { color: '#ef4444', text: 'Delete Mode' },
+        select: { text: 'Select Mode', color: '#10b981' },
+        addNode: { text: `Add Node${detail ? ': ' + detail : ''}`, color: '#3b82f6' },
+        addLink: { text: 'Add Link Mode', color: '#f59e0b' },
+        delete: { text: 'Delete Mode', color: '#ef4444' },
       };
-      
+
       const config = modes[mode] || modes.select;
-      modeDot.style.background = config.color;
       modeText.textContent = config.text;
+      modeDot.style.background = config.color;
     }
 
     // Update topology stats
@@ -554,8 +704,6 @@
       document.getElementById('stat-links').textContent = topology.links.length;
     }
 
-    // Zoom controls (placeholder)
-    let zoom = 100;
     document.getElementById('zoom-in').addEventListener('click', () => {
       zoom = Math.min(200, zoom + 10);
       document.getElementById('zoom-level').textContent = zoom + '%';
@@ -566,4 +714,5 @@
     });
   </script>
 </body>
+
 </html>

@@ -1,24 +1,28 @@
 @echo off
-title Didar Network Simulation Server
-echo ===============================================
-echo   Didar Network Simulation Lab
-echo   Faculty of Information Technologies
-echo ===============================================
+echo ========================================
+echo  Didar Network Simulation Lab
+echo ========================================
 echo.
-echo Starting local development server...
+echo Starting local server on port 4173...
 echo.
-
-cd /d "%~dp0"
-
-echo Server will be available at:
-echo   http://localhost:4173/index-v2.html
+echo Available pages:
+echo - Home Page:    http://localhost:4173/
+echo - Demo:         http://localhost:4173/demo-v2.html
+echo - Playground:   http://localhost:4173/playground-v2.html
+echo - Simulation:   http://localhost:4173/simulation.html
+echo - Analytics:    http://localhost:4173/analytics.html
 echo.
 echo Press Ctrl+C to stop the server
-echo ===============================================
 echo.
 
-start "" "http://localhost:4173/index-v2.html"
-
+REM Start Python HTTP server
 python -m http.server 4173
+
+REM If Python is not available, try Node.js serve
+if errorlevel 1 (
+    echo.
+    echo Python not found, trying npx serve...
+    npx serve . -p 4173
+)
 
 pause

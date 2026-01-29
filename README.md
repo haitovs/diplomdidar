@@ -6,20 +6,20 @@ Design-first diploma template that showcases an interactive campus network for d
 
 ## Highlights
 
--   **Scenario-driven topology** – swap weekday peak, exams, maintenance, STEM open day, office sprint, or weekend market presets and watch the canvas retune.
--   **Animated backbone map** – icon-based nodes with live glow, tooltips, draggable nodes, and bendable handles.
--   **Flowing packets** – data pulses traverse each wire so the backbone feels alive (speed adjusts with load).
--   **Class traffic timeline** – responsive schedule bars that light up as the simulation clock advances.
--   **Live class feed** – shows which rooms are active right now, their stream weight, and bandwidth draw.
--   **Class load levers** – streaming quality, devices-per-student, AI load, and guest-lock toggles that directly change the canvas and charts.
--   **Node inspector** – click any icon to see hardware, software, role, and live load.
--   **Playground page** – separate sandbox (`playground.html`) to place devices from the palette, wire them, and stream traffic.
--   **Health + alerting** – headroom/SLA bars plus a scrolling alert log that fires when thresholds are crossed.
--   **Movable UI pods** – thanks to `interact.js`, every control card (and even the hero CTA block) can be dragged to arrange the workspace mid-demo.
+-   **Multiple specialized views** – Home page, enhanced demo, topology editor playground, full simulation, and analytics dashboard.
+-   **Scenario-driven simulation** – swap traffic patterns (classroom, exam, lab, streaming, DDoS) and watch real-time network behavior.
+-   **Animated backbone map** – icon-based nodes with live glow, tooltips, draggable nodes, and flowing packet visualization.
+-   **Topology editor** – drag-and-drop playground to build custom network topologies with device palette and property editor.
+-   **Traffic simulation** – realistic traffic patterns with failure scenarios, cascading failures, and recovery mechanisms.
+-   **Live analytics** – real-time metrics collection with charts, node details, and network health monitoring.
+-   **Node inspector** – click any icon to see hardware, software, role, and live load metrics.
+-   **Interactive controls** – simulation speed control, pattern selection, failure triggers, and traffic spike simulation.
+-   **Health + alerting** – network status monitoring with event logs and toast notifications.
+-   **Professional rendering** – particle system for packet animation, glow effects, and smooth transitions.
 
 ## Getting started
 
-1. **Install nothing:** open `index.html` directly in a modern browser; ES modules + CDN assets handle everything.
+1. **Install nothing:** open `index-v2.html` (or just `index.html` which redirects) directly in a modern browser; ES modules + CDN assets handle everything.
 2. **Optional local server:** for clean module loading you can run one of the following from the project root:
 
     ```bash
@@ -32,27 +32,52 @@ Design-first diploma template that showcases an interactive campus network for d
 
     Then browse to `http://localhost:4173`.
 
+## Application Pages
+
+-   **`index-v2.html`** – Home page with navigation to all features
+-   **`demo-v2.html`** – Enhanced visualization demo with controls
+-   **`playground-v2.html`** – Topology editor with drag-and-drop interface
+-   **`simulation.html`** – Full simulation with traffic patterns and failure scenarios
+-   **`analytics.html`** – Analytics dashboard with live metrics
+
 ## Project structure
 
 ```
-index.html              # Layout skeleton + component containers
-styles/main.css         # Theme variables, layout, grid, cards, animations
+index-v2.html           # Modern home page with navigation
+demo-v2.html            # Enhanced visualization demo
+playground-v2.html      # Topology editor playground
+simulation.html         # Full simulation interface
+analytics.html          # Analytics dashboard
+styles/
+  design-system.css     # Design tokens and utilities
+  main.css              # Legacy styles (kept for compatibility)
+  micro-interactions.css# Animation and interaction styles
+  responsive.css        # Mobile and responsive layouts
 src/
-  main.js               # Orchestration + shared state + event wiring
-  data/simulationData.js# Static datasets for nodes, schedules, insights
-  components/           # Canvas, timeline, analytics, scenario logic (assistant/playfield kept for experiments)
-  utils/dom.js          # Tiny helpers used across modules
+  config.js             # Central configuration
+  rendering/            # Canvas renderer, node/link rendering, particles
+  engine/               # Simulation controller, traffic generator, failure simulator
+  analytics/            # Metrics collector, analytics panel, node details
+  playground/           # Device palette, topology editor, property editor
+  simulation/           # Simulation engine and alerts
+  components/           # Shared UI components
+  state/                # State management
+  ui/                   # UI helpers
+  utils/                # Utility functions
 assets/blueprint.svg    # Decorative hero blueprint
+icons/                  # Network device icons (SVG)
 ```
 
 ## Customization ideas
 
--   Feed the static datasets in `src/data/simulationData.js` from CSV exports or telemetry APIs.
--   Extend the scenario builder with per-campus toggles or Wi-Fi/5G slices and reflect them on the canvas.
--   Swap the alert rules in `src/main.js` for the thresholds you need to defend in your thesis.
--   Drop your own SVG/PNG art into `icons/` (see `icons/README.md` for filenames) to brand each node type.
--   Export slides: take screenshots of each scenario (the layout is presentation-ready on desktop widths).
--   Register your own topology preset (nodes + links) under `topologyPresets` and map it to a scenario for even more customised demos (node dragging + wire bending still works automatically).
+-   **Data sources**: Feed the static datasets in `src/data/simulationData.js` from CSV exports or telemetry APIs.
+-   **Scenarios**: Extend traffic patterns in `src/engine/TrafficGenerator.js` with custom patterns.
+-   **Thresholds**: Adjust alert and health thresholds in `src/config.js` for your network requirements.
+-   **Device icons**: Drop your own SVG/PNG art into `icons/` (see `icons/README.md`) to brand each device type.
+-   **Topology presets**: Register custom topology presets in `src/data/simulationData.js` under `topologyPresets`.
+-   **Rendering**: Customize visual effects in `src/rendering/` (particle system, glow effects, colors).
+-   **Export**: Take screenshots of simulations or extend `src/export/export.js` for PDF reports.
+-   **Analytics**: Add custom metrics in `src/analytics/MetricsCollector.js` to track specific KPIs.
 
 ## Next steps for the diploma
 

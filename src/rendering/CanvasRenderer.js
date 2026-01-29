@@ -24,12 +24,12 @@ export class CanvasRenderer {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.options = { ...RENDER_CONFIG, ...options };
-    
+
     // Initialize sub-renderers
     this.nodeRenderer = new NodeRenderer(this.ctx, new Map());
     this.linkRenderer = new LinkRenderer(this.ctx);
     this.particleSystem = new ParticleSystem(this.ctx);
-    
+
     // State
     this.nodes = [];
     this.links = [];
@@ -38,21 +38,21 @@ export class CanvasRenderer {
     this.selectedNode = null;
     this.hoveredNode = null;
     this.selectedLink = null;
-    
+
     // Animation
     this.frame = 0;
     this.lastFrameTime = 0;
     this.rafId = null;
     this.paused = false;
-    
+
     // Setup canvas
     this.dpr = window.devicePixelRatio || 1;
     this.handleResize();
-    
+
     // Event bindings
     this.handleResize = this.handleResize.bind(this);
     this.loop = this.loop.bind(this);
-    
+
     window.addEventListener('resize', this.handleResize);
   }
 
@@ -75,13 +75,13 @@ export class CanvasRenderer {
       targetLoad: node.load ?? 0.5,
       type: node.type || 'switch',
     }));
-    
+
     this.links = topology.links || [];
     this.nodeMap = new Map(this.nodes.map(n => [n.id, n]));
-    
+
     // Initialize particle system
     this.particleSystem.initialize(this.links, this.nodeMap, 1);
-    
+
     // Initialize link health
     this.links.forEach(link => {
       this.linkHealthMap.set(link.id, { status: 'up', flow: 1, loss: 0 });
@@ -106,7 +106,7 @@ export class CanvasRenderer {
     this.canvas.width = rect.width * this.dpr;
     this.canvas.height = rect.height * this.dpr;
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    
+
     // Update node positions
     this.nodes.forEach(node => {
       if (node.position) {
@@ -157,22 +157,22 @@ export class CanvasRenderer {
   loop(timestamp) {
     const elapsed = timestamp - this.lastFrameTime;
     const targetFrameTime = 1000 / this.options.targetFPS;
-    
+
     if (elapsed >= targetFrameTime) {
       this.lastFrameTime = timestamp - (elapsed % targetFrameTime);
       this.frame++;
-      
+
       if (!this.paused) {
         this.update();
       }
-      
+
       this.render();
-      
+
       // Update sub-renderers
       this.nodeRenderer.tick();
       this.linkRenderer.tick();
     }
-    
+
     this.rafId = requestAnimationFrame(this.loop);
   }
 
@@ -185,7 +185,7 @@ export class CanvasRenderer {
       const diff = node.targetLoad - node.displayLoad;
       node.displayLoad += diff * 0.05;
     });
-    
+
     // Update particles
     this.particleSystem.update(1);
   }
@@ -197,12 +197,18 @@ export class CanvasRenderer {
     // Clear canvas
     this.ctx.fillStyle = this.options.backgroundColor;
     this.ctx.fillRect(0, 0, this.width, this.height);
-    
+
+    // Apply transform
+    if (this.applyTransform) {
+      this.applyTransform();
+    }
+
+
     // Draw grid
     if (this.options.showGrid) {
       this.drawGrid();
     }
-    
+
     // Draw links
     this.links.forEach(link => {
       const source = this.nodeMap.get(link.source);
@@ -210,13 +216,13 @@ export class CanvasRenderer {
       const health = this.linkHealthMap.get(link.id) || { status: 'up', flow: 1 };
       const control = this.getControlPoint(link, source, target);
       const isSelected = this.selectedLink === link.id;
-      
+
       this.linkRenderer.render(link, source, target, control, health, isSelected);
     });
-    
+
     // Draw particles
     this.particleSystem.render();
-    
+
     // Draw nodes
     this.nodes.forEach(node => {
       const isSelected = this.selectedNode === node.id;
@@ -232,7 +238,7 @@ export class CanvasRenderer {
     const size = this.options.gridSize;
     this.ctx.strokeStyle = this.options.gridColor;
     this.ctx.lineWidth = 1;
-    
+
     // Vertical lines
     for (let x = 0; x <= this.width; x += size) {
       this.ctx.beginPath();
@@ -240,7 +246,7 @@ export class CanvasRenderer {
       this.ctx.lineTo(x, this.height);
       this.ctx.stroke();
     }
-    
+
     // Horizontal lines
     for (let y = 0; y <= this.height; y += size) {
       this.ctx.beginPath();
@@ -260,11 +266,11 @@ export class CanvasRenderer {
         y: link.control.y * this.height,
       };
     }
-    
+
     if (!source || !target) {
       return { x: this.width / 2, y: this.height / 2 };
     }
-    
+
     // Auto-calculate curve
     const midX = (source.x + target.x) / 2;
     const midY = (source.y + target.y) / 2 - Math.abs(source.x - target.x) * 0.1;
@@ -349,5 +355,36 @@ export class CanvasRenderer {
     this.particleSystem.clear();
   }
 }
+
+
+// setSpeed method for ParticleSystem
+ParticleSystem.prototype.setSpeed = function (multiplier) {
+  this.speedMultiplier = multiplier || 1;
+};
+
+// setTransform method for CanvasRenderer
+CanvasRenderer.prototype.setTransform = function (transform) {
+  this.transform = transform || { scale: 1, offsetX: 0, offsetY: 0 };
+  this.needsRedraw = true;
+};
+
+// Apply transform in render method
+CanvasRenderer.prototype.applyTransform = function () {
+  if (this.transform) {
+    this.ctx.setTransform(
+      this.transform.scale * this.dpr, 0, 0,
+      this.transform.scale * this.dpr,
+      this.transform.offsetX * this.dpr,
+      this.transform.offsetY * this.dpr
+    );
+  } else {
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+  }
+};
+
+// Reset transform after rendering
+CanvasRenderer.prototype.resetTransform = function () {
+  this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+};
 
 export { DEVICE_CONFIG, LINK_CONFIG };
