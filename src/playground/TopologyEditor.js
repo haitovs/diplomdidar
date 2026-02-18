@@ -16,6 +16,7 @@ export class TopologyEditor {
     this.options = {
       onNodeAdd: null,
       onNodeSelect: null,
+      onLinkSelect: null,
       onLinkAdd: null,
       onTopologyChange: null,
       snapToGrid: true,
@@ -40,6 +41,7 @@ export class TopologyEditor {
     this.links = [];
     this.nodeIdCounter = 1;
     this.linkIdCounter = 1;
+    this.lastDeviceType = 'switch';
 
     this.boundHandlers = {
       click: (e) => this.handleClick(e),
@@ -62,8 +64,12 @@ export class TopologyEditor {
    */
   setMode(mode) {
     this.mode = mode;
-    this.pendingDevice = null;
     this.pendingLink = null;
+    if (mode === 'addNode') {
+      this.pendingDevice = this.pendingDevice || this.lastDeviceType || 'switch';
+    } else {
+      this.pendingDevice = null;
+    }
     this.updateCursor();
   }
 
@@ -72,7 +78,8 @@ export class TopologyEditor {
    */
   setPendingDevice(deviceType) {
     this.mode = 'addNode';
-    this.pendingDevice = deviceType;
+    this.pendingDevice = DEVICE_CONFIG[deviceType] ? deviceType : 'switch';
+    this.lastDeviceType = this.pendingDevice;
     this.updateCursor();
   }
 
@@ -154,6 +161,7 @@ export class TopologyEditor {
     const node = this.renderer.findNodeAt(x, y);
     
     if (node) {
+      this.selectedLinks.clear();
       if (addToSelection) {
         if (this.selectedNodes.has(node.id)) {
           this.selectedNodes.delete(node.id);
@@ -170,9 +178,37 @@ export class TopologyEditor {
       if (this.options.onNodeSelect) {
         this.options.onNodeSelect(node);
       }
-    } else if (!addToSelection) {
+      if (this.options.onLinkSelect) {
+        this.options.onLinkSelect(null);
+      }
+      return;
+    }
+
+    const link = this.findLinkAt(x, y);
+    if (link) {
       this.selectedNodes.clear();
+      this.selectedLinks.clear();
+      this.selectedLinks.add(link.id);
+      this.renderer.selectLink(link.id);
+      if (this.options.onNodeSelect) {
+        this.options.onNodeSelect(null);
+      }
+      if (this.options.onLinkSelect) {
+        this.options.onLinkSelect(link);
+      }
+      return;
+    }
+
+    if (!addToSelection) {
+      this.selectedNodes.clear();
+      this.selectedLinks.clear();
       this.renderer.selectNode(null);
+      if (this.options.onNodeSelect) {
+        this.options.onNodeSelect(null);
+      }
+      if (this.options.onLinkSelect) {
+        this.options.onLinkSelect(null);
+      }
     }
   }
 
@@ -212,6 +248,12 @@ export class TopologyEditor {
     
     if (node) {
       this.deleteNode(node.id);
+      return;
+    }
+
+    const link = this.findLinkAt(x, y);
+    if (link) {
+      this.deleteLink(link.id);
     }
   }
 
@@ -251,15 +293,60 @@ export class TopologyEditor {
    */
   handleDrop(e) {
     e.preventDefault();
-    const deviceType = e.dataTransfer.getData('device');
+    const deviceType = (
+      e.dataTransfer.getData('device') ||
+      e.dataTransfer.getData('application/x-network-device') ||
+      e.dataTransfer.getData('text/plain')
+    ).trim();
     
-    if (deviceType) {
+    if (deviceType && DEVICE_CONFIG[deviceType]) {
       const rect = this.canvas.getBoundingClientRect();
       const viewX = e.clientX - rect.left;
       const viewY = e.clientY - rect.top;
       const { x, y } = this.toWorldCoordinates(viewX, viewY);
+      this.setPendingDevice(deviceType);
       this.addNode(x, y, deviceType);
     }
+  }
+
+  /**
+   * Find link near a point for selection/deletion operations.
+   */
+  findLinkAt(x, y, threshold = 14) {
+    let hit = null;
+
+    this.links.forEach((link) => {
+      if (hit) return;
+      const source = this.renderer.nodeMap.get(link.source);
+      const target = this.renderer.nodeMap.get(link.target);
+      if (!source || !target) return;
+      const control = this.renderer.getControlPoint(link, source, target);
+      if (this.distanceToCurve(x, y, source, control, target) <= threshold) {
+        hit = link;
+      }
+    });
+
+    return hit;
+  }
+
+  /**
+   * Approximate shortest distance from a point to a quadratic Bezier curve.
+   */
+  distanceToCurve(px, py, p0, p1, p2, steps = 24) {
+    let minDistSq = Number.POSITIVE_INFINITY;
+
+    for (let i = 0; i <= steps; i += 1) {
+      const t = i / steps;
+      const inv = 1 - t;
+      const x = inv * inv * p0.x + 2 * inv * t * p1.x + t * t * p2.x;
+      const y = inv * inv * p0.y + 2 * inv * t * p1.y + t * t * p2.y;
+      const dx = px - x;
+      const dy = py - y;
+      const distSq = dx * dx + dy * dy;
+      if (distSq < minDistSq) minDistSq = distSq;
+    }
+
+    return Math.sqrt(minDistSq);
   }
 
   /**
@@ -347,6 +434,7 @@ export class TopologyEditor {
       status: 'healthy',
     };
     const node = normalizeNode(rawNode, this.nodes.length, this.getNormalizationOptions());
+    this.lastDeviceType = deviceType;
     
     this.nodes.push(node);
     this.saveState();
@@ -422,14 +510,19 @@ export class TopologyEditor {
    * Delete all selected items
    */
   deleteSelected() {
-    if (this.selectedNodes.size === 0) return;
+    if (this.selectedNodes.size === 0 && this.selectedLinks.size === 0) return;
 
     this.selectedNodes.forEach(nodeId => {
       this.nodes = this.nodes.filter(n => n.id !== nodeId);
       this.links = this.links.filter(l => l.source !== nodeId && l.target !== nodeId);
     });
+
+    this.selectedLinks.forEach(linkId => {
+      this.links = this.links.filter((link) => link.id !== linkId);
+    });
     
     this.selectedNodes.clear();
+    this.selectedLinks.clear();
     this.saveState();
     this.updateRenderer();
     this.emitChange();

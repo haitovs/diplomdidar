@@ -585,10 +585,13 @@
       <div class="instructions">
         <h4>💡 Quick Tips</h4>
         <ul>
-          <li>Drag devices from palette to canvas</li>
+          <li>1) Click a device on the left, then click canvas to place</li>
+          <li>2) Or drag a device from the left directly onto canvas</li>
+          <li>3) Press <kbd>L</kbd> and click two nodes to create a link</li>
+          <li>4) Click any node or link to edit properties on the right</li>
+          <li>5) Press <kbd>Simulate</kbd> to run this topology</li>
           <li><kbd>V</kbd> Select mode</li>
           <li><kbd>N</kbd> Add node mode</li>
-          <li><kbd>L</kbd> Add link mode</li>
           <li><kbd>Del</kbd> Delete selected</li>
           <li><kbd>Ctrl+Z</kbd> Undo</li>
           <li><kbd>Ctrl+Y</kbd> Redo</li>
@@ -623,6 +626,9 @@
     const renderer = new CanvasRenderer(canvas, { showGrid: true });
     const lifecycle = new LifecycleManager();
     const on = (target, event, handler, options) => lifecycle.on(target, event, handler, options);
+    const STORAGE_KEYS = {
+      playgroundTopology: 'playground-topology',
+    };
 
     // Preload icons
     const iconCache = new Map();
@@ -748,16 +754,29 @@
     // Initialize editor
     const editor = new TopologyEditor(canvas, renderer, {
       onNodeSelect: (node) => {
-        propertyEditor.editNode(node);
+        if (node) {
+          propertyEditor.editNode(node);
+          return;
+        }
+        propertyEditor.clear();
+      },
+      onLinkSelect: (link) => {
+        if (link) {
+          propertyEditor.editLink(link);
+          return;
+        }
+        propertyEditor.clear();
       },
       onTopologyChange: (topology) => {
         updateStats(topology);
+        persistTopology();
       },
     });
 
     // Initialize device palette
     const palette = new DevicePalette(document.getElementById('device-palette'), {
       onDeviceSelect: (deviceType) => {
+        setModeButtonActive('addNode');
         editor.setPendingDevice(deviceType);
         updateModeIndicator('addNode', deviceType);
       },
@@ -789,11 +808,21 @@
     document.querySelectorAll('.tool-btn[data-mode]').forEach(btn => {
       on(btn, 'click', () => {
         const mode = btn.dataset.mode;
-        document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        setModeButtonActive(mode);
+
+        if (mode === 'addNode') {
+          const selectedDevice = palette.getSelectedDevice() || 'switch';
+          palette.setSelectedDevice(selectedDevice, false);
+          editor.setPendingDevice(selectedDevice);
+          updateModeIndicator(mode, selectedDevice);
+          return;
+        }
+
         editor.setMode(mode);
         updateModeIndicator(mode);
-        palette.clearSelection();
+        if (mode !== 'select') {
+          propertyEditor.clear();
+        }
       });
     });
 
@@ -811,21 +840,7 @@
 
     // Templates
     on(document.getElementById('btn-template'), 'click', () => {
-      const template = {
-        nodes: [
-          { id: 'n1', label: 'Core Router', type: 'coreRouter', position: { x: 0.5, y: 0.2 }, load: 0.6 },
-          { id: 'n2', label: 'Switch A', type: 'switch', position: { x: 0.3, y: 0.5 }, load: 0.4 },
-          { id: 'n3', label: 'Switch B', type: 'switch', position: { x: 0.7, y: 0.5 }, load: 0.5 },
-          { id: 'n4', label: 'Server', type: 'server', position: { x: 0.5, y: 0.8 }, load: 0.7 },
-        ],
-        links: [
-          { id: 'l1', source: 'n1', target: 'n2', type: 'fiber' },
-          { id: 'l2', source: 'n1', target: 'n3', type: 'fiber' },
-          { id: 'l3', source: 'n2', target: 'n4', type: 'ethernet' },
-          { id: 'l4', source: 'n3', target: 'n4', type: 'ethernet' },
-        ],
-      };
-      editor.loadTopology(template);
+      editor.loadTopology(getStarterTemplate());
     });
 
     // Import/Export
@@ -849,8 +864,8 @@
     // Simulate button
     on(document.getElementById('btn-simulate'), 'click', () => {
       const topology = editor.getSerializableTopology();
-      localStorage.setItem('playground-topology', JSON.stringify(topology));
-      window.open('simulation.html', '_blank');
+      localStorage.setItem(STORAGE_KEYS.playgroundTopology, JSON.stringify(topology));
+      window.location.href = 'simulation.html';
     });
 
     // Update mode indicator
@@ -870,11 +885,70 @@
       modeDot.style.background = config.color;
     }
 
+    function setModeButtonActive(mode) {
+      document.querySelectorAll('.tool-btn[data-mode]').forEach((button) => {
+        button.classList.toggle('active', button.dataset.mode === mode);
+      });
+    }
+
     // Update topology stats
     function updateStats(topology) {
       document.getElementById('stat-nodes').textContent = topology.nodes.length;
       document.getElementById('stat-links').textContent = topology.links.length;
     }
+
+    function getStarterTemplate() {
+      return {
+        nodes: [
+          { id: 'internet', label: 'Internet', type: 'cloud', position: { x: 0.5, y: 0.08 }, load: 0.3 },
+          { id: 'fw', label: 'Firewall', type: 'firewall', position: { x: 0.5, y: 0.22 }, load: 0.4 },
+          { id: 'core-a', label: 'Core-1', type: 'coreRouter', position: { x: 0.3, y: 0.4 }, load: 0.45 },
+          { id: 'core-b', label: 'Core-2', type: 'coreRouter', position: { x: 0.7, y: 0.4 }, load: 0.45 },
+          { id: 'sw-a', label: 'Switch-A', type: 'switch', position: { x: 0.2, y: 0.62 }, load: 0.35 },
+          { id: 'sw-b', label: 'Switch-B', type: 'switch', position: { x: 0.5, y: 0.62 }, load: 0.35 },
+          { id: 'srv', label: 'App Server', type: 'server', position: { x: 0.5, y: 0.82 }, load: 0.4 },
+        ],
+        links: [
+          { id: 'l1', source: 'internet', target: 'fw', type: 'wan' },
+          { id: 'l2', source: 'fw', target: 'core-a', type: 'fiber' },
+          { id: 'l3', source: 'fw', target: 'core-b', type: 'fiber' },
+          { id: 'l4', source: 'core-a', target: 'core-b', type: 'fiber' },
+          { id: 'l5', source: 'core-a', target: 'sw-a', type: 'ethernet' },
+          { id: 'l6', source: 'core-a', target: 'sw-b', type: 'ethernet' },
+          { id: 'l7', source: 'core-b', target: 'sw-b', type: 'ethernet' },
+          { id: 'l8', source: 'sw-b', target: 'srv', type: 'ethernet' },
+        ],
+      };
+    }
+
+    function persistTopology() {
+      const topology = editor.getSerializableTopology();
+      localStorage.setItem(STORAGE_KEYS.playgroundTopology, JSON.stringify(topology));
+    }
+
+    function loadInitialTopology() {
+      const saved = localStorage.getItem(STORAGE_KEYS.playgroundTopology);
+      if (!saved) {
+        editor.loadTopology(getStarterTemplate());
+        setModeButtonActive('select');
+        editor.setMode('select');
+        updateModeIndicator('select');
+        return;
+      }
+
+      try {
+        editor.loadTopology(JSON.parse(saved));
+      } catch (error) {
+        console.warn('[playground] Failed to load saved topology, using starter template:', error);
+        editor.loadTopology(getStarterTemplate());
+      }
+
+      setModeButtonActive('select');
+      editor.setMode('select');
+      updateModeIndicator('select');
+    }
+
+    loadInitialTopology();
 
     on(window, 'beforeunload', () => {
       lifecycle.cleanup();

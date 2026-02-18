@@ -546,6 +546,12 @@
       applyReportSimulationState(analysisContext.report);
       updateSpeedButtons(simController.getState().speed || 1);
       simController.start();
+      metricsCollector.update({
+        nodes: renderer.nodes,
+        links: renderer.links,
+        particles: renderer.particleSystem.getCount(),
+      });
+      analyticsPanel.update();
       setStatus('Running', '#22c55e');
     });
 

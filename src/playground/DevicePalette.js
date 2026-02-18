@@ -134,7 +134,10 @@ export class DevicePalette {
     
     // Drag start
     item.addEventListener('dragstart', (e) => {
+      // Safari is strict about transferable types; set multiple keys.
       e.dataTransfer.setData('device', deviceKey);
+      e.dataTransfer.setData('application/x-network-device', deviceKey);
+      e.dataTransfer.setData('text/plain', deviceKey);
       e.dataTransfer.effectAllowed = 'copy';
       item.classList.add('dragging');
       
@@ -153,7 +156,7 @@ export class DevicePalette {
   /**
    * Select a device type
    */
-  selectDevice(deviceKey, element) {
+  selectDevice(deviceKey, element, emit = true) {
     // Deselect previous
     const prev = this.container.querySelector('.palette-device.selected');
     if (prev) prev.classList.remove('selected');
@@ -162,9 +165,19 @@ export class DevicePalette {
     this.selectedDevice = deviceKey;
     element.classList.add('selected');
     
-    if (this.options.onDeviceSelect) {
+    if (emit && this.options.onDeviceSelect) {
       this.options.onDeviceSelect(deviceKey);
     }
+  }
+
+  /**
+   * Programmatically select a device by key.
+   */
+  setSelectedDevice(deviceKey, emit = true) {
+    const element = this.container.querySelector(`.palette-device[data-device="${deviceKey}"]`);
+    if (!element) return false;
+    this.selectDevice(deviceKey, element, emit);
+    return true;
   }
 
   /**

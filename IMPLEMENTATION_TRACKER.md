@@ -179,6 +179,24 @@ Last updated: 2026-02-18
   - Replaced random mock loop with `SimulationController`-driven deterministic playback.
   - Added report import workflow and local latest-report loading.
   - Added Lab Assessment section with scenario score/status, objective snapshot, and targeted remediation recommendations.
+  - Added immediate first-sample metrics update after startup so dashboard cards do not stay at zero on initial render.
+- Updated `playground-v2.html`:
+  - Added starter topology auto-load when no saved topology exists to avoid empty-canvas dead start.
+  - Added topology auto-save to local storage on each topology change.
+  - Changed Simulate action to same-tab navigation for reliable handoff (no popup blocker issues).
+  - Improved editor guidance with step-by-step quick tips for add/link/edit/simulate workflow.
+  - Fixed mode behavior so Add Node always has a selected device and mode button state is explicit.
+  - Added node/link selection callbacks to keep property panel in sync and clear cleanly.
+- Updated `simulation.html`:
+  - Added `Edit Topology` action to round-trip current topology back into playground editing.
+  - Replaced fragile click-based auto-start with explicit controller startup + UI-state sync after topology load.
+- Updated `src/playground/TopologyEditor.js`:
+  - Added resilient Add Node fallback (`switch`) when no pending device is set.
+  - Added link hit-testing for select/delete operations and link callback support for property editing.
+  - Hardened drag/drop device extraction for Safari-compatible MIME types.
+- Updated `src/playground/DevicePalette.js`:
+  - Added multi-type `dataTransfer.setData(...)` for cross-browser drag/drop reliability.
+  - Added programmatic device selection API used by toolbar mode flow.
 - Re-verified regression suite:
   - `./scripts/run-smoke-checks.sh` passed.
   - `make smoke` passed.

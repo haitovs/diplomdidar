@@ -662,6 +662,7 @@
 
     <div class="header-actions">
       <button class="btn btn-primary" id="btn-play">▶ Start</button>
+      <button class="btn btn-secondary" id="btn-edit-topology">🛠 Edit Topology</button>
       <button class="btn btn-warning" id="btn-failure">💥 Failure</button>
       <button class="btn btn-danger" id="btn-cascade">🔥 Cascade</button>
       <button class="btn btn-secondary" id="btn-recover">🔧 Recover All</button>
@@ -798,6 +799,7 @@
 
     const STORAGE_KEYS = {
       latestLabReport: 'network-training-lab-report-latest',
+      playgroundTopology: 'playground-topology',
     };
 
     // Initialize
@@ -827,11 +829,14 @@
     const labObjectivesEl = document.getElementById('lab-objectives');
     const exportReportBtn = document.getElementById('btn-export-report');
     const openAnalyticsBtn = document.getElementById('btn-open-analytics');
+    const editTopologyBtn = document.getElementById('btn-edit-topology');
+    const playBtn = document.getElementById('btn-play');
+    const infoStatusEl = document.getElementById('info-status');
     const initialTopology = loadInitialTopology();
     const usingSavedTopology = initialTopology !== defaultTopology;
 
     function loadInitialTopology() {
-      const raw = localStorage.getItem('playground-topology');
+      const raw = localStorage.getItem(STORAGE_KEYS.playgroundTopology);
       if (!raw) return defaultTopology;
 
       try {
@@ -872,6 +877,7 @@
       if (usingSavedTopology) {
         addLogEntry('Loaded topology from playground editor', 'info');
       }
+      ensureSimulationRunning();
     });
 
     // Initialize simulation controller
@@ -933,19 +939,16 @@
     });
 
     // UI Controls
-    const playBtn = document.getElementById('btn-play');
 
     on(playBtn, 'click', () => {
       if (!simController.isRunning) {
         simController.start();
-        playBtn.innerHTML = '⏸ Pause';
-        document.getElementById('info-status').textContent = 'Running';
+        setSimulationUiState(false);
         return;
       }
 
       const isPaused = simController.togglePause();
-      playBtn.innerHTML = isPaused ? '▶ Resume' : '⏸ Pause';
-      document.getElementById('info-status').textContent = isPaused ? 'Paused' : 'Running';
+      setSimulationUiState(isPaused);
     });
 
     on(document.getElementById('btn-rewind'), 'click', () => {
@@ -968,6 +971,13 @@
     on(openAnalyticsBtn, 'click', () => {
       exportLabReport({ download: false });
       window.location.href = 'analytics.html';
+    });
+
+    on(editTopologyBtn, 'click', () => {
+      const topology = serializeTopology({ nodes: renderer.nodes, links: renderer.links });
+      localStorage.setItem(STORAGE_KEYS.playgroundTopology, JSON.stringify(topology));
+      logEvent('Opening topology editor with current network state');
+      window.location.href = 'playground-v2.html';
     });
 
     // Get button references
@@ -1118,13 +1128,6 @@
       }
     });
 
-    // Auto-start simulation
-    later(() => {
-      if (playBtn && !simController.isRunning) {
-        playBtn.click();
-      }
-    }, 500);
-
     on(document.getElementById('btn-screenshot'), 'click', () => {
       const link = document.createElement('a');
       link.download = `simulation-${Date.now()}.png`;
@@ -1133,6 +1136,18 @@
     });
 
     // Helper functions
+    function setSimulationUiState(isPaused = false) {
+      playBtn.innerHTML = isPaused ? '▶ Resume' : '⏸ Pause';
+      infoStatusEl.textContent = isPaused ? 'Paused' : 'Running';
+    }
+
+    function ensureSimulationRunning() {
+      if (simController.isRunning) return;
+      simController.start();
+      setSimulationUiState(false);
+      logEvent('Simulation auto-started', 'info');
+    }
+
     function initializeLabScenarioSelect() {
       labScenarioSelect.innerHTML = LAB_SCENARIO_ORDER.map((scenarioKey) => {
         const scenario = LAB_SCENARIOS[scenarioKey];
@@ -1246,9 +1261,6 @@
       `).join('');
 
     }
-
-    // Start with renderer visible
-    renderer.start();
 
     on(window, 'beforeunload', () => {
       lifecycle.cleanup();
