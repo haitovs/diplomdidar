@@ -18,7 +18,7 @@
       font-family: 'Inter', system-ui, sans-serif;
       background: #0a0f1a;
       color: #f8fafc;
-      height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -31,6 +31,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     .logo {
@@ -45,6 +47,9 @@
       display: flex;
       gap: 12px;
       align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      min-width: 0;
     }
 
     .btn {
@@ -55,6 +60,11 @@
       cursor: pointer;
       font-size: 13px;
       transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      white-space: nowrap;
     }
 
     .btn-primary {
@@ -77,6 +87,7 @@
       border-radius: 20px;
       font-size: 12px;
       color: #22c55e;
+      white-space: nowrap;
     }
 
     .status-dot {
@@ -95,7 +106,7 @@
     main {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 320px 280px;
+      grid-template-columns: 1fr minmax(280px, 320px) minmax(260px, 300px);
       overflow: hidden;
     }
 
@@ -135,6 +146,7 @@
     .speed-control {
       display: flex;
       gap: 4px;
+      flex-wrap: wrap;
     }
 
     .speed-btn {
@@ -145,6 +157,7 @@
       color: #94a3b8;
       cursor: pointer;
       font-size: 12px;
+      min-width: 0;
     }
 
     .speed-btn.active {
@@ -154,12 +167,13 @@
     }
 
     .sidebar {
-      width: 320px;
       background: rgba(15, 23, 42, 0.8);
       border-left: 1px solid rgba(255, 255, 255, 0.1);
       padding: 20px;
       overflow-y: auto;
       overflow-x: hidden;
+      min-width: 0;
+      scrollbar-gutter: stable both-edges;
     }
 
     /* Hide sidebar scrollbar */
@@ -200,13 +214,123 @@
       padding: 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
+
+    .back-link {
+      text-decoration: none;
+    }
+
+    .btn:focus-visible,
+    .speed-btn:focus-visible {
+      outline: 2px solid rgba(34, 197, 94, 0.9);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 1360px) {
+      main {
+        grid-template-columns: 1fr 300px 260px;
+      }
+
+      .time-control {
+        gap: 12px;
+        padding: 10px 14px;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      body {
+        overflow: auto;
+      }
+
+      header {
+        padding: 12px;
+      }
+
+      .header-controls {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 8px;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+
+      .canvas-area {
+        min-height: 56vh;
+      }
+
+      .time-control {
+        position: static;
+        transform: none;
+        margin: 12px;
+        width: calc(100% - 24px);
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .sidebar {
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 14px;
+      }
+
+      #analytics-panel {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+
+      .header-controls .back-link {
+        grid-column: 1 / -1;
+      }
+
+      .header-controls .btn,
+      .header-controls .status-badge {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .time-control {
+        gap: 10px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .logo {
+        font-size: 1.1rem;
+      }
+
+      .time-display {
+        font-size: 20px;
+      }
+
+      .speed-control {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .speed-btn {
+        flex: 1;
+      }
+
+      .sidebar {
+        padding: 12px;
+      }
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="logo">📊 Analytics Dashboard</div>
     <div class="header-controls">
-      <a href="index-v2.html" class="btn btn-secondary" style="text-decoration: none; margin-right: 12px;">← Back to Menu</a>
+      <a href="index-v2.html" class="btn btn-secondary back-link">← Back to Menu</a>
       <div class="status-badge">
         <div class="status-dot"></div>
         <span id="sim-status">Running</span>
@@ -247,6 +371,7 @@
     import { MetricsCollector } from './src/analytics/MetricsCollector.js';
     import { AnalyticsPanel } from './src/analytics/AnalyticsPanel.js';
     import { NodeDetailView } from './src/analytics/NodeDetailView.js';
+    import { LifecycleManager } from './src/utils/lifecycle.js';
 
     // Demo topology
     const demoTopology = {
@@ -284,6 +409,8 @@
     // Initialize canvas renderer
     const canvas = document.getElementById('analytics-canvas');
     const renderer = new CanvasRenderer(canvas, { showGrid: true });
+    const lifecycle = new LifecycleManager();
+    const on = (target, event, handler, options) => lifecycle.on(target, event, handler, options);
 
     // Preload icons
     const iconCache = new Map();
@@ -331,7 +458,7 @@
 
     // Simulation loop
     function startSimulation() {
-      setInterval(() => {
+      lifecycle.interval(() => {
         if (isPaused) return;
         
         // Advance simulation time
@@ -366,7 +493,7 @@
     }
 
     // Canvas click handler
-    canvas.addEventListener('click', (e) => {
+    on(canvas, 'click', (e) => {
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -382,7 +509,7 @@
     });
 
     // Pause button
-    document.getElementById('btn-pause').addEventListener('click', function() {
+    on(document.getElementById('btn-pause'), 'click', function() {
       isPaused = !isPaused;
       this.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
       document.getElementById('sim-status').textContent = isPaused ? 'Paused' : 'Running';
@@ -393,7 +520,7 @@
 
     // Speed buttons
     document.querySelectorAll('.speed-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
+      on(btn, 'click', function() {
         document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         simSpeed = parseFloat(this.dataset.speed);
@@ -401,16 +528,23 @@
     });
 
     // Rewind button
-    document.getElementById('btn-rewind').addEventListener('click', () => {
+    on(document.getElementById('btn-rewind'), 'click', () => {
       simMinutes = 8 * 60;
     });
 
     // Screenshot button
-    document.getElementById('btn-screenshot').addEventListener('click', () => {
+    on(document.getElementById('btn-screenshot'), 'click', () => {
       const link = document.createElement('a');
       link.download = `network-analytics-${Date.now()}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
+    });
+
+    on(window, 'beforeunload', () => {
+      lifecycle.cleanup();
+      analyticsPanel.destroy();
+      nodeDetailView.destroy();
+      renderer.destroy();
     });
   </script>
 </body>

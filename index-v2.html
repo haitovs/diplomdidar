@@ -212,6 +212,10 @@
 
     /* Responsive */
     @media (max-width: 767px) {
+      body {
+        padding-bottom: 72px;
+      }
+
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -224,6 +228,14 @@
       .hero-actions .btn {
         width: 100%;
         max-width: 280px;
+      }
+    }
+
+    @supports (padding: env(safe-area-inset-bottom)) {
+      @media (max-width: 767px) {
+        body {
+          padding-bottom: calc(72px + env(safe-area-inset-bottom));
+        }
       }
     }
   </style>

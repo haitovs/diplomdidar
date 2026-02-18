@@ -39,8 +39,21 @@ export class TopologyEditor {
     this.links = [];
     this.nodeIdCounter = 1;
     this.linkIdCounter = 1;
+
+    this.boundHandlers = {
+      click: (e) => this.handleClick(e),
+      dblclick: (e) => this.handleDoubleClick(e),
+      contextmenu: (e) => this.handleContextMenu(e),
+      dragover: (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      },
+      drop: (e) => this.handleDrop(e),
+      keydown: (e) => this.handleKeydown(e),
+    };
     
     this.setupEventListeners();
+    this.saveState();
   }
 
   /**
@@ -79,20 +92,17 @@ export class TopologyEditor {
    * Setup event listeners
    */
   setupEventListeners() {
-    this.canvas.addEventListener('click', (e) => this.handleClick(e));
-    this.canvas.addEventListener('dblclick', (e) => this.handleDoubleClick(e));
-    this.canvas.addEventListener('contextmenu', (e) => this.handleContextMenu(e));
+    this.canvas.addEventListener('click', this.boundHandlers.click);
+    this.canvas.addEventListener('dblclick', this.boundHandlers.dblclick);
+    this.canvas.addEventListener('contextmenu', this.boundHandlers.contextmenu);
     
     // Drag and drop from palette
-    this.canvas.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'copy';
-    });
+    this.canvas.addEventListener('dragover', this.boundHandlers.dragover);
     
-    this.canvas.addEventListener('drop', (e) => this.handleDrop(e));
+    this.canvas.addEventListener('drop', this.boundHandlers.drop);
     
     // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => this.handleKeydown(e));
+    document.addEventListener('keydown', this.boundHandlers.keydown);
   }
 
   /**
@@ -100,8 +110,9 @@ export class TopologyEditor {
    */
   handleClick(e) {
     const rect = this.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const viewX = e.clientX - rect.left;
+    const viewY = e.clientY - rect.top;
+    const { x, y } = this.toWorldCoordinates(viewX, viewY);
     
     switch (this.mode) {
       case 'addNode':
@@ -198,8 +209,9 @@ export class TopologyEditor {
    */
   handleDoubleClick(e) {
     const rect = this.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const viewX = e.clientX - rect.left;
+    const viewY = e.clientY - rect.top;
+    const { x, y } = this.toWorldCoordinates(viewX, viewY);
     const node = this.renderer.findNodeAt(x, y);
     
     if (node && this.options.onNodeEdit) {
@@ -213,8 +225,9 @@ export class TopologyEditor {
   handleContextMenu(e) {
     e.preventDefault();
     const rect = this.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const viewX = e.clientX - rect.left;
+    const viewY = e.clientY - rect.top;
+    const { x, y } = this.toWorldCoordinates(viewX, viewY);
     
     // Show context menu (implement in UI)
     if (this.options.onContextMenu) {
@@ -231,10 +244,26 @@ export class TopologyEditor {
     
     if (deviceType) {
       const rect = this.canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const viewX = e.clientX - rect.left;
+      const viewY = e.clientY - rect.top;
+      const { x, y } = this.toWorldCoordinates(viewX, viewY);
       this.addNode(x, y, deviceType);
     }
+  }
+
+  /**
+   * Convert viewport canvas coordinates to world coordinates
+   */
+  toWorldCoordinates(x, y) {
+    const transform = this.renderer?.transform;
+    if (!transform) {
+      return { x, y };
+    }
+
+    return {
+      x: (x - transform.offsetX) / transform.scale,
+      y: (y - transform.offsetY) / transform.scale,
+    };
   }
 
   /**
@@ -308,8 +337,8 @@ export class TopologyEditor {
       targetLoad: 0.5,
     };
     
-    this.saveState();
     this.nodes.push(node);
+    this.saveState();
     this.updateRenderer();
     
     if (this.options.onNodeAdd) {
@@ -340,8 +369,8 @@ export class TopologyEditor {
       bandwidth: 1000,
     };
     
-    this.saveState();
     this.links.push(link);
+    this.saveState();
     this.updateRenderer();
     
     if (this.options.onLinkAdd) {
@@ -356,12 +385,11 @@ export class TopologyEditor {
    * Delete a node and its connected links
    */
   deleteNode(nodeId) {
-    this.saveState();
-    
     this.nodes = this.nodes.filter(n => n.id !== nodeId);
     this.links = this.links.filter(l => l.source !== nodeId && l.target !== nodeId);
     this.selectedNodes.delete(nodeId);
     
+    this.saveState();
     this.updateRenderer();
     this.emitChange();
   }
@@ -370,11 +398,10 @@ export class TopologyEditor {
    * Delete a link
    */
   deleteLink(linkId) {
-    this.saveState();
-    
     this.links = this.links.filter(l => l.id !== linkId);
     this.selectedLinks.delete(linkId);
     
+    this.saveState();
     this.updateRenderer();
     this.emitChange();
   }
@@ -384,15 +411,14 @@ export class TopologyEditor {
    */
   deleteSelected() {
     if (this.selectedNodes.size === 0) return;
-    
-    this.saveState();
-    
+
     this.selectedNodes.forEach(nodeId => {
       this.nodes = this.nodes.filter(n => n.id !== nodeId);
       this.links = this.links.filter(l => l.source !== nodeId && l.target !== nodeId);
     });
     
     this.selectedNodes.clear();
+    this.saveState();
     this.updateRenderer();
     this.emitChange();
   }
@@ -412,8 +438,8 @@ export class TopologyEditor {
     const node = this.nodes.find(n => n.id === nodeId);
     if (!node) return;
     
-    this.saveState();
     Object.assign(node, updates);
+    this.saveState();
     this.updateRenderer();
     this.emitChange();
   }
@@ -429,33 +455,40 @@ export class TopologyEditor {
    * Save state for undo
    */
   saveState() {
+    const snapshot = {
+      nodes: JSON.parse(JSON.stringify(this.nodes)),
+      links: JSON.parse(JSON.stringify(this.links)),
+    };
+
     // Remove any redo states
     this.history = this.history.slice(0, this.historyIndex + 1);
     
     // Add current state
-    this.history.push({
-      nodes: JSON.parse(JSON.stringify(this.nodes)),
-      links: JSON.parse(JSON.stringify(this.links)),
-    });
+    this.history.push(snapshot);
     
     // Limit history size
     if (this.history.length > this.maxHistory) {
       this.history.shift();
+      this.historyIndex = this.history.length - 1;
+      return;
     }
     
-    this.historyIndex = this.history.length - 1;
+    this.historyIndex++;
   }
 
   /**
    * Undo last action
    */
   undo() {
-    if (this.historyIndex < 0) return;
-    
+    if (this.historyIndex <= 0) return;
+
+    this.historyIndex--;
     const state = this.history[this.historyIndex];
     this.nodes = JSON.parse(JSON.stringify(state.nodes));
     this.links = JSON.parse(JSON.stringify(state.links));
-    this.historyIndex--;
+    this.selectedNodes.clear();
+    this.selectedLinks.clear();
+    this.renderer.selectNode(null);
     
     this.updateRenderer();
     this.emitChange();
@@ -471,6 +504,9 @@ export class TopologyEditor {
     const state = this.history[this.historyIndex];
     this.nodes = JSON.parse(JSON.stringify(state.nodes));
     this.links = JSON.parse(JSON.stringify(state.links));
+    this.selectedNodes.clear();
+    this.selectedLinks.clear();
+    this.renderer.selectNode(null);
     
     this.updateRenderer();
     this.emitChange();
@@ -490,8 +526,6 @@ export class TopologyEditor {
    * Load topology
    */
   loadTopology(topology) {
-    this.saveState();
-    
     this.nodes = (topology.nodes || []).map((node, i) => ({
       ...node,
       id: node.id || `node-${i + 1}`,
@@ -506,6 +540,7 @@ export class TopologyEditor {
     this.nodeIdCounter = this.nodes.length + 1;
     this.linkIdCounter = this.links.length + 1;
     
+    this.saveState();
     this.updateRenderer();
     this.emitChange();
   }
@@ -514,11 +549,11 @@ export class TopologyEditor {
    * Clear topology
    */
   clear() {
-    this.saveState();
     this.nodes = [];
     this.links = [];
     this.selectedNodes.clear();
     this.selectedLinks.clear();
+    this.saveState();
     this.updateRenderer();
     this.emitChange();
   }
@@ -570,6 +605,11 @@ export class TopologyEditor {
    */
   destroy() {
     // Remove event listeners
-    document.removeEventListener('keydown', this.handleKeydown);
+    this.canvas.removeEventListener('click', this.boundHandlers.click);
+    this.canvas.removeEventListener('dblclick', this.boundHandlers.dblclick);
+    this.canvas.removeEventListener('contextmenu', this.boundHandlers.contextmenu);
+    this.canvas.removeEventListener('dragover', this.boundHandlers.dragover);
+    this.canvas.removeEventListener('drop', this.boundHandlers.drop);
+    document.removeEventListener('keydown', this.boundHandlers.keydown);
   }
 }

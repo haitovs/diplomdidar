@@ -50,33 +50,26 @@ simulation.html         # Full simulation interface
 analytics.html          # Analytics dashboard
 styles/
   design-system.css     # Design tokens and utilities
-  main.css              # Legacy styles (kept for compatibility)
   micro-interactions.css# Animation and interaction styles
   responsive.css        # Mobile and responsive layouts
 src/
-  config.js             # Central configuration
-  rendering/            # Canvas renderer, node/link rendering, particles
-  engine/               # Simulation controller, traffic generator, failure simulator
   analytics/            # Metrics collector, analytics panel, node details
+  engine/               # Simulation controller, traffic generator, failure simulator
   playground/           # Device palette, topology editor, property editor
-  simulation/           # Simulation engine and alerts
-  components/           # Shared UI components
-  state/                # State management
-  ui/                   # UI helpers
-  utils/                # Utility functions
-assets/blueprint.svg    # Decorative hero blueprint
+  rendering/            # Canvas renderer, node/link rendering, particles
+  ui/feedback.js        # Toast/log UI manager for bounded dynamic feedback
+  utils/lifecycle.js    # Shared lifecycle cleanup utility
 icons/                  # Network device icons (SVG)
 ```
 
 ## Customization ideas
 
--   **Data sources**: Feed the static datasets in `src/data/simulationData.js` from CSV exports or telemetry APIs.
 -   **Scenarios**: Extend traffic patterns in `src/engine/TrafficGenerator.js` with custom patterns.
--   **Thresholds**: Adjust alert and health thresholds in `src/config.js` for your network requirements.
+-   **Failure behavior**: Tune failure types and recovery logic in `src/engine/FailureSimulator.js`.
 -   **Device icons**: Drop your own SVG/PNG art into `icons/` (see `icons/README.md`) to brand each device type.
--   **Topology presets**: Register custom topology presets in `src/data/simulationData.js` under `topologyPresets`.
+-   **Topology presets**: Update preset graphs directly in `playground-v2.html` and `simulation.html`.
 -   **Rendering**: Customize visual effects in `src/rendering/` (particle system, glow effects, colors).
--   **Export**: Take screenshots of simulations or extend `src/export/export.js` for PDF reports.
+-   **Export**: Add report/export flows by extending page-level controls in `simulation.html` or `analytics.html`.
 -   **Analytics**: Add custom metrics in `src/analytics/MetricsCollector.js` to track specific KPIs.
 
 ## Next steps for the diploma

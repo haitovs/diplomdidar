@@ -194,6 +194,9 @@ export class CanvasRenderer {
    * Render full scene
    */
   render() {
+    // Always clear in device-pixel baseline coordinates.
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+
     // Clear canvas
     this.ctx.fillStyle = this.options.backgroundColor;
     this.ctx.fillRect(0, 0, this.width, this.height);
@@ -229,6 +232,11 @@ export class CanvasRenderer {
       const isHovered = this.hoveredNode === node.id;
       this.nodeRenderer.render(node, isSelected, isHovered);
     });
+
+    // Reset transform so non-scene overlays and the next frame start cleanly.
+    if (this.resetTransform) {
+      this.resetTransform();
+    }
   }
 
   /**

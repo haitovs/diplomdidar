@@ -18,7 +18,7 @@
       font-family: 'Inter', system-ui, sans-serif;
       background: #0a0f1a;
       color: #f8fafc;
-      height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -31,8 +31,19 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
       gap: 20px;
       z-index: 100;
+    }
+
+    .app-toolbar .container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+      flex-wrap: wrap;
     }
 
     .logo {
@@ -48,6 +59,14 @@
       gap: 8px;
       align-items: center;
       flex: 1;
+      min-width: 0;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .toolbar::-webkit-scrollbar {
+      display: none;
     }
 
     .divider {
@@ -63,6 +82,7 @@
       padding: 4px;
       background: rgba(255, 255, 255, 0.05);
       border-radius: 8px;
+      flex: 0 0 auto;
     }
 
     .tool-btn {
@@ -77,6 +97,7 @@
       align-items: center;
       gap: 6px;
       transition: all 0.2s;
+      white-space: nowrap;
     }
 
     .tool-btn:hover {
@@ -96,6 +117,9 @@
     .header-actions {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      min-width: 0;
     }
 
     .btn {
@@ -109,6 +133,7 @@
       align-items: center;
       gap: 6px;
       transition: all 0.2s;
+      min-height: 36px;
     }
 
     .btn-primary {
@@ -129,7 +154,7 @@
     main {
       flex: 1;
       display: grid;
-      grid-template-columns: 260px 1fr 300px;
+      grid-template-columns: minmax(220px, 260px) 1fr minmax(260px, 300px);
       overflow: hidden;
     }
 
@@ -141,6 +166,7 @@
       overflow-x: hidden;
       /* Added to hide horizontal scrollbar */
       padding: 16px;
+      scrollbar-gutter: stable both-edges;
     }
 
     .sidebar-left {
@@ -180,6 +206,7 @@
       position: relative;
       background: #0a0f1a;
       overflow: hidden;
+      min-width: 0;
     }
 
     #playground-canvas {
@@ -327,6 +354,147 @@
       color: #64748b;
       text-transform: uppercase;
     }
+
+    .back-link {
+      text-decoration: none;
+    }
+
+    .tool-btn:focus-visible,
+    .btn:focus-visible,
+    .zoom-btn:focus-visible {
+      outline: 2px solid rgba(99, 102, 241, 0.9);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 1360px) {
+      main {
+        grid-template-columns: 220px 1fr 280px;
+      }
+    }
+
+    @media (max-width: 1080px) {
+      body {
+        overflow: auto;
+      }
+
+      header {
+        padding: 12px;
+        gap: 12px;
+      }
+
+      .app-toolbar .container {
+        width: 100%;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+
+      .canvas-area {
+        order: 1;
+        min-height: 58vh;
+      }
+
+      .sidebar-left {
+        order: 2;
+        border-right: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .sidebar-right {
+        order: 3;
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .canvas-overlay {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        flex-wrap: wrap;
+      }
+    }
+
+    @media (max-width: 680px) {
+      header {
+        padding: 10px;
+      }
+
+      .logo {
+        width: 100%;
+        font-size: 1.1rem;
+      }
+
+      .app-toolbar .container {
+        gap: 8px;
+      }
+
+      .toolbar {
+        width: 100%;
+      }
+
+      .toolbar-group {
+        width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .toolbar-group::-webkit-scrollbar {
+        display: none;
+      }
+
+      .header-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .header-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .tool-btn {
+        font-size: 12px;
+        padding: 7px 10px;
+      }
+
+      .btn {
+        font-size: 12px;
+        padding: 8px 12px;
+      }
+
+      .topology-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-overlay {
+        left: 10px;
+        right: 10px;
+      }
+
+      .overlay-panel {
+        padding: 10px 12px;
+      }
+
+      .zoom-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .header-actions {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 
@@ -335,7 +503,7 @@
     <div class="container">
       <div class="logo">🎮 Network Topology Editor</div>
       <div class="toolbar">
-        <a href="index-v2.html" class="tool-btn" style="text-decoration: none;">
+        <a href="index-v2.html" class="tool-btn back-link">
           <span class="icon">←</span> Back to Menu
         </a>
 
@@ -448,10 +616,13 @@
     import { DevicePalette } from './src/playground/DevicePalette.js';
     import { TopologyEditor } from './src/playground/TopologyEditor.js';
     import { PropertyEditor } from './src/playground/PropertyEditor.js';
+    import { LifecycleManager } from './src/utils/lifecycle.js';
 
     // Initialize canvas
     const canvas = document.getElementById('playground-canvas');
     const renderer = new CanvasRenderer(canvas, { showGrid: true });
+    const lifecycle = new LifecycleManager();
+    const on = (target, event, handler, options) => lifecycle.on(target, event, handler, options);
 
     // Preload icons
     const iconCache = new Map();
@@ -487,7 +658,7 @@
     };
 
     // Zoom with mouse wheel
-    canvas.addEventListener('wheel', (e) => {
+    on(canvas, 'wheel', (e) => {
       e.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
@@ -510,7 +681,7 @@
     });
 
     // Pan with middle mouse or shift+drag
-    canvas.addEventListener('mousedown', (e) => {
+    on(canvas, 'mousedown', (e) => {
       // Middle mouse or Shift+Left Click for panning
       if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
         e.preventDefault();
@@ -520,7 +691,7 @@
       }
     });
 
-    canvas.addEventListener('mousemove', (e) => {
+    on(canvas, 'mousemove', (e) => {
       if (canvasTransform.isDragging) {
         // Calculate delta
         const dx = e.clientX - canvasTransform.dragStart.x;
@@ -536,7 +707,7 @@
       }
     });
 
-    canvas.addEventListener('mouseup', () => {
+    on(canvas, 'mouseup', () => {
       if (canvasTransform.isDragging) {
         canvasTransform.isDragging = false;
         // Reset cursor based on current mode
@@ -555,7 +726,7 @@
       const newZoomIn = zoomInBtn.cloneNode(true);
       zoomInBtn.parentNode.replaceChild(newZoomIn, zoomInBtn);
 
-      newZoomIn.addEventListener('click', () => {
+      on(newZoomIn, 'click', () => {
         canvasTransform.scale = Math.min(canvasTransform.scale * 1.2, 3);
         document.getElementById('zoom-level').textContent = Math.round(canvasTransform.scale * 100) + '%';
         if (renderer.setTransform) renderer.setTransform(canvasTransform);
@@ -566,7 +737,7 @@
       const newZoomOut = zoomOutBtn.cloneNode(true);
       zoomOutBtn.parentNode.replaceChild(newZoomOut, zoomOutBtn);
 
-      newZoomOut.addEventListener('click', () => {
+      on(newZoomOut, 'click', () => {
         canvasTransform.scale = Math.max(canvasTransform.scale * 0.8, 0.5);
         document.getElementById('zoom-level').textContent = Math.round(canvasTransform.scale * 100) + '%';
         if (renderer.setTransform) renderer.setTransform(canvasTransform);
@@ -615,7 +786,7 @@
 
     // Toolbar mode buttons
     document.querySelectorAll('.tool-btn[data-mode]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      on(btn, 'click', () => {
         const mode = btn.dataset.mode;
         document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
@@ -626,11 +797,11 @@
     });
 
     // Undo/Redo
-    document.getElementById('btn-undo').addEventListener('click', () => editor.undo());
-    document.getElementById('btn-redo').addEventListener('click', () => editor.redo());
+    on(document.getElementById('btn-undo'), 'click', () => editor.undo());
+    on(document.getElementById('btn-redo'), 'click', () => editor.redo());
 
     // Clear
-    document.getElementById('btn-clear').addEventListener('click', () => {
+    on(document.getElementById('btn-clear'), 'click', () => {
       if (confirm('Clear all nodes and links?')) {
         editor.clear();
         propertyEditor.clear();
@@ -638,7 +809,7 @@
     });
 
     // Templates
-    document.getElementById('btn-template').addEventListener('click', () => {
+    on(document.getElementById('btn-template'), 'click', () => {
       const template = {
         nodes: [
           { id: 'n1', label: 'Core Router', type: 'coreRouter', position: { x: 0.5, y: 0.2 }, load: 0.6 },
@@ -659,23 +830,23 @@
     // Import/Export
     const fileInput = document.getElementById('file-import');
 
-    document.getElementById('btn-import').addEventListener('click', () => {
+    on(document.getElementById('btn-import'), 'click', () => {
       fileInput.click();
     });
 
-    fileInput.addEventListener('change', (e) => {
+    on(fileInput, 'change', (e) => {
       if (e.target.files[0]) {
         editor.importJSON(e.target.files[0]);
         e.target.value = '';
       }
     });
 
-    document.getElementById('btn-export').addEventListener('click', () => {
+    on(document.getElementById('btn-export'), 'click', () => {
       editor.exportJSON();
     });
 
     // Simulate button
-    document.getElementById('btn-simulate').addEventListener('click', () => {
+    on(document.getElementById('btn-simulate'), 'click', () => {
       const topology = editor.getTopology();
       localStorage.setItem('playground-topology', JSON.stringify(topology));
       window.open('demo-v2.html', '_blank');
@@ -704,14 +875,14 @@
       document.getElementById('stat-links').textContent = topology.links.length;
     }
 
-    document.getElementById('zoom-in').addEventListener('click', () => {
-      zoom = Math.min(200, zoom + 10);
-      document.getElementById('zoom-level').textContent = zoom + '%';
+    on(window, 'beforeunload', () => {
+      lifecycle.cleanup();
+      editor.destroy();
+      palette.destroy();
+      propertyEditor.destroy();
+      renderer.destroy();
     });
-    document.getElementById('zoom-out').addEventListener('click', () => {
-      zoom = Math.max(50, zoom - 10);
-      document.getElementById('zoom-level').textContent = zoom + '%';
-    });
+
   </script>
 </body>
 

@@ -30,20 +30,25 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
     }
 
     h1 {
-      font-size: 1.5rem;
+      font-size: clamp(1.1rem, 2.2vw, 1.5rem);
       font-weight: 600;
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      line-height: 1.2;
     }
 
     .controls {
       display: flex;
       gap: 12px;
       align-items: center;
+      flex-wrap: wrap;
+      min-width: 0;
     }
 
     .btn {
@@ -54,6 +59,10 @@
       cursor: pointer;
       transition: all 0.2s;
       font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
     }
 
     .btn-primary {
@@ -99,6 +108,7 @@
       padding: 24px;
       display: flex;
       gap: 24px;
+      min-height: 0;
     }
 
     .canvas-container {
@@ -108,6 +118,8 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       position: relative;
       overflow: hidden;
+      min-height: 520px;
+      min-width: 0;
     }
 
     canvas {
@@ -126,6 +138,7 @@
       padding: 16px 24px;
       display: flex;
       gap: 32px;
+      flex-wrap: wrap;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
@@ -133,6 +146,7 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
+      min-width: 0;
     }
 
     .stat-value {
@@ -149,7 +163,7 @@
     }
 
     .controls-panel {
-      width: 320px;
+      width: min(100%, 320px);
       background: rgba(15, 23, 42, 0.5);
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -157,6 +171,8 @@
       display: flex;
       flex-direction: column;
       gap: 24px;
+      flex-shrink: 0;
+      min-width: 0;
     }
 
     .control-group {
@@ -259,6 +275,91 @@
       width: 12px;
       height: 12px;
       border-radius: 3px;
+    }
+
+    .btn:focus-visible,
+    input[type="range"]:focus-visible {
+      outline: 2px solid rgba(99, 102, 241, 0.9);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 1260px) {
+      header {
+        padding: 16px 20px;
+      }
+
+      main {
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .controls-panel {
+        width: min(100%, 300px);
+        padding: 18px;
+      }
+    }
+
+    @media (max-width: 980px) {
+      main {
+        flex-direction: column;
+      }
+
+      .controls-panel {
+        width: 100%;
+      }
+
+      .canvas-container {
+        min-height: 56vh;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding: 12px;
+      }
+
+      .controls {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .controls .btn {
+        width: 100%;
+        min-width: 0;
+        flex: none;
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+
+      .controls a.btn {
+        grid-column: 1 / -1;
+      }
+
+      .stats-bar {
+        position: static;
+        margin-top: auto;
+        padding: 12px;
+        gap: 12px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stat-value {
+        font-size: 20px;
+      }
+
+      .controls-panel {
+        padding: 14px;
+        gap: 14px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .stats-bar {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
