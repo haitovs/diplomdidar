@@ -5,6 +5,7 @@
 
 import { LINK_CONFIG } from '../rendering/LinkRenderer.js';
 import { DEVICE_CONFIG } from '../rendering/NodeRenderer.js';
+import { getLinkDefaults, getNodeDefaults } from '../utils/topologySchema.js';
 
 /**
  * Property Editor Class
@@ -77,6 +78,15 @@ export class PropertyEditor {
    */
   renderNodeEditor(node) {
     const config = DEVICE_CONFIG[node.type] || DEVICE_CONFIG.switch;
+    const nodeDefaults = getNodeDefaults(node.type);
+    const positionX = Math.round((node.position?.x || 0) * 100);
+    const positionY = Math.round((node.position?.y || 0) * 100);
+    const loadPercent = Math.round((node.load || 0.5) * 100);
+    const routingRole = node.routingRole || node.role || nodeDefaults.role;
+    const routingProtocol = node.routingProtocol || nodeDefaults.routingProtocol;
+    const interfaceSpeed = node.interfaceSpeedMbps || nodeDefaults.interfaceSpeedMbps;
+    const vlan = node.vlan || nodeDefaults.vlan;
+    const subnetCidr = node.subnetCidr || nodeDefaults.subnetCidr || '';
     
     this.container.innerHTML = `
       <div class="editor-header">
@@ -107,20 +117,20 @@ export class PropertyEditor {
         <div class="form-row">
           <div class="form-group">
             <label>Position X</label>
-            <input type="number" id="prop-x" value="${Math.round((node.position?.x || 0) * 100)}" min="0" max="100" />
+            <input type="number" id="prop-x" value="${positionX}" min="0" max="100" />
             <span class="form-unit">%</span>
           </div>
           <div class="form-group">
             <label>Position Y</label>
-            <input type="number" id="prop-y" value="${Math.round((node.position?.y || 0) * 100)}" min="0" max="100" />
+            <input type="number" id="prop-y" value="${positionY}" min="0" max="100" />
             <span class="form-unit">%</span>
           </div>
         </div>
         
         <div class="form-group">
           <label>Load</label>
-          <input type="range" id="prop-load" value="${Math.round((node.load || 0.5) * 100)}" min="0" max="100" />
-          <span class="form-value" id="prop-load-value">${Math.round((node.load || 0.5) * 100)}%</span>
+          <input type="range" id="prop-load" value="${loadPercent}" min="0" max="100" />
+          <span class="form-value" id="prop-load-value">${loadPercent}%</span>
         </div>
         
         <div class="form-group">
@@ -129,8 +139,64 @@ export class PropertyEditor {
             <option value="healthy" ${node.status === 'healthy' ? 'selected' : ''}>Healthy</option>
             <option value="warning" ${node.status === 'warning' ? 'selected' : ''}>Warning</option>
             <option value="critical" ${node.status === 'critical' ? 'selected' : ''}>Critical</option>
+            <option value="degraded" ${node.status === 'degraded' ? 'selected' : ''}>Degraded</option>
             <option value="offline" ${node.status === 'offline' ? 'selected' : ''}>Offline</option>
           </select>
+        </div>
+
+        <div class="form-divider">Network Parameters</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Routing Role</label>
+            <select id="prop-role">
+              <option value="core" ${routingRole === 'core' ? 'selected' : ''}>Core</option>
+              <option value="distribution" ${routingRole === 'distribution' ? 'selected' : ''}>Distribution</option>
+              <option value="access" ${routingRole === 'access' ? 'selected' : ''}>Access</option>
+              <option value="edge" ${routingRole === 'edge' ? 'selected' : ''}>Edge</option>
+              <option value="server" ${routingRole === 'server' ? 'selected' : ''}>Server</option>
+              <option value="security" ${routingRole === 'security' ? 'selected' : ''}>Security</option>
+              <option value="endpoint" ${routingRole === 'endpoint' ? 'selected' : ''}>Endpoint</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Routing Protocol</label>
+            <select id="prop-routing-protocol">
+              <option value="none" ${routingProtocol === 'none' ? 'selected' : ''}>None</option>
+              <option value="static" ${routingProtocol === 'static' ? 'selected' : ''}>Static</option>
+              <option value="rip" ${routingProtocol === 'rip' ? 'selected' : ''}>RIP</option>
+              <option value="ospf" ${routingProtocol === 'ospf' ? 'selected' : ''}>OSPF</option>
+              <option value="eigrp" ${routingProtocol === 'eigrp' ? 'selected' : ''}>EIGRP</option>
+              <option value="bgp" ${routingProtocol === 'bgp' ? 'selected' : ''}>BGP</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>IPv4 Address</label>
+            <input type="text" id="prop-ipv4" value="${node.ipv4 || ''}" placeholder="10.10.10.2" />
+          </div>
+          <div class="form-group">
+            <label>Subnet (CIDR)</label>
+            <input type="text" id="prop-subnet" value="${subnetCidr}" placeholder="10.10.10.0/24" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Gateway</label>
+            <input type="text" id="prop-gateway" value="${node.gateway || ''}" placeholder="10.10.10.1" />
+          </div>
+          <div class="form-group">
+            <label>VLAN</label>
+            <input type="number" id="prop-vlan" value="${vlan}" min="1" max="4094" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Interface Speed (Mbps)</label>
+          <input type="number" id="prop-interface-speed" value="${interfaceSpeed}" min="10" max="400000" />
         </div>
         
         <div class="form-group">
@@ -175,15 +241,29 @@ export class PropertyEditor {
    * Apply node property changes
    */
   applyNodeChanges(node) {
+    const posX = this.readNumericInput('prop-x', 50, { min: 0, max: 100, integer: true });
+    const posY = this.readNumericInput('prop-y', 50, { min: 0, max: 100, integer: true });
+    const load = this.readNumericInput('prop-load', 50, { min: 0, max: 100 }) / 100;
+    const interfaceSpeedMbps = this.readNumericInput('prop-interface-speed', 1000, { min: 10, max: 400000, integer: true });
+    const vlan = this.readNumericInput('prop-vlan', 10, { min: 1, max: 4094, integer: true });
+
     const updates = {
       label: this.container.querySelector('#prop-label').value,
       type: this.container.querySelector('#prop-type').value,
       position: {
-        x: parseInt(this.container.querySelector('#prop-x').value) / 100,
-        y: parseInt(this.container.querySelector('#prop-y').value) / 100,
+        x: posX / 100,
+        y: posY / 100,
       },
-      load: parseInt(this.container.querySelector('#prop-load').value) / 100,
+      load,
       status: this.container.querySelector('#prop-status').value,
+      role: this.container.querySelector('#prop-role').value,
+      routingRole: this.container.querySelector('#prop-role').value,
+      routingProtocol: this.container.querySelector('#prop-routing-protocol').value,
+      interfaceSpeedMbps,
+      ipv4: this.container.querySelector('#prop-ipv4').value.trim(),
+      subnetCidr: this.container.querySelector('#prop-subnet').value.trim(),
+      gateway: this.container.querySelector('#prop-gateway').value.trim(),
+      vlan,
       notes: this.container.querySelector('#prop-notes').value,
     };
     
@@ -196,6 +276,15 @@ export class PropertyEditor {
    * Render link editor form
    */
   renderLinkEditor(link) {
+    const linkDefaults = getLinkDefaults(link.type);
+    const bandwidth = link.bandwidth || linkDefaults.bandwidth;
+    const latency = link.latency || linkDefaults.latency;
+    const jitter = link.jitter ?? linkDefaults.jitter;
+    const packetLoss = link.packetLoss ?? linkDefaults.packetLoss;
+    const utilizationCap = link.utilizationCap || linkDefaults.utilizationCap;
+    const duplex = link.duplex || linkDefaults.duplex;
+    const queueLimit = link.queueLimit || linkDefaults.queueLimit;
+
     this.container.innerHTML = `
       <div class="editor-header">
         <div class="editor-title">
@@ -217,12 +306,42 @@ export class PropertyEditor {
         
         <div class="form-group">
           <label>Bandwidth (Mbps)</label>
-          <input type="number" id="prop-bandwidth" value="${link.bandwidth || 1000}" min="1" max="100000" />
+          <input type="number" id="prop-bandwidth" value="${bandwidth}" min="1" max="400000" />
         </div>
         
         <div class="form-group">
           <label>Latency (ms)</label>
-          <input type="number" id="prop-latency" value="${link.latency || 5}" min="1" max="1000" />
+          <input type="number" id="prop-latency" value="${latency}" min="0.1" max="5000" step="0.1" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Jitter (ms)</label>
+            <input type="number" id="prop-jitter" value="${jitter}" min="0" max="1000" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Packet Loss (%)</label>
+            <input type="number" id="prop-packet-loss" value="${packetLoss}" min="0" max="100" step="0.1" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Duplex</label>
+            <select id="prop-duplex">
+              <option value="full" ${duplex === 'full' ? 'selected' : ''}>Full</option>
+              <option value="half" ${duplex === 'half' ? 'selected' : ''}>Half</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Utilization Cap (%)</label>
+            <input type="number" id="prop-utilization-cap" value="${utilizationCap}" min="10" max="100" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Queue Limit (packets)</label>
+          <input type="number" id="prop-queue-limit" value="${queueLimit}" min="10" max="200000" />
         </div>
         
         <div class="form-group info-group">
@@ -267,13 +386,32 @@ export class PropertyEditor {
   applyLinkChanges(link) {
     const updates = {
       type: this.container.querySelector('#prop-link-type').value,
-      bandwidth: parseInt(this.container.querySelector('#prop-bandwidth').value),
-      latency: parseInt(this.container.querySelector('#prop-latency').value),
+      bandwidth: this.readNumericInput('prop-bandwidth', 1000, { min: 1, max: 400000, integer: true }),
+      latency: this.readNumericInput('prop-latency', 5, { min: 0.1, max: 5000 }),
+      jitter: this.readNumericInput('prop-jitter', 1, { min: 0, max: 1000 }),
+      packetLoss: this.readNumericInput('prop-packet-loss', 0.1, { min: 0, max: 100 }),
+      duplex: this.container.querySelector('#prop-duplex').value,
+      utilizationCap: this.readNumericInput('prop-utilization-cap', 100, { min: 10, max: 100 }),
+      queueLimit: this.readNumericInput('prop-queue-limit', 5000, { min: 10, max: 200000, integer: true }),
     };
     
     if (this.options.onPropertyChange) {
       this.options.onPropertyChange('link', link.id, updates);
     }
+  }
+
+  /**
+   * Parse and clamp a numeric input.
+   */
+  readNumericInput(id, fallback, options = {}) {
+    const input = this.container.querySelector(`#${id}`);
+    const value = Number(input?.value);
+    if (!Number.isFinite(value)) return fallback;
+
+    const min = Number.isFinite(options.min) ? options.min : -Infinity;
+    const max = Number.isFinite(options.max) ? options.max : Infinity;
+    const clamped = Math.min(max, Math.max(min, value));
+    return options.integer ? Math.round(clamped) : clamped;
   }
 
   /**
@@ -379,6 +517,17 @@ export class PropertyEditor {
         margin-bottom: 6px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+      }
+
+      .form-divider {
+        margin: 18px 0 12px;
+        padding-top: 12px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.12);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #a5b4fc;
       }
       
       .form-group input[type="text"],

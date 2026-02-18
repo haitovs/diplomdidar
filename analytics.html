@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Didar Network - Analytics Dashboard</title>
+  <title>Network Training Simulator - Analytics Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
@@ -219,6 +219,97 @@
       text-decoration: none;
     }
 
+    #lab-summary {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .lab-summary-card {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px;
+    }
+
+    .lab-summary-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #e2e8f0;
+    }
+
+    .lab-summary-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+
+    .lab-scoreline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      gap: 8px;
+    }
+
+    .lab-scoreline strong {
+      font-size: 16px;
+    }
+
+    .lab-scoreline .pass {
+      color: #22c55e;
+    }
+
+    .lab-scoreline .warn {
+      color: #f59e0b;
+    }
+
+    .lab-scoreline .progress {
+      color: #38bdf8;
+    }
+
+    .lab-objective-list,
+    .lab-recommend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .lab-objective-item,
+    .lab-recommend-item {
+      font-size: 11px;
+      line-height: 1.35;
+      border-left: 3px solid rgba(148, 163, 184, 0.45);
+      background: rgba(255, 255, 255, 0.02);
+      padding: 6px 8px;
+      border-radius: 6px;
+      color: #cbd5e1;
+    }
+
+    .lab-objective-item.fail {
+      border-left-color: #f59e0b;
+    }
+
+    .lab-objective-item.pass {
+      border-left-color: #22c55e;
+    }
+
+    .lab-empty {
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.5;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px dashed rgba(148, 163, 184, 0.35);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
     .btn:focus-visible,
     .speed-btn:focus-visible {
       outline: 2px solid rgba(34, 197, 94, 0.9);
@@ -331,10 +422,13 @@
     <div class="logo">📊 Analytics Dashboard</div>
     <div class="header-controls">
       <a href="index-v2.html" class="btn btn-secondary back-link">← Back to Menu</a>
+      <a href="simulation.html" class="btn btn-secondary back-link">🧪 Open Simulation</a>
       <div class="status-badge">
         <div class="status-dot"></div>
         <span id="sim-status">Running</span>
       </div>
+      <button class="btn btn-secondary" id="btn-import-report">📥 Import Report</button>
+      <input type="file" id="report-file-input" accept="application/json,.json" hidden />
       <button class="btn btn-secondary" id="btn-pause">⏸ Pause</button>
       <button class="btn btn-primary" id="btn-screenshot">📷 Screenshot</button>
     </div>
@@ -361,6 +455,8 @@
     </aside>
 
     <aside class="sidebar" id="detail-sidebar">
+      <div class="sidebar-title">Lab Assessment</div>
+      <div id="lab-summary"></div>
       <div class="sidebar-title">Node Details</div>
       <div id="node-detail"></div>
     </aside>
@@ -371,9 +467,15 @@
     import { MetricsCollector } from './src/analytics/MetricsCollector.js';
     import { AnalyticsPanel } from './src/analytics/AnalyticsPanel.js';
     import { NodeDetailView } from './src/analytics/NodeDetailView.js';
+    import { SimulationController, TRAFFIC_PATTERNS } from './src/engine/SimulationController.js';
     import { LifecycleManager } from './src/utils/lifecycle.js';
+    import { normalizeTopology } from './src/utils/topologySchema.js';
 
-    // Demo topology
+    const STORAGE_KEYS = {
+      latestLabReport: 'network-training-lab-report-latest',
+      playgroundTopology: 'playground-topology',
+    };
+
     const demoTopology = {
       nodes: [
         { id: 'internet', label: 'Internet', type: 'cloud', position: { x: 0.5, y: 0.08 }, load: 0.4 },
@@ -406,133 +508,89 @@
       ],
     };
 
-    // Initialize canvas renderer
     const canvas = document.getElementById('analytics-canvas');
-    const renderer = new CanvasRenderer(canvas, { showGrid: true });
+    const pauseBtn = document.getElementById('btn-pause');
+    const statusTextEl = document.getElementById('sim-status');
+    const statusDotEl = document.querySelector('.status-dot');
+    const importReportBtn = document.getElementById('btn-import-report');
+    const reportFileInput = document.getElementById('report-file-input');
     const lifecycle = new LifecycleManager();
     const on = (target, event, handler, options) => lifecycle.on(target, event, handler, options);
-
-    // Preload icons
-    const iconCache = new Map();
-    const iconNames = ['router', 'switch', 'server', 'firewall', 'wifi', 'sensor', 'cloud', 'lab'];
-    
-    Promise.all(iconNames.map(name => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.src = `icons/${name}.svg`;
-        img.onload = () => {
-          iconCache.set(name + '.svg', img);
-          iconCache.set(name, img);
-          resolve();
-        };
-        img.onerror = () => resolve();
-      });
-    })).then(() => {
-      renderer.setIconCache(iconCache);
-      renderer.setTopology(demoTopology);
-      renderer.start();
-      
-      // Start simulation loop
-      startSimulation();
-    });
-
-    // Initialize metrics collector
+    const renderer = new CanvasRenderer(canvas, { showGrid: true });
     const metricsCollector = new MetricsCollector();
+    const analyticsPanel = new AnalyticsPanel(document.getElementById('analytics-panel'), metricsCollector);
+    const nodeDetailView = new NodeDetailView(document.getElementById('node-detail'), metricsCollector);
 
-    // Initialize analytics panel
-    const analyticsPanel = new AnalyticsPanel(
-      document.getElementById('analytics-panel'),
-      metricsCollector
-    );
+    const analysisContext = loadAnalysisContext();
+    renderLabSummary(analysisContext.report, analysisContext.source);
 
-    // Initialize node detail view
-    const nodeDetailView = new NodeDetailView(
-      document.getElementById('node-detail'),
-      metricsCollector
-    );
-
-    // Track simulation time (in minutes from midnight)
-    let simMinutes = 8 * 60; // 8:00 AM = 480 minutes
-    let simSpeed = 1;
-    let isPaused = false;
-
-    // Simulation loop
-    function startSimulation() {
-      lifecycle.interval(() => {
-        if (isPaused) return;
-        
-        // Advance simulation time
-        simMinutes += 1 * simSpeed;
-        if (simMinutes >= 18 * 60) simMinutes = 8 * 60;
-        
-        // Update time display
-        const hours = Math.floor(simMinutes / 60);
-        const minutes = Math.floor(simMinutes % 60);
-        document.getElementById('sim-time').textContent = 
-          `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        
-        // Simulate varying load based on time
-        const currentHour = simMinutes / 60;
-        const busyHours = currentHour >= 9 && currentHour <= 12 || currentHour >= 14 && currentHour <= 17;
-        const loadMultiplier = busyHours ? 1.2 : 0.7;
-        
-        renderer.nodes.forEach(node => {
-          const baseLoad = 0.3 + Math.random() * 0.4;
-          node.targetLoad = Math.min(1, baseLoad * loadMultiplier + Math.random() * 0.2);
-        });
-        
-        // Update metrics
+    const simController = new SimulationController(renderer, {
+      onTick: (state) => {
+        document.getElementById('sim-time').textContent = state.formattedTime;
         metricsCollector.update({
           nodes: renderer.nodes,
           links: renderer.links,
           particles: renderer.particleSystem.getCount(),
-          networkLoss: renderer.networkLoss || 0,
         });
-        
-      }, 100);
-    }
+      },
+      onAlert: (alert) => {
+        if (alert.type === 'failure') {
+          setStatus('Running (with failures)', '#f59e0b');
+        }
+      },
+    });
 
-    // Canvas click handler
+    preloadIcons().then((iconCache) => {
+      renderer.setIconCache(iconCache);
+      renderer.setTopology(analysisContext.topology);
+      applyReportSimulationState(analysisContext.report);
+      updateSpeedButtons(simController.getState().speed || 1);
+      simController.start();
+      setStatus('Running', '#22c55e');
+    });
+
     on(canvas, 'click', (e) => {
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       const node = renderer.findNodeAt(x, y);
-      
-      if (node) {
-        renderer.selectNode(node.id);
-        nodeDetailView.showNode(node);
-      } else {
+      if (!node) {
         renderer.selectNode(null);
         nodeDetailView.clear();
+        return;
       }
+
+      renderer.selectNode(node.id);
+      nodeDetailView.showNode(node);
     });
 
-    // Pause button
-    on(document.getElementById('btn-pause'), 'click', function() {
-      isPaused = !isPaused;
-      this.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
-      document.getElementById('sim-status').textContent = isPaused ? 'Paused' : 'Running';
-      
-      const dot = document.querySelector('.status-dot');
-      dot.style.background = isPaused ? '#f59e0b' : '#22c55e';
+    on(pauseBtn, 'click', () => {
+      if (!simController.isRunning) {
+        simController.start();
+        pauseBtn.textContent = '⏸ Pause';
+        setStatus('Running', '#22c55e');
+        return;
+      }
+
+      const paused = simController.togglePause();
+      pauseBtn.textContent = paused ? '▶ Resume' : '⏸ Pause';
+      setStatus(paused ? 'Paused' : 'Running', paused ? '#f59e0b' : '#22c55e');
     });
 
-    // Speed buttons
-    document.querySelectorAll('.speed-btn').forEach(btn => {
-      on(btn, 'click', function() {
-        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        simSpeed = parseFloat(this.dataset.speed);
+    document.querySelectorAll('.speed-btn').forEach((btn) => {
+      on(btn, 'click', () => {
+        const speed = Number(btn.dataset.speed);
+        if (!Number.isFinite(speed) || speed <= 0) return;
+        simController.setSpeed(speed);
+        updateSpeedButtons(speed);
       });
     });
 
-    // Rewind button
     on(document.getElementById('btn-rewind'), 'click', () => {
-      simMinutes = 8 * 60;
+      simController.setTime(8);
+      document.getElementById('sim-time').textContent = '08:00';
     });
 
-    // Screenshot button
     on(document.getElementById('btn-screenshot'), 'click', () => {
       const link = document.createElement('a');
       link.download = `network-analytics-${Date.now()}.png`;
@@ -540,10 +598,241 @@
       link.click();
     });
 
+    on(importReportBtn, 'click', () => {
+      reportFileInput.click();
+    });
+
+    on(reportFileInput, 'change', async () => {
+      const file = reportFileInput.files?.[0];
+      reportFileInput.value = '';
+      if (!file) return;
+
+      try {
+        const parsed = JSON.parse(await file.text());
+        if (!isValidReport(parsed)) {
+          throw new Error('Invalid report payload');
+        }
+        localStorage.setItem(STORAGE_KEYS.latestLabReport, JSON.stringify(parsed));
+        window.location.reload();
+      } catch (error) {
+        console.error('[analytics] Failed to import report:', error);
+        window.alert('Invalid report file. Please select a JSON exported from simulation.');
+      }
+    });
+
+    function preloadIcons() {
+      const iconCache = new Map();
+      const iconNames = ['router', 'switch', 'server', 'firewall', 'wifi', 'sensor', 'cloud', 'lab'];
+      return Promise.all(iconNames.map((name) => new Promise((resolve) => {
+        const img = new Image();
+        img.src = `icons/${name}.svg`;
+        img.onload = () => {
+          iconCache.set(`${name}.svg`, img);
+          iconCache.set(name, img);
+          resolve();
+        };
+        img.onerror = () => resolve();
+      }))).then(() => iconCache);
+    }
+
+    function parseStorageJson(key) {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        console.warn(`[analytics] Failed to parse ${key}:`, error);
+        return null;
+      }
+    }
+
+    function normalizeForCanvas(topology) {
+      const normalized = normalizeTopology(topology, {
+        canvasWidth: canvas.clientWidth || canvas.offsetWidth || 1000,
+        canvasHeight: canvas.clientHeight || canvas.offsetHeight || 600,
+      });
+      if (normalized.nodes.length === 0) return null;
+      return {
+        nodes: normalized.nodes,
+        links: normalized.links,
+      };
+    }
+
+    function loadAnalysisContext() {
+      const report = parseStorageJson(STORAGE_KEYS.latestLabReport);
+      if (isValidReport(report)) {
+        const reportTopology = normalizeForCanvas(report.topology);
+        if (reportTopology) {
+          return { topology: reportTopology, report, source: 'latest-report' };
+        }
+      }
+
+      const playgroundTopology = parseStorageJson(STORAGE_KEYS.playgroundTopology);
+      const normalizedPlayground = playgroundTopology ? normalizeForCanvas(playgroundTopology) : null;
+      if (normalizedPlayground) {
+        return { topology: normalizedPlayground, report: null, source: 'playground' };
+      }
+
+      return {
+        topology: normalizeForCanvas(demoTopology) || demoTopology,
+        report: null,
+        source: 'demo',
+      };
+    }
+
+    function isValidReport(report) {
+      return Boolean(
+        report &&
+        typeof report === 'object' &&
+        report.topology &&
+        report.evaluation
+      );
+    }
+
+    function applyReportSimulationState(report) {
+      const state = report?.simulationState;
+      if (!state) return;
+
+      const pattern = String(state.pattern || '').trim();
+      if (pattern && TRAFFIC_PATTERNS[pattern]) {
+        simController.setTrafficPattern(pattern);
+      }
+
+      const speed = Number(state.speed);
+      if (Number.isFinite(speed) && speed > 0) {
+        simController.setSpeed(speed);
+      }
+
+      const time = Number(state.time);
+      if (Number.isFinite(time) && time >= 0 && time <= 24) {
+        simController.setTime(time);
+        document.getElementById('sim-time').textContent = simController.getState().formattedTime;
+      }
+    }
+
+    function updateSpeedButtons(speed) {
+      document.querySelectorAll('.speed-btn').forEach((btn) => {
+        const buttonSpeed = Number(btn.dataset.speed);
+        const isActive = Math.abs(buttonSpeed - speed) < 0.0001;
+        btn.classList.toggle('active', isActive);
+      });
+    }
+
+    function setStatus(label, color) {
+      statusTextEl.textContent = label;
+      statusDotEl.style.background = color;
+    }
+
+    function formatDateTime(isoDate) {
+      if (!isoDate) return 'Unknown';
+      const date = new Date(isoDate);
+      if (Number.isNaN(date.getTime())) return 'Unknown';
+      return date.toLocaleString();
+    }
+
+    function statusClassForResult(status) {
+      if (status === 'passed') return 'pass';
+      if (status === 'at-risk') return 'warn';
+      return 'progress';
+    }
+
+    function recommendationForObjective(objective) {
+      const metric = String(objective?.metric || '');
+      switch (metric) {
+        case 'peak_utilization':
+          return 'Reduce bottlenecks: upgrade overloaded links or rebalance traffic paths.';
+        case 'peak_latency':
+        case 'avg_latency':
+          return 'Lower delay: shorten path depth and prioritize low-latency uplinks for critical traffic.';
+        case 'peak_packet_loss':
+        case 'avg_packet_loss':
+          return 'Contain packet loss: increase queue limits and reduce oversubscription on stressed segments.';
+        case 'avg_throughput':
+        case 'min_throughput':
+          return 'Raise throughput: increase interface speeds on core nodes and match edge bandwidth profiles.';
+        case 'peak_active_failures':
+          return 'Improve resilience: add redundant links and isolate failure domains near the core.';
+        case 'recovery_time_seconds':
+          return 'Speed recovery: practice failover actions earlier and keep concurrent failures below threshold.';
+        case 'event_failure_injected':
+          return 'Complete the lab by injecting at least one controlled failure and observing recovery.';
+        case 'event_traffic_spike':
+          return 'Complete the lab by simulating a traffic spike and evaluating service quality impact.';
+        default:
+          return `Improve objective: ${objective?.title || 'tune topology and rerun scenario'}.`;
+      }
+    }
+
+    function buildRecommendations(failedObjectives) {
+      if (!failedObjectives.length) {
+        return ['All objectives passed. Capture this as your reference baseline run.'];
+      }
+
+      const recommendations = failedObjectives.map(recommendationForObjective);
+      return [...new Set(recommendations)].slice(0, 3);
+    }
+
+    function renderLabSummary(report, source) {
+      const container = document.getElementById('lab-summary');
+      if (!isValidReport(report)) {
+        const sourceLabel = source === 'playground'
+          ? 'playground topology'
+          : source === 'demo'
+            ? 'default demo topology'
+            : 'local data';
+        container.innerHTML = `
+          <div class="lab-empty">
+            No lab report loaded. Analytics is running with ${sourceLabel}.<br />
+            Use <strong>Import Report</strong> or open Analytics from Simulation.
+          </div>
+        `;
+        return;
+      }
+
+      const evaluation = report.evaluation || {};
+      const objectives = Array.isArray(evaluation.objectives) ? evaluation.objectives : [];
+      const failedObjectives = objectives.filter((objective) => !objective.passed);
+      const recommendations = buildRecommendations(failedObjectives);
+      const roundedScore = Math.round(Number(evaluation.score) || 0);
+      const className = statusClassForResult(evaluation.status);
+      const sourceLabel = source === 'latest-report' ? 'latest local report' : source;
+
+      container.innerHTML = `
+        <div class="lab-summary-card">
+          <div class="lab-summary-title">${report.scenario?.label || evaluation.scenarioLabel || 'Lab Scenario'}</div>
+          <div class="lab-summary-meta">
+            <span>${formatDateTime(report.generatedAt)}</span>
+            <span>${sourceLabel}</span>
+          </div>
+          <div class="lab-scoreline">
+            <span>Status</span>
+            <strong class="${className}">${roundedScore}%</strong>
+          </div>
+        </div>
+        <div class="lab-summary-card">
+          <div class="lab-summary-title">Objective Status</div>
+          <div class="lab-objective-list">
+            ${objectives.slice(0, 5).map((objective) => `
+              <div class="lab-objective-item ${objective.passed ? 'pass' : 'fail'}">
+                ${objective.title}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div class="lab-summary-card">
+          <div class="lab-summary-title">Recommended Next Fixes</div>
+          <div class="lab-recommend-list">
+            ${recommendations.map((line) => `<div class="lab-recommend-item">${line}</div>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
     on(window, 'beforeunload', () => {
       lifecycle.cleanup();
       analyticsPanel.destroy();
       nodeDetailView.destroy();
+      simController.destroy();
       renderer.destroy();
     });
   </script>

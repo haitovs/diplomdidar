@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Didar Network - Full Simulation</title>
+  <title>Network Training Simulator - Scenario Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
@@ -402,6 +402,126 @@
       justify-content: center;
     }
 
+    .lab-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .lab-select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: #e2e8f0;
+      font-size: 12px;
+    }
+
+    .lab-select:focus-visible {
+      outline: 2px solid rgba(99, 102, 241, 0.9);
+      outline-offset: 2px;
+    }
+
+    .lab-action-buttons {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .lab-action-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .lab-score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .lab-score {
+      font-size: 24px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .lab-status {
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #cbd5e1;
+      white-space: nowrap;
+    }
+
+    .lab-status.passed {
+      color: #22c55e;
+      border-color: rgba(34, 197, 94, 0.5);
+      background: rgba(34, 197, 94, 0.12);
+    }
+
+    .lab-status.in-progress {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.45);
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    .lab-status.at-risk {
+      color: #f59e0b;
+      border-color: rgba(245, 158, 11, 0.45);
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .lab-objectives {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      scrollbar-gutter: stable both-edges;
+    }
+
+    .lab-objective {
+      border-radius: 8px;
+      border-left: 3px solid rgba(148, 163, 184, 0.5);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 8px 10px;
+    }
+
+    .lab-objective.pass {
+      border-left-color: #22c55e;
+    }
+
+    .lab-objective.fail {
+      border-left-color: #f59e0b;
+    }
+
+    .lab-objective-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .lab-objective-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .lab-objective-score {
+      color: #cbd5e1;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
     @media (max-width: 1320px) {
       main {
         grid-template-columns: 240px 1fr 240px;
@@ -524,7 +644,7 @@
 
 <body>
   <header>
-    <div class="logo">⚡ Didar Network Simulation</div>
+    <div class="logo">⚡ Network Training Simulator</div>
 
     <div class="header-controls">
       <a href="index-v2.html" class="btn btn-secondary back-link">← Back to
@@ -607,6 +727,22 @@
       </div>
 
       <div class="panel">
+        <div class="panel-title">Lab Results</div>
+        <div class="lab-controls">
+          <select id="lab-scenario-select" class="lab-select"></select>
+          <div class="lab-action-buttons">
+            <button class="btn btn-secondary lab-action-btn" id="btn-export-report">🧾 Export Report</button>
+            <button class="btn btn-secondary lab-action-btn" id="btn-open-analytics">📊 Open Analytics</button>
+          </div>
+        </div>
+        <div class="lab-score-row">
+          <div class="lab-score" id="lab-score">0%</div>
+          <div class="lab-status in-progress" id="lab-status">In Progress</div>
+        </div>
+        <div class="lab-objectives" id="lab-objectives"></div>
+      </div>
+
+      <div class="panel">
         <div class="panel-title">Quick Actions</div>
         <div class="quick-actions">
           <button class="btn btn-secondary" id="btn-spike">📈 Traffic Spike</button>
@@ -621,11 +757,14 @@
     import { CanvasRenderer } from './src/rendering/CanvasRenderer.js';
     import { SimulationController, TRAFFIC_PATTERNS, FAILURE_TYPES } from './src/engine/SimulationController.js';
     import { MetricsCollector } from './src/analytics/MetricsCollector.js';
+    import { LabEvaluator } from './src/engine/LabEvaluator.js';
+    import { LAB_SCENARIO_ORDER, LAB_SCENARIOS, scenarioForPattern } from './src/engine/LabScenarios.js';
     import { createLogManager, createToastManager } from './src/ui/feedback.js';
     import { LifecycleManager } from './src/utils/lifecycle.js';
+    import { normalizeTopology, serializeTopology } from './src/utils/topologySchema.js';
 
-    // Demo topology
-    const topology = {
+    // Default topology
+    const defaultTopology = {
       nodes: [
         { id: 'internet', label: 'Internet', type: 'cloud', position: { x: 0.5, y: 0.08 } },
         { id: 'firewall', label: 'Firewall', type: 'firewall', position: { x: 0.5, y: 0.22 } },
@@ -657,6 +796,10 @@
       ],
     };
 
+    const STORAGE_KEYS = {
+      latestLabReport: 'network-training-lab-report-latest',
+    };
+
     // Initialize
     const canvas = document.getElementById('simulation-canvas');
     const renderer = new CanvasRenderer(canvas, { showGrid: true });
@@ -677,6 +820,38 @@
     const logEvent = (message, type = 'info') => logManager.add(message, type);
     const showToast = (message, type = 'info') => toastManager.show(message, type);
     const addLogEntry = (message, type = 'info') => logManager.add(message, type);
+    const labEvaluator = new LabEvaluator({ scenarioKey: scenarioForPattern('classroom') });
+    const labScenarioSelect = document.getElementById('lab-scenario-select');
+    const labScoreEl = document.getElementById('lab-score');
+    const labStatusEl = document.getElementById('lab-status');
+    const labObjectivesEl = document.getElementById('lab-objectives');
+    const exportReportBtn = document.getElementById('btn-export-report');
+    const openAnalyticsBtn = document.getElementById('btn-open-analytics');
+    const initialTopology = loadInitialTopology();
+    const usingSavedTopology = initialTopology !== defaultTopology;
+
+    function loadInitialTopology() {
+      const raw = localStorage.getItem('playground-topology');
+      if (!raw) return defaultTopology;
+
+      try {
+        const parsed = JSON.parse(raw);
+        const normalized = normalizeTopology(parsed, {
+          canvasWidth: canvas.clientWidth || canvas.offsetWidth || 1000,
+          canvasHeight: canvas.clientHeight || canvas.offsetHeight || 600,
+        });
+        if (normalized.nodes.length > 0) {
+          return { nodes: normalized.nodes, links: normalized.links };
+        }
+      } catch (error) {
+        console.warn('[simulation] Failed to parse stored topology:', error);
+      }
+
+      return defaultTopology;
+    }
+
+    initializeLabScenarioSelect();
+    updateLabPanel(labEvaluator.getResult());
 
     // Preload icons
     const iconCache = new Map();
@@ -691,8 +866,12 @@
       });
     })).then(() => {
       renderer.setIconCache(iconCache);
-      renderer.setTopology(topology);
+      renderer.setTopology(initialTopology);
       updateStats();
+      updateLabPanel(labEvaluator.getResult());
+      if (usingSavedTopology) {
+        addLogEntry('Loaded topology from playground editor', 'info');
+      }
     });
 
     // Initialize simulation controller
@@ -700,16 +879,28 @@
       onTick: (state) => {
         document.getElementById('sim-time').textContent = state.formattedTime;
         document.getElementById('info-frames').textContent = state.frame;
-        metricsCollector.update({
+        const metrics = metricsCollector.update({
           nodes: renderer.nodes,
           links: renderer.links,
           particles: renderer.particleSystem.getCount(),
         });
+        const evaluation = labEvaluator.update({
+          metrics,
+          activeFailures: simController.failureSim.getActiveFailures(),
+          now: Date.now(),
+        });
+        updateLabPanel(evaluation);
         updateStats();
       },
       onAlert: (alert) => {
         showToast(alert.message, alert.type === 'failure' ? 'error' : 'info');
         addLogEntry(alert.message, alert.type);
+        if (alert.type === 'failure') {
+          labEvaluator.registerEvent('failure_injected');
+        } else if (alert.type === 'recovery') {
+          labEvaluator.registerEvent('recovery');
+        }
+        updateLabPanel(labEvaluator.getResult());
         updateFailureList();
       },
     });
@@ -731,6 +922,12 @@
         btn.classList.add('active');
         simController.setTrafficPattern(key);
         document.getElementById('info-pattern').textContent = pattern.label;
+        const mappedScenario = scenarioForPattern(key);
+        if (labScenarioSelect.value !== mappedScenario) {
+          labScenarioSelect.value = mappedScenario;
+          labEvaluator.setScenario(mappedScenario);
+          updateLabPanel(labEvaluator.getResult());
+        }
       });
       patternGrid.appendChild(btn);
     });
@@ -756,6 +953,23 @@
       logEvent('Time reset to 08:00');
     });
 
+    on(labScenarioSelect, 'change', () => {
+      const selectedScenario = labScenarioSelect.value;
+      labEvaluator.setScenario(selectedScenario);
+      updateLabPanel(labEvaluator.getResult());
+      const label = LAB_SCENARIOS[selectedScenario]?.label || selectedScenario;
+      logEvent(`Lab scenario set to: ${label}`);
+    });
+
+    on(exportReportBtn, 'click', () => {
+      exportLabReport();
+    });
+
+    on(openAnalyticsBtn, 'click', () => {
+      exportLabReport({ download: false });
+      window.location.href = 'analytics.html';
+    });
+
     // Get button references
     const failureBtn = document.getElementById('btn-failure');
     const cascadeBtn = document.getElementById('btn-cascade');
@@ -768,6 +982,8 @@
     on(resetBtn, 'click', () => {
       simController.reset();
       simController.setTime(8); // Reset to 08:00
+      labEvaluator.reset();
+      updateLabPanel(labEvaluator.getResult());
       logEvent('Simulation reset');
     });
 
@@ -781,6 +997,7 @@
           // Visual feedback
           document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
+          document.getElementById('info-speed').textContent = `${speed}×`;
 
           logEvent(`Speed set to ${speed}×`);
         }
@@ -793,6 +1010,8 @@
 
       const failure = simController.triggerRandomFailure();
       if (failure) {
+        labEvaluator.registerEvent('failure_injected', { targetId: failure.targetId, type: failure.type });
+        updateLabPanel(labEvaluator.getResult());
         logEvent(`⚠️ ${failure.label || 'Failure triggered'}: ${failure.targetId}`, 'error');
 
         // Visual flash effect
@@ -813,6 +1032,8 @@
 
       logEvent(`🔥 Cascading failure initiated from ${randomNode.label}!`, 'error');
       simController.triggerCascade(randomNode.id);
+      labEvaluator.registerEvent('cascade_triggered', { startNode: randomNode.id });
+      updateLabPanel(labEvaluator.getResult());
 
       // Visual effect
       canvas.style.animation = 'shake 0.3s';
@@ -823,6 +1044,8 @@
     on(recoverBtn, 'click', () => {
       if (simController && simController.recoverAll) {
         simController.recoverAll();
+        labEvaluator.registerEvent('recover_all');
+        updateLabPanel(labEvaluator.getResult());
         logEvent('✅ All failures recovered', 'recovery');
       }
     });
@@ -836,6 +1059,8 @@
 
       if (simController && simController.createTrafficSpike) {
         simController.createTrafficSpike(randomNode.id, 2.0, 3000);
+        labEvaluator.registerEvent('traffic_spike', { nodeId: randomNode.id });
+        updateLabPanel(labEvaluator.getResult());
         logEvent(`📈 Traffic spike on ${randomNode.label}`, 'warning');
       }
     });
@@ -908,6 +1133,90 @@
     });
 
     // Helper functions
+    function initializeLabScenarioSelect() {
+      labScenarioSelect.innerHTML = LAB_SCENARIO_ORDER.map((scenarioKey) => {
+        const scenario = LAB_SCENARIOS[scenarioKey];
+        return `<option value="${scenarioKey}">${scenario.label}</option>`;
+      }).join('');
+
+      const initialScenario = scenarioForPattern('classroom');
+      labScenarioSelect.value = initialScenario;
+      labEvaluator.setScenario(initialScenario);
+    }
+
+    function updateLabPanel(result) {
+      if (!result) return;
+
+      const roundedScore = Math.round(result.score);
+      labScoreEl.textContent = `${roundedScore}%`;
+
+      const statusMap = {
+        passed: { label: 'Passed', color: '#22c55e' },
+        'in-progress': { label: 'In Progress', color: '#38bdf8' },
+        'at-risk': { label: 'Needs Work', color: '#f59e0b' },
+      };
+      const statusCfg = statusMap[result.status] || statusMap['in-progress'];
+      labScoreEl.style.color = statusCfg.color;
+      labStatusEl.textContent = statusCfg.label;
+      labStatusEl.className = `lab-status ${result.status}`;
+
+      labObjectivesEl.innerHTML = result.objectives.map((objective) => `
+        <div class="lab-objective ${objective.passed ? 'pass' : 'fail'}">
+          <div class="lab-objective-title">${objective.title}</div>
+          <div class="lab-objective-meta">
+            <span>${objective.currentDisplay} / ${objective.targetDisplay}</span>
+            <span class="lab-objective-score">${Math.round(objective.progress * 100)}%</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function buildLabReport() {
+      const evaluation = labEvaluator.getResult();
+      return {
+        generatedAt: new Date().toISOString(),
+        tool: 'Network Training Simulator',
+        scenario: {
+          key: evaluation.scenarioKey,
+          label: evaluation.scenarioLabel,
+          description: evaluation.description,
+        },
+        evaluation,
+        metrics: metricsCollector.getCurrent(),
+        simulationState: simController.getState(),
+        topology: serializeTopology({ nodes: renderer.nodes, links: renderer.links }),
+      };
+    }
+
+    function persistLatestLabReport(report) {
+      localStorage.setItem(STORAGE_KEYS.latestLabReport, JSON.stringify(report));
+    }
+
+    function downloadLabReport(report) {
+      const evaluation = report.evaluation || {};
+      const scenarioKey = String(evaluation.scenarioKey || 'scenario');
+      const safeScenario = scenarioKey.replace(/[^a-z0-9_-]/gi, '-');
+
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.download = `lab-report-${safeScenario}-${Date.now()}.json`;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      later(() => URL.revokeObjectURL(link.href), 200);
+    }
+
+    function exportLabReport(options = {}) {
+      const { download = true } = options;
+      const report = buildLabReport();
+      persistLatestLabReport(report);
+      if (download) {
+        downloadLabReport(report);
+      }
+
+      showToast(download ? 'Lab report exported' : 'Latest run synced to analytics', 'info');
+      logEvent(download ? 'Lab report exported' : 'Latest run synced to analytics');
+    }
+
     function updateStats() {
       const metrics = metricsCollector.getCurrent();
       document.getElementById('m-nodes').textContent = renderer.nodes.length;

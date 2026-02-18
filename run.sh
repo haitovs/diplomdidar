@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "========================================"
-echo " Didar Network Simulation Lab"
+echo " Network Training Simulator Lab"
 echo "========================================"
 echo ""
 echo "Starting local server on port 4173..."

@@ -4,6 +4,7 @@
  */
 
 import { DEVICE_CONFIG } from '../rendering/NodeRenderer.js';
+import { normalizeLink, normalizeNode, normalizeTopology, serializeTopology } from '../utils/topologySchema.js';
 
 /**
  * Topology Editor Class
@@ -103,6 +104,16 @@ export class TopologyEditor {
     
     // Keyboard shortcuts
     document.addEventListener('keydown', this.boundHandlers.keydown);
+  }
+
+  /**
+   * Get current canvas dimensions for normalization.
+   */
+  getNormalizationOptions() {
+    return {
+      canvasWidth: this.canvas.offsetWidth || this.canvas.width || 1000,
+      canvasHeight: this.canvas.offsetHeight || this.canvas.height || 500,
+    };
   }
 
   /**
@@ -325,17 +336,17 @@ export class TopologyEditor {
       y = Math.round(y / this.options.gridSize) * this.options.gridSize;
     }
     
-    const node = {
+    const rawNode = {
       id: `node-${this.nodeIdCounter++}`,
       label: `${config.label}-${this.nodeIdCounter - 1}`,
       type: deviceType,
       position: { x: x / this.canvas.offsetWidth, y: y / this.canvas.offsetHeight },
       x,
       y,
-      load: 0.3 + Math.random() * 0.4,
-      displayLoad: 0.5,
-      targetLoad: 0.5,
+      load: 0.35,
+      status: 'healthy',
     };
+    const node = normalizeNode(rawNode, this.nodes.length, this.getNormalizationOptions());
     
     this.nodes.push(node);
     this.saveState();
@@ -361,13 +372,14 @@ export class TopologyEditor {
     
     if (exists) return null;
     
-    const link = {
+    const link = normalizeLink({
       id: `link-${this.linkIdCounter++}`,
       source: sourceId,
       target: targetId,
       type,
-      bandwidth: 1000,
-    };
+    }, this.links.length, new Set(this.nodes.map((node) => node.id)));
+    
+    if (!link) return null;
     
     this.links.push(link);
     this.saveState();
@@ -435,10 +447,37 @@ export class TopologyEditor {
    * Update node properties
    */
   updateNode(nodeId, updates) {
-    const node = this.nodes.find(n => n.id === nodeId);
-    if (!node) return;
-    
-    Object.assign(node, updates);
+    const index = this.nodes.findIndex((node) => node.id === nodeId);
+    if (index < 0) return;
+
+    const mergedNode = { ...this.nodes[index], ...updates };
+    const normalized = normalizeNode(mergedNode, index, this.getNormalizationOptions());
+    normalized.id = this.nodes[index].id;
+    this.nodes[index] = normalized;
+
+    this.saveState();
+    this.updateRenderer();
+    this.emitChange();
+  }
+
+  /**
+   * Update link properties
+   */
+  updateLink(linkId, updates) {
+    const index = this.links.findIndex((link) => link.id === linkId);
+    if (index < 0) return;
+
+    const mergedLink = { ...this.links[index], ...updates };
+    const normalized = normalizeLink(
+      mergedLink,
+      index,
+      new Set(this.nodes.map((node) => node.id))
+    );
+    if (!normalized) return;
+
+    normalized.id = this.links[index].id;
+    this.links[index] = normalized;
+
     this.saveState();
     this.updateRenderer();
     this.emitChange();
@@ -523,22 +562,30 @@ export class TopologyEditor {
   }
 
   /**
+   * Get current topology in serializable schema form.
+   */
+  getSerializableTopology() {
+    return serializeTopology(this.getTopology());
+  }
+
+  /**
    * Load topology
    */
   loadTopology(topology) {
-    this.nodes = (topology.nodes || []).map((node, i) => ({
-      ...node,
-      id: node.id || `node-${i + 1}`,
-    }));
-    
-    this.links = (topology.links || []).map((link, i) => ({
-      ...link,
-      id: link.id || `link-${i + 1}`,
-    }));
+    const normalized = normalizeTopology(topology, this.getNormalizationOptions());
+    this.nodes = normalized.nodes;
+    this.links = normalized.links;
+    this.selectedNodes.clear();
+    this.selectedLinks.clear();
+    this.renderer.selectNode(null);
     
     // Update counters
-    this.nodeIdCounter = this.nodes.length + 1;
-    this.linkIdCounter = this.links.length + 1;
+    this.nodeIdCounter = this.getNextCounter(this.nodes, 'node');
+    this.linkIdCounter = this.getNextCounter(this.links, 'link');
+
+    if (normalized.warnings.length > 0) {
+      console.warn('[TopologyEditor] Topology normalization warnings:', normalized.warnings);
+    }
     
     this.saveState();
     this.updateRenderer();
@@ -553,9 +600,30 @@ export class TopologyEditor {
     this.links = [];
     this.selectedNodes.clear();
     this.selectedLinks.clear();
+    this.renderer.selectNode(null);
+    this.nodeIdCounter = 1;
+    this.linkIdCounter = 1;
     this.saveState();
     this.updateRenderer();
     this.emitChange();
+  }
+
+  /**
+   * Compute next numeric id counter based on existing items.
+   */
+  getNextCounter(items, prefix) {
+    let maxSuffix = 0;
+    items.forEach((item) => {
+      const rawId = String(item.id || '');
+      const directMatch = rawId.match(new RegExp(`^${prefix}-(\\d+)$`));
+      const trailingMatch = rawId.match(/(\d+)(?!.*\d)/);
+      const token = directMatch?.[1] || trailingMatch?.[1];
+      const numeric = Number.parseInt(token, 10);
+      if (Number.isFinite(numeric)) {
+        maxSuffix = Math.max(maxSuffix, numeric);
+      }
+    });
+    return Math.max(items.length + 1, maxSuffix + 1);
   }
 
   /**
@@ -571,7 +639,7 @@ export class TopologyEditor {
    * Export topology as JSON
    */
   exportJSON() {
-    const data = this.getTopology();
+    const data = this.getSerializableTopology();
     const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

@@ -6,6 +6,10 @@
 /**
  * Metrics Collector Class
  */
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
 export class MetricsCollector {
   constructor(options = {}) {
     this.options = {
@@ -58,34 +62,65 @@ export class MetricsCollector {
     const linkCount = links?.length || 0;
     
     // Average node utilization
-    const totalLoad = nodes?.reduce((sum, n) => sum + (n.displayLoad || 0), 0) || 0;
-    const utilization = nodeCount > 0 ? totalLoad / nodeCount : 0;
-    
-    // Calculate throughput (based on load and particle count)
-    const throughput = Math.round(utilization * 1000 + (particles || 0) * 10);
-    
-    // Latency (increases with load)
-    const latency = Math.round(8 + utilization * 40 + Math.random() * 5);
-    
-    // Jitter
-    const jitter = Math.round(2 + utilization * 10 + Math.random() * 3);
-    
-    // Energy consumption
-    const energy = (6 + utilization * 4 + nodeCount * 0.2).toFixed(1);
-    
-    // Packet loss
-    const packetLoss = networkLoss || 0;
+    const totalLoad = nodes?.reduce((sum, node) => sum + (node.displayLoad ?? node.load ?? 0), 0) || 0;
+    const utilizationRatio = nodeCount > 0 ? totalLoad / nodeCount : 0;
+
+    // Throughput derived from per-node capacity and load.
+    const throughput = Math.round((nodes || []).reduce((sum, node) => {
+      const explicitThroughput = Number(node.throughputMbps);
+      if (Number.isFinite(explicitThroughput)) return sum + explicitThroughput;
+      const ifaceSpeed = Math.max(10, Number(node.interfaceSpeedMbps) || 1000);
+      const load = clamp(node.displayLoad ?? node.load ?? 0, 0, 1);
+      return sum + ifaceSpeed * load;
+    }, 0) + (Number(particles) || 0) * 2);
+
+    // Latency from node runtime stats.
+    const latencySamples = (nodes || [])
+      .map((node) => Number(node.latency))
+      .filter((value) => Number.isFinite(value));
+    const latency = latencySamples.length > 0
+      ? Number((latencySamples.reduce((sum, value) => sum + value, 0) / latencySamples.length).toFixed(2))
+      : Number((6 + utilizationRatio * 34).toFixed(2));
+
+    // Jitter from link runtime stats.
+    const jitterSamples = (links || [])
+      .map((link) => Number(link.health?.jitter ?? link.jitter))
+      .filter((value) => Number.isFinite(value));
+    const jitter = jitterSamples.length > 0
+      ? Number((jitterSamples.reduce((sum, value) => sum + value, 0) / jitterSamples.length).toFixed(2))
+      : Number((1 + utilizationRatio * 9).toFixed(2));
+
+    // Active connections are links not currently down.
+    const activeConnections = (links || []).reduce((count, link) => {
+      const status = link.health?.status || 'up';
+      return status === 'down' ? count : count + 1;
+    }, 0);
+
+    // Packet loss from link health and network loss overrides.
+    const linkLossRatios = (links || []).map((link) => {
+      if (Number.isFinite(link.health?.loss)) return clamp(link.health.loss, 0, 1);
+      if (Number.isFinite(link.packetLoss)) return clamp(link.packetLoss / 100, 0, 1);
+      return 0;
+    });
+    const averageLinkLoss = linkLossRatios.length > 0
+      ? linkLossRatios.reduce((sum, value) => sum + value, 0) / linkLossRatios.length
+      : 0;
+    const networkLossRatio = clamp(Number(networkLoss) || 0, 0, 1);
+    const packetLossRatio = Math.max(averageLinkLoss, networkLossRatio);
+
+    // Energy estimate from node count and throughput.
+    const energy = Number((nodeCount * 0.35 + utilizationRatio * nodeCount * 0.55 + throughput / 10000).toFixed(1));
     
     // Update current metrics
     this.current = {
       timestamp: Date.now(),
       throughput,
       latency,
-      packetLoss: Math.round(packetLoss * 100),
-      activeConnections: linkCount,
-      utilization: Math.round(utilization * 100),
+      packetLoss: Number((packetLossRatio * 100).toFixed(2)),
+      activeConnections,
+      utilization: Math.round(utilizationRatio * 100),
       jitter,
-      energy: parseFloat(energy),
+      energy,
       nodeCount,
       linkCount,
     };

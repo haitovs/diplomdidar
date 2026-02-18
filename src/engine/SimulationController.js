@@ -263,13 +263,25 @@ export class SimulationController {
     
     // Reset all nodes
     this.renderer.nodes.forEach(node => {
-      node.targetLoad = 0.3 + Math.random() * 0.2;
+      const baselineLoad = Number.isFinite(node.load) ? node.load : 0.3;
+      node.targetLoad = baselineLoad;
+      node.displayLoad = baselineLoad;
       node.status = 'healthy';
+      node.latency = 0;
+      node.throughputMbps = 0;
     });
     
     // Reset all links
     this.renderer.links.forEach(link => {
-      link.health = { status: 'up', flow: 1, loss: 0 };
+      const baseLoss = Math.max(0, Math.min(1, (Number(link.packetLoss) || 0) / 100));
+      link.health = {
+        status: 'up',
+        flow: 1 - baseLoss * 0.3,
+        loss: baseLoss,
+        utilization: 0,
+        latency: Number(link.latency) || 5,
+        jitter: Number(link.jitter) || 1,
+      };
     });
   }
 

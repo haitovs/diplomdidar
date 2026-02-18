@@ -84,6 +84,20 @@ const NODE_TYPE_MODIFIERS = {
   internet: { loadMult: 0.7, latencyMult: 2.0 },
 };
 
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function stableHash01(text) {
+  let hash = 0;
+  const input = String(text || '');
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash << 5) - hash + input.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash % 10000) / 10000;
+}
+
 /**
  * Traffic Generator Class
  */
@@ -168,28 +182,39 @@ export class TrafficGenerator {
     const hoursElapsed = (deltaMs / 1000) * (this.simSpeed / 60);
     this.simTime = (this.simTime + hoursElapsed) % 24;
     
-    // Determine current load level
+    // Determine current baseline load
     const isPeak = this.isInPeakHours();
     const targetLoad = isPeak ? this.pattern.peakLoad : this.pattern.baseLoad;
+    const dayFactor = 0.5 + 0.5 * Math.sin((this.simTime / 24) * Math.PI * 2 - Math.PI / 2);
     
     // Update each node
     nodes.forEach(node => {
       const state = this.getNodeState(node.id);
       const modifier = NODE_TYPE_MODIFIERS[node.type] || { loadMult: 1, latencyMult: 1 };
       
-      // Calculate target load for this node
+      // Deterministic load profile based on time + node id.
+      const phase = state.phase;
+      const harmonic = 0.5 + 0.5 * Math.sin(this.simTime * 1.7 + phase);
+      const microBurst = Math.max(0, Math.sin(this.simTime * 6 + phase * 2));
+      const burstThreshold = 1 - this.pattern.burstChance;
+      const burstIntensity = microBurst > burstThreshold
+        ? (microBurst - burstThreshold) / Math.max(this.pattern.burstChance, 0.01)
+        : 0;
+
       let nodeTargetLoad = targetLoad * modifier.loadMult;
-      
-      // Apply random bursts
-      if (Math.random() < this.pattern.burstChance * 0.01) {
-        nodeTargetLoad *= this.pattern.burstMultiplier;
-        state.lastBurst = Date.now();
-        
+      nodeTargetLoad += (dayFactor - 0.5) * 0.12;
+      nodeTargetLoad += (harmonic - 0.5) * 0.15;
+      nodeTargetLoad += burstIntensity * (this.pattern.burstMultiplier - 1) * 0.2;
+
+      // Emit burst event when crossing deterministic burst windows.
+      const burstBucket = Math.floor(this.simTime * 12 + phase * 10);
+      if (burstIntensity > 0.8 && burstBucket !== state.lastBurstBucket) {
+        state.lastBurstBucket = burstBucket;
         this.events.push({
           type: 'burst',
           nodeId: node.id,
           timestamp: Date.now(),
-          intensity: this.pattern.burstMultiplier,
+          intensity: Number(burstIntensity.toFixed(2)),
         });
       }
       
@@ -203,24 +228,58 @@ export class TrafficGenerator {
         });
       
       // Smooth the load change
-      nodeTargetLoad = Math.min(1, Math.max(0, nodeTargetLoad));
+      nodeTargetLoad = clamp(nodeTargetLoad, 0, 1);
       state.currentLoad = state.currentLoad + (nodeTargetLoad - state.currentLoad) * this.options.smoothing;
       
       // Update node
       node.targetLoad = state.currentLoad;
-      node.latency = Math.round(10 + state.currentLoad * 40 * modifier.latencyMult);
+      const ifaceSpeed = Math.max(10, Number(node.interfaceSpeedMbps) || 1000);
+      const loadRatio = clamp(state.currentLoad, 0, 1);
+      node.throughputMbps = Math.round(ifaceSpeed * loadRatio);
+      node.queueDepth = Math.round(loadRatio * 100);
+      node.latency = Number((4 + loadRatio * 28 * modifier.latencyMult).toFixed(2));
     });
     
     // Update link health based on connected nodes
     links.forEach(link => {
-      const sourceLoad = this.nodeStates.get(link.source)?.currentLoad || 0.5;
-      const targetLoad = this.nodeStates.get(link.target)?.currentLoad || 0.5;
-      const avgLoad = (sourceLoad + targetLoad) / 2;
+      const sourceNode = nodes.find((node) => node.id === link.source);
+      const targetNode = nodes.find((node) => node.id === link.target);
+      const sourceLoad = this.nodeStates.get(link.source)?.currentLoad || 0.3;
+      const targetLoad = this.nodeStates.get(link.target)?.currentLoad || 0.3;
+      const sourceSpeed = Math.max(10, Number(sourceNode?.interfaceSpeedMbps) || 1000);
+      const targetSpeed = Math.max(10, Number(targetNode?.interfaceSpeedMbps) || 1000);
+      const demandMbps = (sourceSpeed * sourceLoad + targetSpeed * targetLoad) / 2;
+
+      const linkBandwidth = Math.max(1, Number(link.bandwidth) || 1000);
+      const utilizationCap = clamp((Number(link.utilizationCap) || 100) / 100, 0.1, 1);
+      const effectiveBandwidth = linkBandwidth * utilizationCap;
+      const utilization = demandMbps / effectiveBandwidth;
+
+      const baseLatency = Math.max(0.1, Number(link.latency) || 5);
+      const baseJitter = Math.max(0, Number(link.jitter) || 1);
+      const baseLossPercent = clamp(Number(link.packetLoss) || 0, 0, 100);
+
+      const congestionPenalty = Math.max(0, utilization - 1);
+      const latency = baseLatency + congestionPenalty * baseLatency * 2.2;
+      const jitter = baseJitter * (1 + Math.max(0, utilization - 0.7) * 2.5);
+      const lossPercent = clamp(baseLossPercent + congestionPenalty * 25, 0, 100);
+      const loss = lossPercent / 100;
+
+      const status = utilization > 1.2 || loss > 0.12
+        ? 'lossy'
+        : utilization > 0.85 || loss > 0.04
+          ? 'degraded'
+          : 'up';
+      const flow = clamp(1 - Math.max(0, utilization - 0.85) * 0.8 - loss, 0, 1);
       
       link.health = {
-        status: avgLoad > 0.9 ? 'lossy' : avgLoad > 0.75 ? 'degraded' : 'up',
-        flow: 1 - avgLoad * 0.3,
-        loss: avgLoad > 0.8 ? (avgLoad - 0.8) * 0.5 : 0,
+        status,
+        flow,
+        loss,
+        utilization: Number(utilization.toFixed(3)),
+        latency: Number(latency.toFixed(2)),
+        jitter: Number(jitter.toFixed(2)),
+        demandMbps: Math.round(demandMbps),
       };
     });
     
@@ -233,9 +292,12 @@ export class TrafficGenerator {
    */
   getNodeState(nodeId) {
     if (!this.nodeStates.has(nodeId)) {
+      const seed = stableHash01(nodeId);
       this.nodeStates.set(nodeId, {
-        currentLoad: 0.3 + Math.random() * 0.2,
+        currentLoad: 0.25 + seed * 0.25,
         lastBurst: 0,
+        lastBurstBucket: -1,
+        phase: seed * Math.PI * 2,
       });
     }
     return this.nodeStates.get(nodeId);

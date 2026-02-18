@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Didar Network Playground v2</title>
+  <title>Network Training Simulator - Topology Editor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -771,8 +771,9 @@
       onPropertyChange: (type, id, updates) => {
         if (type === 'node') {
           editor.updateNode(id, updates);
+        } else if (type === 'link') {
+          editor.updateLink(id, updates);
         }
-        renderer.setTopology(editor.getTopology());
       },
       onDelete: (type, id) => {
         if (type === 'node') {
@@ -847,9 +848,9 @@
 
     // Simulate button
     on(document.getElementById('btn-simulate'), 'click', () => {
-      const topology = editor.getTopology();
+      const topology = editor.getSerializableTopology();
       localStorage.setItem('playground-topology', JSON.stringify(topology));
-      window.open('demo-v2.html', '_blank');
+      window.open('simulation.html', '_blank');
     });
 
     // Update mode indicator

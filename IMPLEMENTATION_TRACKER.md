@@ -37,6 +37,21 @@ Last updated: 2026-02-18
 - [x] Remove unused static assets and stale file artifacts.
 - [x] Align repository documentation with the active runtime structure.
 
+## P6 Functional Training Baseline
+- [x] Add shared topology schema normalization for runtime/editor consistency.
+- [x] Expand editor property controls with network-training parameters (IP/subnet/VLAN/routing/link QoS).
+- [x] Load normalized topology from playground into simulation flow.
+
+## P7 Deterministic Engine Baseline
+- [x] Remove random-driven runtime metrics in favor of deterministic, parameter-driven formulas.
+- [x] Tie traffic and link health calculations to topology schema parameters (capacity, latency, jitter, packet loss).
+- [x] Add scenario objective evaluation and pass/fail scoring.
+
+## P8 Analysis Workflow Usefulness
+- [x] Persist latest lab report from simulation for cross-page analysis.
+- [x] Replace analytics random demo loop with deterministic simulation controller playback.
+- [x] Add report-aware analytics summary with objective status and next-step recommendations.
+
 ## Change Log
 ### 2026-02-18
 - Updated `simulation.html`:
@@ -127,9 +142,52 @@ Last updated: 2026-02-18
 - Attempted browser automation visual QA:
   - Local Safari WebDriver session creation was blocked by missing Safari setting: `Allow remote automation`.
   - Applied and verified responsive fixes via code-level QA and regression smoke checks.
+- Updated project naming/purpose alignment:
+  - Removed legacy personal branding from all user-facing pages/docs/scripts.
+  - Standardized naming to `Network Training Simulator` across titles, headers, redirect page, and launcher script.
+  - Added explicit diploma-purpose statement in `README.md` for practical networking-course training goals.
+- Added `src/utils/topologySchema.js`:
+  - Introduced shared topology normalization/defaulting for nodes and links (`normalizeTopology`, `normalizeNode`, `normalizeLink`, `serializeTopology`).
+  - Added training-oriented defaults for routing role/protocol, interface speed, VLAN, and link quality parameters.
+- Updated `src/playground/TopologyEditor.js`:
+  - Wired add/load/update/export flows through schema normalization.
+  - Added `updateLink` and `getSerializableTopology` to support structured link edits and clean export payloads.
+  - Stabilized id-counter derivation after import to avoid id collisions.
+- Updated `src/playground/PropertyEditor.js`:
+  - Expanded node form with routing role/protocol, IP/subnet/gateway, VLAN, and interface speed fields.
+  - Expanded link form with jitter, packet loss, duplex, utilization cap, and queue limit fields.
+  - Added numeric input clamping helper to reduce invalid data entry.
+- Updated `playground-v2.html`:
+  - Wired property changes for links via `editor.updateLink(...)`.
+  - Switched simulation handoff to serialize topology and open `simulation.html` (build -> simulate flow).
+- Updated `simulation.html`:
+  - Added normalized load path for topology from `localStorage.playground-topology` with safe fallback to default topology.
+  - Added startup log entry when simulation runs with playground-authored topology.
+- Updated `simulation.html`:
+  - Added `Open Analytics` action in Lab Results to sync the latest run and move directly to `analytics.html`.
+  - Refactored report export flow into reusable build/persist/download steps.
+  - Persisted latest lab report in `localStorage` (`network-training-lab-report-latest`) for cross-page analysis.
+- Updated `src/engine/TrafficGenerator.js`:
+  - Replaced random burst/load generation with deterministic time-phase wave calculations.
+  - Added parameter-aware node throughput/latency and link utilization/flow/loss/jitter calculations.
+- Updated `src/analytics/MetricsCollector.js`:
+  - Replaced random latency/jitter sampling with deterministic aggregation from node/link runtime data.
+  - Reworked throughput, active connections, packet loss, and energy metrics to use topology-aware calculations.
+- Updated `src/engine/SimulationController.js`:
+  - Removed random load reset behavior and switched reset state to deterministic baseline derived from topology fields.
+- Updated `analytics.html`:
+  - Replaced random mock loop with `SimulationController`-driven deterministic playback.
+  - Added report import workflow and local latest-report loading.
+  - Added Lab Assessment section with scenario score/status, objective snapshot, and targeted remediation recommendations.
+- Re-verified regression suite:
+  - `./scripts/run-smoke-checks.sh` passed.
+  - `make smoke` passed.
 
 ## Next In Queue
 - [x] Expand editor smoke checks to include zoom-aware pointer interaction (`handleClick` path) and import/export stubs.
 - [x] Add teardown checks for dynamically created UI elements (toasts/log entries) under rapid actions.
 - [x] Add a CI-friendly command wrapper once project-level scripts/tooling are introduced.
 - [ ] Re-run screenshot-driven visual QA (375px, 768px, 1280px) after enabling Safari setting `Allow remote automation`.
+- [x] Replace random traffic math with deterministic tick-based KPI calculations using topology schema parameters.
+- [x] Add scenario objective definitions and pass/fail evaluator (first lab set: classroom congestion, core-link failure, exam spike).
+- [ ] Add report history comparison view (latest vs previous run) in analytics for instructor grading evidence.

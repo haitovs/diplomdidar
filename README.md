@@ -1,13 +1,18 @@
-﻿# Didar Network Simulation Lab
+﻿# Network Training Simulator Lab
 
-python -m http.server 4173
+Practical training simulator for computer networking courses. The platform is focused on one learning workflow: build topology, run traffic/failure scenarios, inspect metrics, and explain bottlenecks with evidence.
 
-Design-first diploma template that showcases an interactive campus network for digital classrooms. The site runs fully on static assets (vanilla ES modules + Chart.js CDN) so it can be demoed without provisioning back-end services.
+## Clear Purpose
+
+-   **Audience**: students and instructors in computer networking courses.
+-   **Primary goal**: practice design, troubleshooting, and resiliency analysis in a safe lab environment.
+-   **Learning outcome**: connect network configuration decisions to measurable effects (latency, throughput, loss, utilization).
 
 ## Highlights
 
 -   **Multiple specialized views** – Home page, enhanced demo, topology editor playground, full simulation, and analytics dashboard.
 -   **Scenario-driven simulation** – swap traffic patterns (classroom, exam, lab, streaming, DDoS) and watch real-time network behavior.
+-   **Lab assessment workflow** – objective scoring (pass/in-progress/needs work), JSON report export, and direct handoff to analytics.
 -   **Animated backbone map** – icon-based nodes with live glow, tooltips, draggable nodes, and flowing packet visualization.
 -   **Topology editor** – drag-and-drop playground to build custom network topologies with device palette and property editor.
 -   **Traffic simulation** – realistic traffic patterns with failure scenarios, cascading failures, and recovery mechanisms.
@@ -38,7 +43,7 @@ Design-first diploma template that showcases an interactive campus network for d
 -   **`demo-v2.html`** – Enhanced visualization demo with controls
 -   **`playground-v2.html`** – Topology editor with drag-and-drop interface
 -   **`simulation.html`** – Full simulation with traffic patterns and failure scenarios
--   **`analytics.html`** – Analytics dashboard with live metrics
+-   **`analytics.html`** – Analytics dashboard with deterministic playback, report import, and objective-focused recommendations
 
 ## Project structure
 
