@@ -1,1279 +1,1601 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Network Training Simulator - Scenario Lab</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: #0a0f1a;
-      color: #f8fafc;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    header {
-      padding: 12px 20px;
-      background: rgba(15, 23, 42, 0.95);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-
-    .logo {
-      font-size: 1.25rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .header-controls {
-      display: flex;
-      gap: 12px;
-      flex: 1;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      min-width: 0;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      min-width: 0;
-    }
-
-    .time-display {
-      font-size: 28px;
-      font-weight: 700;
-      font-family: monospace;
-      background: linear-gradient(135deg, #22c55e, #14b8a6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      min-width: 80px;
-      text-align: center;
-    }
-
-    .speed-controls {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .speed-btn {
-      padding: 6px 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
-      color: #94a3b8;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.2s;
-      min-width: 0;
-    }
-
-    .speed-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .speed-btn.active {
-      background: rgba(99, 102, 241, 0.3);
-      border-color: #6366f1;
-      color: #a5b4fc;
-    }
-
-    .btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      font-weight: 500;
-      cursor: pointer;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-      min-height: 36px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      color: white;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: #e2e8f0;
-    }
-
-    .btn-danger {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-    }
-
-    .btn-warning {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: white;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-    }
-
-    .btn:focus-visible,
-    .speed-btn:focus-visible,
-    .pattern-btn:focus-visible,
-    .failure-action:focus-visible {
-      outline: 2px solid rgba(99, 102, 241, 0.9);
-      outline-offset: 2px;
-    }
-
-    main {
-      flex: 1;
-      display: grid;
-      grid-template-columns: minmax(230px, 280px) 1fr minmax(230px, 280px);
-      overflow: hidden;
-    }
-
-    .sidebar {
-      background: rgba(15, 23, 42, 0.8);
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
-      overflow-y: auto;
-      padding: 16px;
-      scrollbar-gutter: stable both-edges;
-    }
-
-    .sidebar-right {
-      border-right: none;
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .panel {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .panel-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 12px;
-    }
-
-    .pattern-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .pattern-btn {
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      color: #e2e8f0;
-      cursor: pointer;
-      font-size: 11px;
-      text-align: center;
-      transition: all 0.2s;
-    }
-
-    .pattern-btn:hover {
-      background: rgba(99, 102, 241, 0.1);
-      border-color: rgba(99, 102, 241, 0.3);
-    }
-
-    .pattern-btn.active {
-      background: rgba(99, 102, 241, 0.2);
-      border-color: #6366f1;
-    }
-
-    .pattern-btn .icon {
-      font-size: 18px;
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .failure-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .failure-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
-      background: rgba(239, 68, 68, 0.1);
-      border-left: 3px solid #ef4444;
-      border-radius: 6px;
-    }
-
-    .failure-item.warning {
-      background: rgba(245, 158, 11, 0.1);
-      border-color: #f59e0b;
-    }
-
-    .failure-icon {
-      font-size: 16px;
-    }
-
-    .failure-content {
-      flex: 1;
-    }
-
-    .failure-title {
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .failure-target {
-      font-size: 11px;
-      color: #94a3b8;
-    }
-
-    .failure-action {
-      background: none;
-      border: none;
-      color: #22c55e;
-      cursor: pointer;
-      font-size: 11px;
-    }
-
-    .metrics-mini {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .metric-box {
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 8px;
-      padding: 12px;
-      text-align: center;
-    }
-
-    .metric-value {
-      font-size: 22px;
-      font-weight: 700;
-      color: #22c55e;
-    }
-
-    .metric-label {
-      font-size: 10px;
-      color: #64748b;
-      text-transform: uppercase;
-    }
-
-    .canvas-area {
-      position: relative;
-      background: #0a0f1a;
-      min-width: 0;
-    }
-
-    #simulation-canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .toast-container {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events: none;
-    }
-
-    .toast {
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      animation: slideIn 0.3s ease;
-      pointer-events: auto;
-    }
-
-    .toast.error {
-      background: rgba(239, 68, 68, 0.9);
-    }
-
-    .toast.warning {
-      background: rgba(245, 158, 11, 0.9);
-      color: #0f172a;
-    }
-
-    .toast.info {
-      background: rgba(34, 197, 94, 0.9);
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Network Training Simulator - Scenario Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
 
-      to {
-        transform: translateX(0);
-      }
-    }
-
-    .event-log {
-      max-height: 200px;
-      overflow-y: auto;
-      font-size: 11px;
-      font-family: monospace;
-    }
-
-    .log-entry {
-      padding: 6px 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .log-time {
-      color: #64748b;
-      margin-right: 8px;
-    }
-
-    .log-msg {
-      color: #e2e8f0;
-    }
-
-    .log-entry.error .log-msg {
-      color: #f87171;
-    }
-
-    .log-entry.recovery .log-msg {
-      color: #4ade80;
-    }
-
-    .back-link {
-      text-decoration: none;
-    }
-
-    .sim-info-list {
-      font-size: 12px;
-      color: #94a3b8;
-      line-height: 1.8;
-    }
-
-    .sim-info-list strong {
-      color: #cbd5e1;
-      font-weight: 600;
-    }
-
-    .quick-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .quick-actions .btn {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .lab-controls {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .lab-select {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.04);
-      color: #e2e8f0;
-      font-size: 12px;
-    }
-
-    .lab-select:focus-visible {
-      outline: 2px solid rgba(99, 102, 241, 0.9);
-      outline-offset: 2px;
-    }
-
-    .lab-action-buttons {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    .lab-action-btn {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .lab-score-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .lab-score {
-      font-size: 24px;
-      font-weight: 700;
-      color: #38bdf8;
-    }
-
-    .lab-status {
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #cbd5e1;
-      white-space: nowrap;
-    }
-
-    .lab-status.passed {
-      color: #22c55e;
-      border-color: rgba(34, 197, 94, 0.5);
-      background: rgba(34, 197, 94, 0.12);
-    }
-
-    .lab-status.in-progress {
-      color: #38bdf8;
-      border-color: rgba(56, 189, 248, 0.45);
-      background: rgba(56, 189, 248, 0.12);
-    }
-
-    .lab-status.at-risk {
-      color: #f59e0b;
-      border-color: rgba(245, 158, 11, 0.45);
-      background: rgba(245, 158, 11, 0.12);
-    }
-
-    .lab-objectives {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 240px;
-      overflow-y: auto;
-      scrollbar-gutter: stable both-edges;
-    }
-
-    .lab-objective {
-      border-radius: 8px;
-      border-left: 3px solid rgba(148, 163, 184, 0.5);
-      background: rgba(255, 255, 255, 0.03);
-      padding: 8px 10px;
-    }
-
-    .lab-objective.pass {
-      border-left-color: #22c55e;
-    }
-
-    .lab-objective.fail {
-      border-left-color: #f59e0b;
-    }
-
-    .lab-objective-title {
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 3px;
-    }
-
-    .lab-objective-meta {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      font-size: 11px;
-      color: #94a3b8;
-    }
-
-    .lab-objective-score {
-      color: #cbd5e1;
-      font-family: monospace;
-      white-space: nowrap;
-    }
-
-    @media (max-width: 1320px) {
-      main {
-        grid-template-columns: 240px 1fr 240px;
-      }
-
-      .btn {
-        padding: 8px 12px;
-      }
-    }
-
-    @media (max-width: 1024px) {
       body {
-        overflow: auto;
+        font-family: "Inter", system-ui, sans-serif;
+        background: #0a0f1a;
+        color: #f8fafc;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
       header {
-        gap: 12px;
-        padding: 12px;
+        padding: 12px 20px;
+        background: rgba(15, 23, 42, 0.95);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 20px;
       }
 
       .logo {
-        width: 100%;
+        font-size: 1.25rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
 
-      .header-controls,
-      .header-actions {
-        width: 100%;
-        justify-content: flex-start;
-      }
-
-      main {
-        grid-template-columns: 1fr;
-        overflow: visible;
-      }
-
-      .canvas-area {
-        min-height: 56vh;
-        order: 1;
-      }
-
-      .sidebar,
-      .sidebar-right {
-        order: 2;
-        border-left: none;
-        border-right: none;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-      }
-
-      .sidebar-right {
-        order: 3;
-      }
-
-      .toast-container {
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-      }
-    }
-
-    @media (max-width: 768px) {
       .header-controls {
-        justify-content: flex-start;
+        display: flex;
+        gap: 12px;
+        flex: 1;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        min-width: 0;
+      }
+
+      .header-actions {
+        display: flex;
         gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        min-width: 0;
+      }
+
+      .time-display {
+        font-size: 28px;
+        font-weight: 700;
+        font-family: monospace;
+        background: linear-gradient(135deg, #22c55e, #14b8a6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        min-width: 80px;
+        text-align: center;
       }
 
       .speed-controls {
-        width: 100%;
-        justify-content: space-between;
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        flex-wrap: wrap;
       }
 
       .speed-btn {
-        flex: 1 1 0;
-        padding: 6px 8px;
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        color: #94a3b8;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+        min-width: 0;
       }
 
-      .header-actions {
-        width: 100%;
+      .speed-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .speed-btn.active {
+        background: rgba(99, 102, 241, 0.3);
+        border-color: #6366f1;
+        color: #a5b4fc;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        min-height: 36px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: #e2e8f0;
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+      }
+
+      .btn-warning {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn:focus-visible,
+      .speed-btn:focus-visible,
+      .pattern-btn:focus-visible,
+      .failure-action:focus-visible {
+        outline: 2px solid rgba(99, 102, 241, 0.9);
+        outline-offset: 2px;
+      }
+
+      main {
+        flex: 1;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(230px, 280px) 1fr minmax(230px, 280px);
+        overflow: hidden;
+      }
+
+      .sidebar {
+        background: rgba(15, 23, 42, 0.8);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        overflow-y: auto;
+        padding: 16px;
+        scrollbar-gutter: stable both-edges;
+      }
+
+      .sidebar-right {
+        border-right: none;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .panel {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        transition: border-color 0.2s ease;
+      }
+
+      .panel:hover {
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .panel-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        align-items: center;
         gap: 8px;
       }
 
-      .header-actions .btn {
+      .panel-title-icon {
+        font-size: 14px;
+        opacity: 0.8;
+      }
+
+      .pattern-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .pattern-btn {
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        color: #e2e8f0;
+        cursor: pointer;
+        font-size: 11px;
+        text-align: center;
+        transition: all 0.25s ease;
+      }
+
+      .pattern-btn:hover {
+        background: rgba(99, 102, 241, 0.1);
+        border-color: rgba(99, 102, 241, 0.35);
+        transform: translateY(-1px);
+      }
+
+      .pattern-btn.active {
+        background: rgba(99, 102, 241, 0.15);
+        border-color: rgba(99, 102, 241, 0.6);
+        box-shadow:
+          0 0 16px rgba(99, 102, 241, 0.15),
+          inset 0 0 0 1px rgba(99, 102, 241, 0.1);
+        color: #c7d2fe;
+      }
+
+      .pattern-btn .icon {
+        font-size: 20px;
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      /* Empty state component */
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 20px 16px;
+        color: #64748b;
+        font-size: 12px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.01);
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+      }
+
+      .empty-state-icon {
+        font-size: 24px;
+        opacity: 0.7;
+      }
+
+      .failure-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .failure-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: rgba(239, 68, 68, 0.08);
+        border-left: 3px solid #ef4444;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+      }
+
+      .failure-item:hover {
+        background: rgba(239, 68, 68, 0.12);
+      }
+
+      .failure-item.warning {
+        background: rgba(245, 158, 11, 0.08);
+        border-color: #f59e0b;
+      }
+
+      .failure-item.warning:hover {
+        background: rgba(245, 158, 11, 0.12);
+      }
+
+      .failure-icon {
+        font-size: 16px;
+      }
+
+      .failure-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .failure-title {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .failure-target {
+        font-size: 11px;
+        color: #94a3b8;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .failure-action {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        border-radius: 6px;
+        color: #22c55e;
+        cursor: pointer;
+        font-size: 11px;
+        padding: 4px 10px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+
+      .failure-action:hover {
+        background: rgba(34, 197, 94, 0.2);
+        border-color: #22c55e;
+      }
+
+      .metrics-mini {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .metric-box {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        padding: 14px 12px;
+        text-align: center;
+        transition: all 0.25s ease;
+      }
+
+      .metric-box:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.12);
+        transform: translateY(-1px);
+      }
+
+      .metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        font-family: "Inter", monospace;
+      }
+
+      .metric-value.nodes {
+        color: #6366f1;
+      }
+      .metric-value.links {
+        color: #8b5cf6;
+      }
+      .metric-value.util {
+        color: #22c55e;
+      }
+      .metric-value.failures {
+        color: #ef4444;
+      }
+
+      .metric-label {
+        font-size: 10px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-top: 4px;
+      }
+
+      .canvas-area {
+        position: relative;
+        background: #0a0f1a;
+        min-width: 0;
+      }
+
+      #simulation-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .toast-container {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+      }
+
+      .toast {
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideIn 0.3s ease;
+        pointer-events: auto;
+      }
+
+      .toast.error {
+        background: rgba(239, 68, 68, 0.9);
+      }
+
+      .toast.warning {
+        background: rgba(245, 158, 11, 0.9);
+        color: #0f172a;
+      }
+
+      .toast.info {
+        background: rgba(34, 197, 94, 0.9);
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+        }
+
+        to {
+          transform: translateX(0);
+        }
+      }
+
+      .event-log {
+        max-height: 200px;
+        overflow-y: auto;
+        font-size: 11px;
+        font-family: monospace;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+      }
+
+      .event-log:empty::after {
+        content: "Waiting for events…";
+        display: block;
+        text-align: center;
+        padding: 16px;
+        color: #475569;
+        font-family: "Inter", sans-serif;
+        font-style: italic;
+      }
+
+      .log-entry {
+        padding: 6px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        transition: background 0.15s ease;
+      }
+
+      .log-entry:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .log-time {
+        color: #475569;
+        margin-right: 8px;
+      }
+
+      .log-msg {
+        color: #cbd5e1;
+      }
+
+      .log-entry.error .log-msg {
+        color: #f87171;
+      }
+
+      .log-entry.recovery .log-msg {
+        color: #4ade80;
+      }
+
+      .back-link {
+        text-decoration: none;
+      }
+
+      .sim-info-list {
+        font-size: 12px;
+        color: #94a3b8;
+        line-height: 1.8;
+      }
+
+      .sim-info-list strong {
+        color: #cbd5e1;
+        font-weight: 600;
+      }
+
+      .quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .quick-actions .btn {
         width: 100%;
         justify-content: center;
       }
-    }
 
-    @media (max-width: 640px) {
-      header {
-        padding: 10px;
+      .lab-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 10px;
       }
 
-      .time-display {
-        font-size: 22px;
-      }
-
-      .pattern-grid,
-      .metrics-mini {
-        grid-template-columns: 1fr;
-      }
-
-      .btn,
-      .speed-btn {
+      .lab-select {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: #e2e8f0;
         font-size: 12px;
       }
-    }
 
-    @media (max-width: 460px) {
-      .header-actions {
+      .lab-select:focus-visible {
+        outline: 2px solid rgba(99, 102, 241, 0.9);
+        outline-offset: 2px;
+      }
+
+      .lab-action-buttons {
+        display: grid;
         grid-template-columns: 1fr;
+        gap: 8px;
       }
 
-      .time-display {
-        min-width: 64px;
+      .lab-action-btn {
+        width: 100%;
+        justify-content: center;
       }
-    }
-  </style>
-</head>
 
-<body>
-  <header>
-    <div class="logo">⚡ Network Training Simulator</div>
+      .lab-score-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+      }
 
-    <div class="header-controls">
-      <a href="index-v2.html" class="btn btn-secondary back-link">← Back to
-        Menu</a>
-      <button class="btn btn-secondary" id="btn-rewind">⏪</button>
-      <div class="time-display" id="sim-time">08:00</div>
-      <div class="speed-controls">
-        <button class="speed-btn" data-speed="0.5">0.5×</button>
-        <button class="speed-btn active" data-speed="1">1×</button>
-        <button class="speed-btn" data-speed="2">2×</button>
-        <button class="speed-btn" data-speed="5">5×</button>
-        <button class="speed-btn" data-speed="10">10×</button>
-      </div>
-    </div>
+      .lab-score {
+        font-size: 28px;
+        font-weight: 700;
+        color: #38bdf8;
+        font-family: "Inter", monospace;
+        letter-spacing: -0.02em;
+      }
 
-    <div class="header-actions">
-      <button class="btn btn-primary" id="btn-play">▶ Start</button>
-      <button class="btn btn-secondary" id="btn-edit-topology">🛠 Edit Topology</button>
-      <button class="btn btn-warning" id="btn-failure">💥 Failure</button>
-      <button class="btn btn-danger" id="btn-cascade">🔥 Cascade</button>
-      <button class="btn btn-secondary" id="btn-recover">🔧 Recover All</button>
-    </div>
-  </header>
+      .lab-status {
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 999px;
+        padding: 5px 12px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #cbd5e1;
+        white-space: nowrap;
+        font-weight: 600;
+      }
 
-  <main>
-    <aside class="sidebar">
-      <div class="panel">
-        <div class="panel-title">Traffic Pattern</div>
-        <div class="pattern-grid" id="pattern-grid"></div>
-      </div>
+      .lab-status.passed {
+        color: #22c55e;
+        border-color: rgba(34, 197, 94, 0.5);
+        background: rgba(34, 197, 94, 0.12);
+      }
 
-      <div class="panel">
-        <div class="panel-title">Active Failures</div>
-        <div class="failure-list" id="failure-list">
-          <div style="color: #64748b; font-size: 12px; text-align: center; padding: 16px;">No active failures</div>
-        </div>
-      </div>
+      .lab-status.in-progress {
+        color: #38bdf8;
+        border-color: rgba(56, 189, 248, 0.45);
+        background: rgba(56, 189, 248, 0.12);
+      }
 
-      <div class="panel">
-        <div class="panel-title">Event Log</div>
-        <div class="event-log" id="event-log"></div>
-      </div>
-    </aside>
+      .lab-status.at-risk {
+        color: #f59e0b;
+        border-color: rgba(245, 158, 11, 0.45);
+        background: rgba(245, 158, 11, 0.12);
+      }
 
-    <section class="canvas-area">
-      <canvas id="simulation-canvas"></canvas>
-      <div class="toast-container" id="toast-container"></div>
-    </section>
+      .lab-objectives {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 240px;
+        overflow-y: auto;
+        scrollbar-gutter: stable both-edges;
+      }
 
-    <aside class="sidebar sidebar-right">
-      <div class="panel">
-        <div class="panel-title">Network Status</div>
-        <div class="metrics-mini">
-          <div class="metric-box">
-            <div class="metric-value" id="m-nodes">0</div>
-            <div class="metric-label">Nodes</div>
-          </div>
-          <div class="metric-box">
-            <div class="metric-value" id="m-links">0</div>
-            <div class="metric-label">Links</div>
-          </div>
-          <div class="metric-box">
-            <div class="metric-value" id="m-util">0%</div>
-            <div class="metric-label">Utilization</div>
-          </div>
-          <div class="metric-box">
-            <div class="metric-value" id="m-failures">0</div>
-            <div class="metric-label">Failures</div>
-          </div>
-        </div>
-      </div>
+      .lab-objective {
+        border-radius: 8px;
+        border-left: 3px solid rgba(148, 163, 184, 0.3);
+        background: rgba(255, 255, 255, 0.02);
+        padding: 10px 12px;
+        transition: all 0.2s ease;
+      }
 
-      <div class="panel">
-        <div class="panel-title">Simulation Info</div>
-        <div class="sim-info-list">
-          <div><strong>Pattern:</strong> <span id="info-pattern">Classroom</span></div>
-          <div><strong>Speed:</strong> <span id="info-speed">1×</span></div>
-          <div><strong>Frames:</strong> <span id="info-frames">0</span></div>
-          <div><strong>Active Flows:</strong> <span id="info-flows">0</span></div>
-          <div><strong>Dropped Demand:</strong> <span id="info-dropped">0 Mbps</span></div>
-          <div><strong>Status:</strong> <span id="info-status">Stopped</span></div>
-        </div>
-      </div>
+      .lab-objective:hover {
+        background: rgba(255, 255, 255, 0.04);
+      }
 
-      <div class="panel">
-        <div class="panel-title">Lab Results</div>
-        <div class="lab-controls">
-          <select id="lab-scenario-select" class="lab-select"></select>
-          <div class="lab-action-buttons">
-            <button class="btn btn-secondary lab-action-btn" id="btn-export-report">🧾 Export Report</button>
-            <button class="btn btn-secondary lab-action-btn" id="btn-open-analytics">📊 Open Analytics</button>
-          </div>
-        </div>
-        <div class="lab-score-row">
-          <div class="lab-score" id="lab-score">0%</div>
-          <div class="lab-status in-progress" id="lab-status">In Progress</div>
-        </div>
-        <div class="lab-objectives" id="lab-objectives"></div>
-      </div>
+      .lab-objective.pass {
+        border-left-color: #22c55e;
+        background: rgba(34, 197, 94, 0.04);
+      }
 
-      <div class="panel">
-        <div class="panel-title">Quick Actions</div>
-        <div class="quick-actions">
-          <button class="btn btn-secondary" id="btn-spike">📈 Traffic Spike</button>
-          <button class="btn btn-secondary" id="btn-screenshot">📷 Screenshot</button>
-          <button class="btn btn-secondary" id="btn-reset">🔄 Reset</button>
-        </div>
-      </div>
-    </aside>
-  </main>
+      .lab-objective.fail {
+        border-left-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.04);
+      }
 
-  <script type="module">
-    import { CanvasRenderer } from './src/rendering/CanvasRenderer.js';
-    import { SimulationController, TRAFFIC_PATTERNS, FAILURE_TYPES } from './src/engine/SimulationController.js';
-    import { MetricsCollector } from './src/analytics/MetricsCollector.js';
-    import { LabEvaluator } from './src/engine/LabEvaluator.js';
-    import { LAB_SCENARIO_ORDER, LAB_SCENARIOS, scenarioForPattern } from './src/engine/LabScenarios.js';
-    import { createLogManager, createToastManager } from './src/ui/feedback.js';
-    import { LifecycleManager } from './src/utils/lifecycle.js';
-    import { normalizeTopology, serializeTopology } from './src/utils/topologySchema.js';
+      .lab-objective-title {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #e2e8f0;
+      }
 
-    // Default topology
-    const defaultTopology = {
-      nodes: [
-        { id: 'internet', label: 'Internet', type: 'cloud', position: { x: 0.5, y: 0.08 } },
-        { id: 'firewall', label: 'Firewall', type: 'firewall', position: { x: 0.5, y: 0.22 } },
-        { id: 'core1', label: 'Core-1', type: 'coreRouter', position: { x: 0.3, y: 0.4 } },
-        { id: 'core2', label: 'Core-2', type: 'coreRouter', position: { x: 0.7, y: 0.4 } },
-        { id: 'sw1', label: 'Switch-A', type: 'switch', position: { x: 0.15, y: 0.6 } },
-        { id: 'sw2', label: 'Switch-B', type: 'switch', position: { x: 0.5, y: 0.6 } },
-        { id: 'sw3', label: 'Switch-C', type: 'switch', position: { x: 0.85, y: 0.6 } },
-        { id: 'ap1', label: 'AP-Lab', type: 'accessPoint', position: { x: 0.1, y: 0.82 } },
-        { id: 'srv1', label: 'App Server', type: 'server', position: { x: 0.3, y: 0.82 } },
-        { id: 'srv2', label: 'DB Server', type: 'server', position: { x: 0.5, y: 0.82 } },
-        { id: 'lab1', label: 'XR Lab', type: 'lab', position: { x: 0.7, y: 0.82 } },
-        { id: 'iot1', label: 'Sensors', type: 'iot', position: { x: 0.9, y: 0.82 } },
-      ],
-      links: [
-        { id: 'l1', source: 'internet', target: 'firewall', type: 'wan' },
-        { id: 'l2', source: 'firewall', target: 'core1', type: 'fiber' },
-        { id: 'l3', source: 'firewall', target: 'core2', type: 'fiber' },
-        { id: 'l4', source: 'core1', target: 'core2', type: 'fiber' },
-        { id: 'l5', source: 'core1', target: 'sw1', type: 'ethernet' },
-        { id: 'l6', source: 'core1', target: 'sw2', type: 'ethernet' },
-        { id: 'l7', source: 'core2', target: 'sw2', type: 'ethernet' },
-        { id: 'l8', source: 'core2', target: 'sw3', type: 'ethernet' },
-        { id: 'l9', source: 'sw1', target: 'ap1', type: 'ethernet' },
-        { id: 'l10', source: 'sw1', target: 'srv1', type: 'ethernet' },
-        { id: 'l11', source: 'sw2', target: 'srv2', type: 'ethernet' },
-        { id: 'l12', source: 'sw3', target: 'lab1', type: 'ethernet' },
-        { id: 'l13', source: 'sw3', target: 'iot1', type: 'wireless' },
-      ],
-    };
+      .lab-objective-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 11px;
+        color: #94a3b8;
+      }
 
-    const STORAGE_KEYS = {
-      latestLabReport: 'network-training-lab-report-latest',
-      playgroundTopology: 'playground-topology',
-    };
+      .lab-objective-score {
+        color: #e2e8f0;
+        font-family: monospace;
+        white-space: nowrap;
+        font-weight: 600;
+      }
 
-    // Initialize
-    const canvas = document.getElementById('simulation-canvas');
-    const renderer = new CanvasRenderer(canvas, { showGrid: true });
-    const metricsCollector = new MetricsCollector();
-    const lifecycle = new LifecycleManager();
-    const on = (target, event, handler, options) => lifecycle.on(target, event, handler, options);
-    const later = (handler, delay) => lifecycle.timeout(handler, delay);
-    const toastManager = createToastManager({
-      container: document.getElementById('toast-container'),
-      maxVisible: 4,
-      removeDelay: 4000,
-      schedule: later,
-    });
-    const logManager = createLogManager({
-      container: document.getElementById('event-log'),
-      maxEntries: 100,
-    });
-    const logEvent = (message, type = 'info') => logManager.add(message, type);
-    const showToast = (message, type = 'info') => toastManager.show(message, type);
-    const addLogEntry = (message, type = 'info') => logManager.add(message, type);
-    const labEvaluator = new LabEvaluator({ scenarioKey: scenarioForPattern('classroom') });
-    const labScenarioSelect = document.getElementById('lab-scenario-select');
-    const labScoreEl = document.getElementById('lab-score');
-    const labStatusEl = document.getElementById('lab-status');
-    const labObjectivesEl = document.getElementById('lab-objectives');
-    const exportReportBtn = document.getElementById('btn-export-report');
-    const openAnalyticsBtn = document.getElementById('btn-open-analytics');
-    const editTopologyBtn = document.getElementById('btn-edit-topology');
-    const playBtn = document.getElementById('btn-play');
-    const infoStatusEl = document.getElementById('info-status');
-    const initialTopology = loadInitialTopology();
-    const usingSavedTopology = initialTopology !== defaultTopology;
-
-    function loadInitialTopology() {
-      const raw = localStorage.getItem(STORAGE_KEYS.playgroundTopology);
-      if (!raw) return defaultTopology;
-
-      try {
-        const parsed = JSON.parse(raw);
-        const normalized = normalizeTopology(parsed, {
-          canvasWidth: canvas.clientWidth || canvas.offsetWidth || 1000,
-          canvasHeight: canvas.clientHeight || canvas.offsetHeight || 600,
-        });
-        if (normalized.nodes.length > 0) {
-          return { nodes: normalized.nodes, links: normalized.links };
+      @media (max-width: 1320px) {
+        main {
+          grid-template-columns: 240px 1fr 240px;
         }
-      } catch (error) {
-        console.warn('[simulation] Failed to parse stored topology:', error);
+
+        .btn {
+          padding: 8px 12px;
+        }
       }
 
-      return defaultTopology;
-    }
+      @media (max-width: 1024px) {
+        body {
+          overflow: auto;
+        }
 
-    initializeLabScenarioSelect();
-    updateLabPanel(labEvaluator.getResult());
+        header {
+          gap: 12px;
+          padding: 12px;
+        }
 
-    // Preload icons
-    const iconCache = new Map();
-    const iconNames = ['router', 'switch', 'server', 'firewall', 'wifi', 'sensor', 'cloud', 'lab'];
+        .logo {
+          width: 100%;
+        }
 
-    Promise.all(iconNames.map(name => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.src = `icons/${name}.svg`;
-        img.onload = () => { iconCache.set(name + '.svg', img); iconCache.set(name, img); resolve(); };
-        img.onerror = () => resolve();
+        .header-controls,
+        .header-actions {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        main {
+          grid-template-columns: 1fr;
+          overflow: visible;
+        }
+
+        .canvas-area {
+          min-height: 56vh;
+          order: 1;
+        }
+
+        .sidebar,
+        .sidebar-right {
+          order: 2;
+          border-left: none;
+          border-right: none;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-right {
+          order: 3;
+        }
+
+        .toast-container {
+          left: 12px;
+          right: 12px;
+          bottom: 12px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .header-controls {
+          justify-content: flex-start;
+          gap: 8px;
+        }
+
+        .speed-controls {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .speed-btn {
+          flex: 1 1 0;
+          padding: 6px 8px;
+        }
+
+        .header-actions {
+          width: 100%;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .header-actions .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+
+      @media (max-width: 640px) {
+        header {
+          padding: 10px;
+        }
+
+        .time-display {
+          font-size: 22px;
+        }
+
+        .pattern-grid,
+        .metrics-mini {
+          grid-template-columns: 1fr;
+        }
+
+        .btn,
+        .speed-btn {
+          font-size: 12px;
+        }
+      }
+
+      @media (max-width: 460px) {
+        .header-actions {
+          grid-template-columns: 1fr;
+        }
+
+        .time-display {
+          min-width: 64px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="logo">⚡ Network Training Simulator</div>
+
+      <div class="header-controls">
+        <a href="index-v2.html" class="btn btn-secondary back-link"
+          >← Back to Menu</a
+        >
+        <button class="btn btn-secondary" id="btn-rewind">⏪</button>
+        <div class="time-display" id="sim-time">08:00</div>
+        <div class="speed-controls">
+          <button class="speed-btn" data-speed="0.5">0.5×</button>
+          <button class="speed-btn active" data-speed="1">1×</button>
+          <button class="speed-btn" data-speed="2">2×</button>
+          <button class="speed-btn" data-speed="5">5×</button>
+          <button class="speed-btn" data-speed="10">10×</button>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-primary" id="btn-play">▶ Start</button>
+        <button class="btn btn-secondary" id="btn-edit-topology">
+          🛠 Edit Topology
+        </button>
+        <button class="btn btn-warning" id="btn-failure">💥 Failure</button>
+        <button class="btn btn-danger" id="btn-cascade">🔥 Cascade</button>
+        <button class="btn btn-secondary" id="btn-recover">
+          🔧 Recover All
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-title">
+            <span class="panel-title-icon">📡</span> Traffic Pattern
+          </div>
+          <div class="pattern-grid" id="pattern-grid"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <span class="panel-title-icon">⚠️</span> Active Failures
+          </div>
+          <div class="failure-list" id="failure-list">
+            <div class="empty-state">
+              <span class="empty-state-icon">✅</span>
+              <span>No active failures</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <span class="panel-title-icon">📋</span> Event Log
+          </div>
+          <div class="event-log" id="event-log"></div>
+        </div>
+      </aside>
+
+      <section class="canvas-area">
+        <canvas id="simulation-canvas"></canvas>
+        <div class="toast-container" id="toast-container"></div>
+      </section>
+
+      <aside class="sidebar sidebar-right">
+        <div class="panel">
+          <div class="panel-title">
+            <span class="panel-title-icon">📊</span> Network Status
+          </div>
+          <div class="metrics-mini">
+            <div class="metric-box">
+              <div class="metric-value nodes" id="m-nodes">0</div>
+              <div class="metric-label">Nodes</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value links" id="m-links">0</div>
+              <div class="metric-label">Links</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value util" id="m-util">0%</div>
+              <div class="metric-label">Utilization</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value failures" id="m-failures">0</div>
+              <div class="metric-label">Failures</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <span class="panel-title-icon">ℹ️</span> Simulation Info
+          </div>
+          <div class="sim-info-list">
+            <div>
+              <strong>Pattern:</strong> <span id="info-pattern">Classroom</span>
+            </div>
+            <div><strong>Speed:</strong> <span id="info-speed">1×</span></div>
+            <div><strong>Frames:</strong> <span id="info-frames">0</span></div>
+            <div>
+              <strong>Active Flows:</strong> <span id="info-flows">0</span>
+            </div>
+            <div>
+              <strong>Dropped Demand:</strong>
+              <span id="info-dropped">0 Mbps</span>
+            </div>
+            <div>
+              <strong>Status:</strong> <span id="info-status">Stopped</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <span class="panel-title-icon">🧪</span> Lab Results
+          </div>
+          <div class="lab-controls">
+            <select id="lab-scenario-select" class="lab-select"></select>
+            <div class="lab-action-buttons">
+              <button
+                class="btn btn-secondary lab-action-btn"
+                id="btn-export-report"
+              >
+                🧾 Export Report
+              </button>
+              <button
+                class="btn btn-secondary lab-action-btn"
+                id="btn-open-analytics"
+              >
+                📊 Open Analytics
+              </button>
+            </div>
+          </div>
+          <div class="lab-score-row">
+            <div class="lab-score" id="lab-score">0%</div>
+            <div class="lab-status in-progress" id="lab-status">
+              In Progress
+            </div>
+          </div>
+          <div class="lab-objectives" id="lab-objectives"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <span class="panel-title-icon">⚡</span> Quick Actions
+          </div>
+          <div class="quick-actions">
+            <button class="btn btn-secondary" id="btn-spike">
+              📈 Traffic Spike
+            </button>
+            <button class="btn btn-secondary" id="btn-screenshot">
+              📷 Screenshot
+            </button>
+            <button class="btn btn-secondary" id="btn-reset">🔄 Reset</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <script type="module">
+      import { CanvasRenderer } from "./src/rendering/CanvasRenderer.js";
+      import {
+        SimulationController,
+        TRAFFIC_PATTERNS,
+        FAILURE_TYPES,
+      } from "./src/engine/SimulationController.js";
+      import { MetricsCollector } from "./src/analytics/MetricsCollector.js";
+      import { LabEvaluator } from "./src/engine/LabEvaluator.js";
+      import {
+        LAB_SCENARIO_ORDER,
+        LAB_SCENARIOS,
+        scenarioForPattern,
+      } from "./src/engine/LabScenarios.js";
+      import {
+        createLogManager,
+        createToastManager,
+      } from "./src/ui/feedback.js";
+      import { LifecycleManager } from "./src/utils/lifecycle.js";
+      import {
+        normalizeTopology,
+        serializeTopology,
+      } from "./src/utils/topologySchema.js";
+
+      // Default topology
+      const defaultTopology = {
+        nodes: [
+          {
+            id: "internet",
+            label: "Internet",
+            type: "cloud",
+            position: { x: 0.5, y: 0.08 },
+          },
+          {
+            id: "firewall",
+            label: "Firewall",
+            type: "firewall",
+            position: { x: 0.5, y: 0.22 },
+          },
+          {
+            id: "core1",
+            label: "Core-1",
+            type: "coreRouter",
+            position: { x: 0.3, y: 0.4 },
+          },
+          {
+            id: "core2",
+            label: "Core-2",
+            type: "coreRouter",
+            position: { x: 0.7, y: 0.4 },
+          },
+          {
+            id: "sw1",
+            label: "Switch-A",
+            type: "switch",
+            position: { x: 0.15, y: 0.6 },
+          },
+          {
+            id: "sw2",
+            label: "Switch-B",
+            type: "switch",
+            position: { x: 0.5, y: 0.6 },
+          },
+          {
+            id: "sw3",
+            label: "Switch-C",
+            type: "switch",
+            position: { x: 0.85, y: 0.6 },
+          },
+          {
+            id: "ap1",
+            label: "AP-Lab",
+            type: "accessPoint",
+            position: { x: 0.1, y: 0.82 },
+          },
+          {
+            id: "srv1",
+            label: "App Server",
+            type: "server",
+            position: { x: 0.3, y: 0.82 },
+          },
+          {
+            id: "srv2",
+            label: "DB Server",
+            type: "server",
+            position: { x: 0.5, y: 0.82 },
+          },
+          {
+            id: "lab1",
+            label: "XR Lab",
+            type: "lab",
+            position: { x: 0.7, y: 0.82 },
+          },
+          {
+            id: "iot1",
+            label: "Sensors",
+            type: "iot",
+            position: { x: 0.9, y: 0.82 },
+          },
+        ],
+        links: [
+          { id: "l1", source: "internet", target: "firewall", type: "wan" },
+          { id: "l2", source: "firewall", target: "core1", type: "fiber" },
+          { id: "l3", source: "firewall", target: "core2", type: "fiber" },
+          { id: "l4", source: "core1", target: "core2", type: "fiber" },
+          { id: "l5", source: "core1", target: "sw1", type: "ethernet" },
+          { id: "l6", source: "core1", target: "sw2", type: "ethernet" },
+          { id: "l7", source: "core2", target: "sw2", type: "ethernet" },
+          { id: "l8", source: "core2", target: "sw3", type: "ethernet" },
+          { id: "l9", source: "sw1", target: "ap1", type: "ethernet" },
+          { id: "l10", source: "sw1", target: "srv1", type: "ethernet" },
+          { id: "l11", source: "sw2", target: "srv2", type: "ethernet" },
+          { id: "l12", source: "sw3", target: "lab1", type: "ethernet" },
+          { id: "l13", source: "sw3", target: "iot1", type: "wireless" },
+        ],
+      };
+
+      const STORAGE_KEYS = {
+        latestLabReport: "network-training-lab-report-latest",
+        playgroundTopology: "playground-topology",
+      };
+
+      // Initialize
+      const canvas = document.getElementById("simulation-canvas");
+      const renderer = new CanvasRenderer(canvas, { showGrid: true });
+      const metricsCollector = new MetricsCollector();
+      const lifecycle = new LifecycleManager();
+      const on = (target, event, handler, options) =>
+        lifecycle.on(target, event, handler, options);
+      const later = (handler, delay) => lifecycle.timeout(handler, delay);
+      const toastManager = createToastManager({
+        container: document.getElementById("toast-container"),
+        maxVisible: 4,
+        removeDelay: 4000,
+        schedule: later,
       });
-    })).then(() => {
-      renderer.setIconCache(iconCache);
-      renderer.setTopology(initialTopology);
-      updateStats();
-      updateLabPanel(labEvaluator.getResult());
-      if (usingSavedTopology) {
-        addLogEntry('Loaded topology from playground editor', 'info');
-      }
-      ensureSimulationRunning();
-    });
+      const logManager = createLogManager({
+        container: document.getElementById("event-log"),
+        maxEntries: 100,
+      });
+      const logEvent = (message, type = "info") =>
+        logManager.add(message, type);
+      const showToast = (message, type = "info") =>
+        toastManager.show(message, type);
+      const addLogEntry = (message, type = "info") =>
+        logManager.add(message, type);
+      const labEvaluator = new LabEvaluator({
+        scenarioKey: scenarioForPattern("classroom"),
+      });
+      const labScenarioSelect = document.getElementById("lab-scenario-select");
+      const labScoreEl = document.getElementById("lab-score");
+      const labStatusEl = document.getElementById("lab-status");
+      const labObjectivesEl = document.getElementById("lab-objectives");
+      const exportReportBtn = document.getElementById("btn-export-report");
+      const openAnalyticsBtn = document.getElementById("btn-open-analytics");
+      const editTopologyBtn = document.getElementById("btn-edit-topology");
+      const playBtn = document.getElementById("btn-play");
+      const infoStatusEl = document.getElementById("info-status");
+      const initialTopology = loadInitialTopology();
+      const usingSavedTopology = initialTopology !== defaultTopology;
 
-    // Initialize simulation controller
-    const simController = new SimulationController(renderer, {
-      onTick: (state) => {
-        document.getElementById('sim-time').textContent = state.formattedTime;
-        document.getElementById('info-frames').textContent = state.frame;
-        document.getElementById('info-flows').textContent = state.activeFlows;
-        document.getElementById('info-dropped').textContent = `${state.droppedDemandMbps} Mbps`;
-        const metrics = metricsCollector.update({
+      function loadInitialTopology() {
+        const raw = localStorage.getItem(STORAGE_KEYS.playgroundTopology);
+        if (!raw) return defaultTopology;
+
+        try {
+          const parsed = JSON.parse(raw);
+          const normalized = normalizeTopology(parsed, {
+            canvasWidth: canvas.clientWidth || canvas.offsetWidth || 1000,
+            canvasHeight: canvas.clientHeight || canvas.offsetHeight || 600,
+          });
+          if (normalized.nodes.length > 0) {
+            return { nodes: normalized.nodes, links: normalized.links };
+          }
+        } catch (error) {
+          console.warn("[simulation] Failed to parse stored topology:", error);
+        }
+
+        return defaultTopology;
+      }
+
+      initializeLabScenarioSelect();
+      updateLabPanel(labEvaluator.getResult());
+
+      // Preload icons
+      const iconCache = new Map();
+      const iconNames = [
+        "router",
+        "switch",
+        "server",
+        "firewall",
+        "wifi",
+        "sensor",
+        "cloud",
+        "lab",
+      ];
+
+      Promise.all(
+        iconNames.map((name) => {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.src = `icons/${name}.svg`;
+            img.onload = () => {
+              iconCache.set(name + ".svg", img);
+              iconCache.set(name, img);
+              resolve();
+            };
+            img.onerror = () => resolve();
+          });
+        }),
+      ).then(() => {
+        renderer.setIconCache(iconCache);
+        renderer.setTopology(initialTopology);
+        updateStats();
+        updateLabPanel(labEvaluator.getResult());
+        if (usingSavedTopology) {
+          addLogEntry("Loaded topology from playground editor", "info");
+        }
+        ensureSimulationRunning();
+      });
+
+      // Initialize simulation controller
+      const simController = new SimulationController(renderer, {
+        onTick: (state) => {
+          document.getElementById("sim-time").textContent = state.formattedTime;
+          document.getElementById("info-frames").textContent = state.frame;
+          document.getElementById("info-flows").textContent = state.activeFlows;
+          document.getElementById("info-dropped").textContent =
+            `${state.droppedDemandMbps} Mbps`;
+          const metrics = metricsCollector.update({
+            nodes: renderer.nodes,
+            links: renderer.links,
+            particles: renderer.particleSystem.getCount(),
+          });
+          const evaluation = labEvaluator.update({
+            metrics,
+            activeFailures: simController.failureSim.getActiveFailures(),
+            now: Date.now(),
+          });
+          updateLabPanel(evaluation);
+          updateStats();
+        },
+        onAlert: (alert) => {
+          showToast(alert.message, alert.type === "failure" ? "error" : "info");
+          addLogEntry(alert.message, alert.type);
+          if (alert.type === "failure") {
+            labEvaluator.registerEvent("failure_injected");
+          } else if (alert.type === "recovery") {
+            labEvaluator.registerEvent("recovery");
+          }
+          updateLabPanel(labEvaluator.getResult());
+          updateFailureList();
+        },
+      });
+
+      // Render pattern buttons
+      const patternGrid = document.getElementById("pattern-grid");
+      const patternIcons = {
+        classroom: "📚",
+        exam: "📝",
+        lab: "🔬",
+        streaming: "🎥",
+        idle: "😴",
+        ddos: "☠️",
+        backup: "💾",
+      };
+
+      Object.entries(TRAFFIC_PATTERNS).forEach(([key, pattern]) => {
+        const btn = document.createElement("button");
+        btn.className = `pattern-btn ${key === "classroom" ? "active" : ""}`;
+        btn.dataset.pattern = key;
+        btn.innerHTML = `<span class="icon">${patternIcons[key] || "📊"}</span>${pattern.label}`;
+        on(btn, "click", () => {
+          patternGrid
+            .querySelectorAll(".pattern-btn")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          simController.setTrafficPattern(key);
+          document.getElementById("info-pattern").textContent = pattern.label;
+          const mappedScenario = scenarioForPattern(key);
+          if (labScenarioSelect.value !== mappedScenario) {
+            labScenarioSelect.value = mappedScenario;
+            labEvaluator.setScenario(mappedScenario);
+            updateLabPanel(labEvaluator.getResult());
+          }
+        });
+        patternGrid.appendChild(btn);
+      });
+
+      // UI Controls
+
+      on(playBtn, "click", () => {
+        if (!simController.isRunning) {
+          simController.start();
+          setSimulationUiState(false);
+          return;
+        }
+
+        const isPaused = simController.togglePause();
+        setSimulationUiState(isPaused);
+      });
+
+      on(document.getElementById("btn-rewind"), "click", () => {
+        simController.setTime(8.0);
+        logEvent("Time reset to 08:00");
+      });
+
+      on(labScenarioSelect, "change", () => {
+        const selectedScenario = labScenarioSelect.value;
+        labEvaluator.setScenario(selectedScenario);
+        updateLabPanel(labEvaluator.getResult());
+        const label =
+          LAB_SCENARIOS[selectedScenario]?.label || selectedScenario;
+        logEvent(`Lab scenario set to: ${label}`);
+      });
+
+      on(exportReportBtn, "click", () => {
+        exportLabReport();
+      });
+
+      on(openAnalyticsBtn, "click", () => {
+        exportLabReport({ download: false });
+        window.location.href = "analytics.html";
+      });
+
+      on(editTopologyBtn, "click", () => {
+        const topology = serializeTopology({
           nodes: renderer.nodes,
           links: renderer.links,
-          particles: renderer.particleSystem.getCount(),
         });
-        const evaluation = labEvaluator.update({
-          metrics,
-          activeFailures: simController.failureSim.getActiveFailures(),
-          now: Date.now(),
-        });
-        updateLabPanel(evaluation);
-        updateStats();
-      },
-      onAlert: (alert) => {
-        showToast(alert.message, alert.type === 'failure' ? 'error' : 'info');
-        addLogEntry(alert.message, alert.type);
-        if (alert.type === 'failure') {
-          labEvaluator.registerEvent('failure_injected');
-        } else if (alert.type === 'recovery') {
-          labEvaluator.registerEvent('recovery');
-        }
+        localStorage.setItem(
+          STORAGE_KEYS.playgroundTopology,
+          JSON.stringify(topology),
+        );
+        logEvent("Opening topology editor with current network state");
+        window.location.href = "playground-v2.html";
+      });
+
+      // Get button references
+      const failureBtn = document.getElementById("btn-failure");
+      const cascadeBtn = document.getElementById("btn-cascade");
+      const recoverBtn = document.getElementById("btn-recover");
+      const spikeBtn = document.getElementById("btn-spike");
+      const resetBtn = document.getElementById("btn-reset");
+      const failureListEl = document.getElementById("failure-list");
+
+      // Reset button handler
+      on(resetBtn, "click", () => {
+        simController.reset();
+        simController.setTime(8); // Reset to 08:00
+        labEvaluator.reset();
         updateLabPanel(labEvaluator.getResult());
-        updateFailureList();
-      },
-    });
+        logEvent("Simulation reset");
+      });
 
-    // Render pattern buttons
-    const patternGrid = document.getElementById('pattern-grid');
-    const patternIcons = {
-      classroom: '📚', exam: '📝', lab: '🔬', streaming: '🎥',
-      idle: '😴', ddos: '☠️', backup: '💾',
-    };
+      // Speed buttons - FIXED
+      document.querySelectorAll(".speed-btn").forEach((btn) => {
+        on(btn, "click", () => {
+          const speed = parseFloat(btn.dataset.speed);
+          if (simController && simController.setSpeed) {
+            simController.setSpeed(speed);
 
-    Object.entries(TRAFFIC_PATTERNS).forEach(([key, pattern]) => {
-      const btn = document.createElement('button');
-      btn.className = `pattern-btn ${key === 'classroom' ? 'active' : ''}`;
-      btn.dataset.pattern = key;
-      btn.innerHTML = `<span class="icon">${patternIcons[key] || '📊'}</span>${pattern.label}`;
-      on(btn, 'click', () => {
-        patternGrid.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        simController.setTrafficPattern(key);
-        document.getElementById('info-pattern').textContent = pattern.label;
-        const mappedScenario = scenarioForPattern(key);
-        if (labScenarioSelect.value !== mappedScenario) {
-          labScenarioSelect.value = mappedScenario;
-          labEvaluator.setScenario(mappedScenario);
+            // Visual feedback
+            document
+              .querySelectorAll(".speed-btn")
+              .forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            document.getElementById("info-speed").textContent = `${speed}×`;
+
+            logEvent(`Speed set to ${speed}×`);
+          }
+        });
+      });
+
+      // Failure button - IMPROVED
+      on(failureBtn, "click", () => {
+        if (!simController) return;
+
+        const failure = simController.triggerRandomFailure();
+        if (failure) {
+          labEvaluator.registerEvent("failure_injected", {
+            targetId: failure.targetId,
+            type: failure.type,
+          });
           updateLabPanel(labEvaluator.getResult());
+          logEvent(
+            `⚠️ ${failure.label || "Failure triggered"}: ${failure.targetId}`,
+            "error",
+          );
+
+          // Visual flash effect
+          canvas.style.transition = "filter 0.2s";
+          canvas.style.filter = "brightness(1.3) hue-rotate(15deg)";
+          later(() => {
+            canvas.style.filter = "brightness(1)";
+          }, 200);
         }
       });
-      patternGrid.appendChild(btn);
-    });
 
-    // UI Controls
+      // Cascade failure - IMPROVED
+      on(cascadeBtn, "click", () => {
+        if (
+          !simController ||
+          !renderer ||
+          !renderer.nodes ||
+          renderer.nodes.length === 0
+        )
+          return;
 
-    on(playBtn, 'click', () => {
-      if (!simController.isRunning) {
+        const nodes = renderer.nodes;
+        const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
+
+        logEvent(
+          `🔥 Cascading failure initiated from ${randomNode.label}!`,
+          "error",
+        );
+        simController.triggerCascade(randomNode.id);
+        labEvaluator.registerEvent("cascade_triggered", {
+          startNode: randomNode.id,
+        });
+        updateLabPanel(labEvaluator.getResult());
+
+        // Visual effect
+        canvas.style.animation = "shake 0.3s";
+        later(() => {
+          canvas.style.animation = "";
+        }, 300);
+      });
+
+      // Recover all
+      on(recoverBtn, "click", () => {
+        if (simController && simController.recoverAll) {
+          simController.recoverAll();
+          labEvaluator.registerEvent("recover_all");
+          updateLabPanel(labEvaluator.getResult());
+          logEvent("✅ All failures recovered", "recovery");
+        }
+      });
+
+      // Traffic spike
+      on(spikeBtn, "click", () => {
+        if (!renderer || !renderer.nodes || renderer.nodes.length === 0) return;
+
+        const nodes = renderer.nodes;
+        const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
+
+        if (simController && simController.createTrafficSpike) {
+          simController.createTrafficSpike(randomNode.id, 2.0, 3000);
+          labEvaluator.registerEvent("traffic_spike", {
+            nodeId: randomNode.id,
+          });
+          updateLabPanel(labEvaluator.getResult());
+          logEvent(`📈 Traffic spike on ${randomNode.label}`, "warning");
+        }
+      });
+
+      // Node dragging functionality - NEW
+      let draggedNode = null;
+      let isDraggingNode = false;
+
+      on(canvas, "mousedown", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (renderer && renderer.findNodeAt) {
+          draggedNode = renderer.findNodeAt(x, y);
+          if (draggedNode) {
+            isDraggingNode = true;
+            canvas.style.cursor = "grabbing";
+          }
+        }
+      });
+
+      on(canvas, "mousemove", (e) => {
+        if (!isDraggingNode || !draggedNode) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (renderer && renderer.updateNodePosition) {
+          renderer.updateNodePosition(draggedNode.id, x, y);
+        }
+      });
+
+      on(canvas, "mouseup", () => {
+        if (isDraggingNode) {
+          isDraggingNode = false;
+          draggedNode = null;
+          canvas.style.cursor = "default";
+        }
+      });
+
+      on(failureListEl, "click", (e) => {
+        const actionBtn = e.target.closest(".failure-action");
+        if (!actionBtn) return;
+        simController.failureSim.recover(actionBtn.dataset.id);
+        updateFailureList();
+      });
+
+      on(canvas, "mouseleave", () => {
+        if (isDraggingNode) {
+          isDraggingNode = false;
+          draggedNode = null;
+          canvas.style.cursor = "default";
+        }
+      });
+
+      on(document.getElementById("btn-screenshot"), "click", () => {
+        const link = document.createElement("a");
+        link.download = `simulation-${Date.now()}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
+
+      // Helper functions
+      function setSimulationUiState(isPaused = false) {
+        playBtn.innerHTML = isPaused ? "▶ Resume" : "⏸ Pause";
+        infoStatusEl.textContent = isPaused ? "Paused" : "Running";
+      }
+
+      function ensureSimulationRunning() {
+        if (simController.isRunning) return;
         simController.start();
         setSimulationUiState(false);
-        return;
+        logEvent("Simulation auto-started", "info");
       }
 
-      const isPaused = simController.togglePause();
-      setSimulationUiState(isPaused);
-    });
+      function initializeLabScenarioSelect() {
+        labScenarioSelect.innerHTML = LAB_SCENARIO_ORDER.map((scenarioKey) => {
+          const scenario = LAB_SCENARIOS[scenarioKey];
+          return `<option value="${scenarioKey}">${scenario.label}</option>`;
+        }).join("");
 
-    on(document.getElementById('btn-rewind'), 'click', () => {
-      simController.setTime(8.0);
-      logEvent('Time reset to 08:00');
-    });
-
-    on(labScenarioSelect, 'change', () => {
-      const selectedScenario = labScenarioSelect.value;
-      labEvaluator.setScenario(selectedScenario);
-      updateLabPanel(labEvaluator.getResult());
-      const label = LAB_SCENARIOS[selectedScenario]?.label || selectedScenario;
-      logEvent(`Lab scenario set to: ${label}`);
-    });
-
-    on(exportReportBtn, 'click', () => {
-      exportLabReport();
-    });
-
-    on(openAnalyticsBtn, 'click', () => {
-      exportLabReport({ download: false });
-      window.location.href = 'analytics.html';
-    });
-
-    on(editTopologyBtn, 'click', () => {
-      const topology = serializeTopology({ nodes: renderer.nodes, links: renderer.links });
-      localStorage.setItem(STORAGE_KEYS.playgroundTopology, JSON.stringify(topology));
-      logEvent('Opening topology editor with current network state');
-      window.location.href = 'playground-v2.html';
-    });
-
-    // Get button references
-    const failureBtn = document.getElementById('btn-failure');
-    const cascadeBtn = document.getElementById('btn-cascade');
-    const recoverBtn = document.getElementById('btn-recover');
-    const spikeBtn = document.getElementById('btn-spike');
-    const resetBtn = document.getElementById('btn-reset');
-    const failureListEl = document.getElementById('failure-list');
-
-    // Reset button handler
-    on(resetBtn, 'click', () => {
-      simController.reset();
-      simController.setTime(8); // Reset to 08:00
-      labEvaluator.reset();
-      updateLabPanel(labEvaluator.getResult());
-      logEvent('Simulation reset');
-    });
-
-    // Speed buttons - FIXED
-    document.querySelectorAll('.speed-btn').forEach(btn => {
-      on(btn, 'click', () => {
-        const speed = parseFloat(btn.dataset.speed);
-        if (simController && simController.setSpeed) {
-          simController.setSpeed(speed);
-
-          // Visual feedback
-          document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          document.getElementById('info-speed').textContent = `${speed}×`;
-
-          logEvent(`Speed set to ${speed}×`);
-        }
-      });
-    });
-
-    // Failure button - IMPROVED
-    on(failureBtn, 'click', () => {
-      if (!simController) return;
-
-      const failure = simController.triggerRandomFailure();
-      if (failure) {
-        labEvaluator.registerEvent('failure_injected', { targetId: failure.targetId, type: failure.type });
-        updateLabPanel(labEvaluator.getResult());
-        logEvent(`⚠️ ${failure.label || 'Failure triggered'}: ${failure.targetId}`, 'error');
-
-        // Visual flash effect
-        canvas.style.transition = 'filter 0.2s';
-        canvas.style.filter = 'brightness(1.3) hue-rotate(15deg)';
-        later(() => {
-          canvas.style.filter = 'brightness(1)';
-        }, 200);
+        const initialScenario = scenarioForPattern("classroom");
+        labScenarioSelect.value = initialScenario;
+        labEvaluator.setScenario(initialScenario);
       }
-    });
 
-    // Cascade failure - IMPROVED
-    on(cascadeBtn, 'click', () => {
-      if (!simController || !renderer || !renderer.nodes || renderer.nodes.length === 0) return;
+      function updateLabPanel(result) {
+        if (!result) return;
 
-      const nodes = renderer.nodes;
-      const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
+        const roundedScore = Math.round(result.score);
+        labScoreEl.textContent = `${roundedScore}%`;
 
-      logEvent(`🔥 Cascading failure initiated from ${randomNode.label}!`, 'error');
-      simController.triggerCascade(randomNode.id);
-      labEvaluator.registerEvent('cascade_triggered', { startNode: randomNode.id });
-      updateLabPanel(labEvaluator.getResult());
+        const statusMap = {
+          passed: { label: "Passed", color: "#22c55e" },
+          "in-progress": { label: "In Progress", color: "#38bdf8" },
+          "at-risk": { label: "Needs Work", color: "#f59e0b" },
+        };
+        const statusCfg = statusMap[result.status] || statusMap["in-progress"];
+        labScoreEl.style.color = statusCfg.color;
+        labStatusEl.textContent = statusCfg.label;
+        labStatusEl.className = `lab-status ${result.status}`;
 
-      // Visual effect
-      canvas.style.animation = 'shake 0.3s';
-      later(() => { canvas.style.animation = ''; }, 300);
-    });
-
-    // Recover all
-    on(recoverBtn, 'click', () => {
-      if (simController && simController.recoverAll) {
-        simController.recoverAll();
-        labEvaluator.registerEvent('recover_all');
-        updateLabPanel(labEvaluator.getResult());
-        logEvent('✅ All failures recovered', 'recovery');
-      }
-    });
-
-    // Traffic spike
-    on(spikeBtn, 'click', () => {
-      if (!renderer || !renderer.nodes || renderer.nodes.length === 0) return;
-
-      const nodes = renderer.nodes;
-      const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
-
-      if (simController && simController.createTrafficSpike) {
-        simController.createTrafficSpike(randomNode.id, 2.0, 3000);
-        labEvaluator.registerEvent('traffic_spike', { nodeId: randomNode.id });
-        updateLabPanel(labEvaluator.getResult());
-        logEvent(`📈 Traffic spike on ${randomNode.label}`, 'warning');
-      }
-    });
-
-    // Node dragging functionality - NEW
-    let draggedNode = null;
-    let isDraggingNode = false;
-
-    on(canvas, 'mousedown', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      if (renderer && renderer.findNodeAt) {
-        draggedNode = renderer.findNodeAt(x, y);
-        if (draggedNode) {
-          isDraggingNode = true;
-          canvas.style.cursor = 'grabbing';
-        }
-      }
-    });
-
-    on(canvas, 'mousemove', (e) => {
-      if (!isDraggingNode || !draggedNode) return;
-
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      if (renderer && renderer.updateNodePosition) {
-        renderer.updateNodePosition(draggedNode.id, x, y);
-      }
-    });
-
-    on(canvas, 'mouseup', () => {
-      if (isDraggingNode) {
-        isDraggingNode = false;
-        draggedNode = null;
-        canvas.style.cursor = 'default';
-      }
-    });
-
-    on(failureListEl, 'click', (e) => {
-      const actionBtn = e.target.closest('.failure-action');
-      if (!actionBtn) return;
-      simController.failureSim.recover(actionBtn.dataset.id);
-      updateFailureList();
-    });
-
-    on(canvas, 'mouseleave', () => {
-      if (isDraggingNode) {
-        isDraggingNode = false;
-        draggedNode = null;
-        canvas.style.cursor = 'default';
-      }
-    });
-
-    on(document.getElementById('btn-screenshot'), 'click', () => {
-      const link = document.createElement('a');
-      link.download = `simulation-${Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    });
-
-    // Helper functions
-    function setSimulationUiState(isPaused = false) {
-      playBtn.innerHTML = isPaused ? '▶ Resume' : '⏸ Pause';
-      infoStatusEl.textContent = isPaused ? 'Paused' : 'Running';
-    }
-
-    function ensureSimulationRunning() {
-      if (simController.isRunning) return;
-      simController.start();
-      setSimulationUiState(false);
-      logEvent('Simulation auto-started', 'info');
-    }
-
-    function initializeLabScenarioSelect() {
-      labScenarioSelect.innerHTML = LAB_SCENARIO_ORDER.map((scenarioKey) => {
-        const scenario = LAB_SCENARIOS[scenarioKey];
-        return `<option value="${scenarioKey}">${scenario.label}</option>`;
-      }).join('');
-
-      const initialScenario = scenarioForPattern('classroom');
-      labScenarioSelect.value = initialScenario;
-      labEvaluator.setScenario(initialScenario);
-    }
-
-    function updateLabPanel(result) {
-      if (!result) return;
-
-      const roundedScore = Math.round(result.score);
-      labScoreEl.textContent = `${roundedScore}%`;
-
-      const statusMap = {
-        passed: { label: 'Passed', color: '#22c55e' },
-        'in-progress': { label: 'In Progress', color: '#38bdf8' },
-        'at-risk': { label: 'Needs Work', color: '#f59e0b' },
-      };
-      const statusCfg = statusMap[result.status] || statusMap['in-progress'];
-      labScoreEl.style.color = statusCfg.color;
-      labStatusEl.textContent = statusCfg.label;
-      labStatusEl.className = `lab-status ${result.status}`;
-
-      labObjectivesEl.innerHTML = result.objectives.map((objective) => `
-        <div class="lab-objective ${objective.passed ? 'pass' : 'fail'}">
+        labObjectivesEl.innerHTML = result.objectives
+          .map(
+            (objective) => `
+        <div class="lab-objective ${objective.passed ? "pass" : "fail"}">
           <div class="lab-objective-title">${objective.title}</div>
           <div class="lab-objective-meta">
             <span>${objective.currentDisplay} / ${objective.targetDisplay}</span>
             <span class="lab-objective-score">${Math.round(objective.progress * 100)}%</span>
           </div>
         </div>
-      `).join('');
-    }
-
-    function buildLabReport() {
-      const evaluation = labEvaluator.getResult();
-      return {
-        generatedAt: new Date().toISOString(),
-        tool: 'Network Training Simulator',
-        scenario: {
-          key: evaluation.scenarioKey,
-          label: evaluation.scenarioLabel,
-          description: evaluation.description,
-        },
-        evaluation,
-        metrics: metricsCollector.getCurrent(),
-        simulationState: simController.getState(),
-        topology: serializeTopology({ nodes: renderer.nodes, links: renderer.links }),
-      };
-    }
-
-    function persistLatestLabReport(report) {
-      localStorage.setItem(STORAGE_KEYS.latestLabReport, JSON.stringify(report));
-    }
-
-    function downloadLabReport(report) {
-      const evaluation = report.evaluation || {};
-      const scenarioKey = String(evaluation.scenarioKey || 'scenario');
-      const safeScenario = scenarioKey.replace(/[^a-z0-9_-]/gi, '-');
-
-      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-      const link = document.createElement('a');
-      link.download = `lab-report-${safeScenario}-${Date.now()}.json`;
-      link.href = URL.createObjectURL(blob);
-      link.click();
-      later(() => URL.revokeObjectURL(link.href), 200);
-    }
-
-    function exportLabReport(options = {}) {
-      const { download = true } = options;
-      const report = buildLabReport();
-      persistLatestLabReport(report);
-      if (download) {
-        downloadLabReport(report);
+      `,
+          )
+          .join("");
       }
 
-      showToast(download ? 'Lab report exported' : 'Latest run synced to analytics', 'info');
-      logEvent(download ? 'Lab report exported' : 'Latest run synced to analytics');
-    }
-
-    function updateStats() {
-      const metrics = metricsCollector.getCurrent();
-      document.getElementById('m-nodes').textContent = renderer.nodes.length;
-      document.getElementById('m-links').textContent = renderer.links.length;
-      document.getElementById('m-util').textContent = metrics.utilization + '%';
-      document.getElementById('m-failures').textContent = simController.failureSim.getActiveFailures().length;
-    }
-
-    function updateFailureList() {
-      const list = document.getElementById('failure-list');
-      const failures = simController.failureSim.getActiveFailures();
-
-      if (failures.length === 0) {
-        list.innerHTML = '<div style="color: #64748b; font-size: 12px; text-align: center; padding: 16px;">No active failures</div>';
-        return;
+      function buildLabReport() {
+        const evaluation = labEvaluator.getResult();
+        return {
+          generatedAt: new Date().toISOString(),
+          tool: "Network Training Simulator",
+          scenario: {
+            key: evaluation.scenarioKey,
+            label: evaluation.scenarioLabel,
+            description: evaluation.description,
+          },
+          evaluation,
+          metrics: metricsCollector.getCurrent(),
+          simulationState: simController.getState(),
+          topology: serializeTopology({
+            nodes: renderer.nodes,
+            links: renderer.links,
+          }),
+        };
       }
 
-      list.innerHTML = failures.map(f => `
+      function persistLatestLabReport(report) {
+        localStorage.setItem(
+          STORAGE_KEYS.latestLabReport,
+          JSON.stringify(report),
+        );
+      }
+
+      function downloadLabReport(report) {
+        const evaluation = report.evaluation || {};
+        const scenarioKey = String(evaluation.scenarioKey || "scenario");
+        const safeScenario = scenarioKey.replace(/[^a-z0-9_-]/gi, "-");
+
+        const blob = new Blob([JSON.stringify(report, null, 2)], {
+          type: "application/json",
+        });
+        const link = document.createElement("a");
+        link.download = `lab-report-${safeScenario}-${Date.now()}.json`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        later(() => URL.revokeObjectURL(link.href), 200);
+      }
+
+      function exportLabReport(options = {}) {
+        const { download = true } = options;
+        const report = buildLabReport();
+        persistLatestLabReport(report);
+        if (download) {
+          downloadLabReport(report);
+        }
+
+        showToast(
+          download ? "Lab report exported" : "Latest run synced to analytics",
+          "info",
+        );
+        logEvent(
+          download ? "Lab report exported" : "Latest run synced to analytics",
+        );
+      }
+
+      function updateStats() {
+        const metrics = metricsCollector.getCurrent();
+        document.getElementById("m-nodes").textContent = renderer.nodes.length;
+        document.getElementById("m-links").textContent = renderer.links.length;
+        document.getElementById("m-util").textContent =
+          metrics.utilization + "%";
+        document.getElementById("m-failures").textContent =
+          simController.failureSim.getActiveFailures().length;
+      }
+
+      function updateFailureList() {
+        const list = document.getElementById("failure-list");
+        const failures = simController.failureSim.getActiveFailures();
+
+        if (failures.length === 0) {
+          list.innerHTML =
+            '<div class="empty-state"><span class="empty-state-icon">✅</span><span>No active failures</span></div>';
+          return;
+        }
+
+        list.innerHTML = failures
+          .map(
+            (f) => `
         <div class="failure-item ${f.severity}">
-          <span class="failure-icon">${f.severity === 'critical' ? '🔴' : '🟡'}</span>
+          <span class="failure-icon">${f.severity === "critical" ? "🔴" : "🟡"}</span>
           <div class="failure-content">
             <div class="failure-title">${f.label}</div>
             <div class="failure-target">${f.targetId}</div>
           </div>
           <button class="failure-action" data-id="${f.id}">Recover</button>
         </div>
-      `).join('');
+      `,
+          )
+          .join("");
+      }
 
-    }
-
-    on(window, 'beforeunload', () => {
-      lifecycle.cleanup();
-      toastManager.clear();
-      logManager.clear();
-      simController.destroy();
-      renderer.destroy();
-    });
-  </script>
-</body>
-
+      on(window, 'beforeunload', () => {
+        lifecycle.cleanup();
+        toastManager.clear();
+        logManager.clear();
+        simController.destroy();
+        renderer.destroy();
+      });
+    </script>
+  </body>
 </html>

@@ -288,25 +288,76 @@
     .sidebar-title {
       font-size: 12px;
       font-weight: 600;
-      color: #64748b;
+      color: #94a3b8;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 12px;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-title-icon {
+      font-size: 14px;
+      opacity: 0.8;
     }
 
     /* Instructions panel */
     .instructions {
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.06);
+      border: 1px solid rgba(99, 102, 241, 0.2);
       border-radius: 10px;
-      padding: 16px;
+      padding: 0;
       margin-bottom: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
     }
 
-    .instructions h4 {
-      font-size: 13px;
-      margin-bottom: 8px;
+    .instructions:hover {
+      border-color: rgba(99, 102, 241, 0.35);
+    }
+
+    .instructions-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 12px 14px;
+      background: none;
+      border: none;
       color: #a5b4fc;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .instructions-toggle:hover {
+      background: rgba(99, 102, 241, 0.06);
+    }
+
+    .instructions-chevron {
+      font-size: 10px;
+      transition: transform 0.2s ease;
+      color: #94a3b8;
+    }
+
+    .instructions-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 14px;
+    }
+
+    .instructions.open .instructions-body {
+      max-height: 400px;
+      padding: 0 14px 14px;
+    }
+
+    .instructions.open .instructions-chevron {
+      transform: rotate(180deg);
     }
 
     .instructions ul {
@@ -337,22 +388,33 @@
 
     .stat-card {
       background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 14px 12px;
       text-align: center;
+      transition: all 0.25s ease;
+    }
+
+    .stat-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
     }
 
     .stat-value {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
-      color: #6366f1;
     }
+
+    .stat-value.nodes-count { color: #6366f1; }
+    .stat-value.links-count { color: #8b5cf6; }
 
     .stat-label {
       font-size: 11px;
       color: #64748b;
       text-transform: uppercase;
+      margin-top: 4px;
+      letter-spacing: 0.04em;
     }
 
     .back-link {
@@ -557,7 +619,7 @@
 
   <main>
     <aside class="sidebar-left">
-      <div class="sidebar-title">Device Palette</div>
+      <div class="sidebar-title"><span class="sidebar-title-icon">📦</span> Device Palette</div>
       <div id="device-palette"></div>
     </aside>
 
@@ -579,34 +641,39 @@
     </section>
 
     <aside class="sidebar-right">
-      <div class="sidebar-title">Properties</div>
+      <div class="sidebar-title"><span class="sidebar-title-icon">⚙️</span> Properties</div>
       <div id="property-editor"></div>
 
-      <div class="instructions">
-        <h4>💡 Quick Tips</h4>
-        <ul>
-          <li>1) Click a device on the left, then click canvas to place</li>
-          <li>2) Or drag a device from the left directly onto canvas</li>
-          <li>3) Press <kbd>L</kbd> and click two nodes to create a link</li>
-          <li>4) In Select mode, drag nodes to reposition them</li>
-          <li>5) Click any node or link to edit properties on the right</li>
-          <li>6) Press <kbd>Simulate</kbd> to run this topology</li>
-          <li><kbd>V</kbd> Select mode</li>
-          <li><kbd>N</kbd> Add node mode</li>
-          <li><kbd>Del</kbd> Delete selected</li>
-          <li><kbd>Ctrl+Z</kbd> Undo</li>
-          <li><kbd>Ctrl+Y</kbd> Redo</li>
-        </ul>
+      <div class="instructions" id="quick-tips">
+        <button class="instructions-toggle" id="tips-toggle">
+          <span>💡 Quick Tips</span>
+          <span class="instructions-chevron">▼</span>
+        </button>
+        <div class="instructions-body">
+          <ul>
+            <li>1) Click a device on the left, then click canvas to place</li>
+            <li>2) Or drag a device from the left directly onto canvas</li>
+            <li>3) Press <kbd>L</kbd> and click two nodes to create a link</li>
+            <li>4) In Select mode, drag nodes to reposition them</li>
+            <li>5) Click any node or link to edit properties on the right</li>
+            <li>6) Press <kbd>Simulate</kbd> to run this topology</li>
+            <li><kbd>V</kbd> Select mode</li>
+            <li><kbd>N</kbd> Add node mode</li>
+            <li><kbd>Del</kbd> Delete selected</li>
+            <li><kbd>Ctrl+Z</kbd> Undo</li>
+            <li><kbd>Ctrl+Y</kbd> Redo</li>
+          </ul>
+        </div>
       </div>
 
-      <div class="sidebar-title">Topology Stats</div>
+      <div class="sidebar-title"><span class="sidebar-title-icon">📊</span> Topology Stats</div>
       <div class="topology-stats">
         <div class="stat-card">
-          <div class="stat-value" id="stat-nodes">0</div>
+          <div class="stat-value nodes-count" id="stat-nodes">0</div>
           <div class="stat-label">Nodes</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="stat-links">0</div>
+          <div class="stat-value links-count" id="stat-links">0</div>
           <div class="stat-label">Links</div>
         </div>
       </div>
@@ -947,6 +1014,15 @@
       setModeButtonActive('select');
       editor.setMode('select');
       updateModeIndicator('select');
+    }
+
+    // Quick Tips toggle
+    const tipsToggle = document.getElementById('tips-toggle');
+    const tipsPanel = document.getElementById('quick-tips');
+    if (tipsToggle && tipsPanel) {
+      on(tipsToggle, 'click', () => {
+        tipsPanel.classList.toggle('open');
+      });
     }
 
     loadInitialTopology();

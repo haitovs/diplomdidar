@@ -208,11 +208,19 @@
     .sidebar-title {
       font-size: 12px;
       font-weight: 600;
-      color: #64748b;
+      color: #94a3b8;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       padding: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-title-icon {
+      font-size: 14px;
+      opacity: 0.8;
     }
 
     .back-link {
@@ -232,6 +240,12 @@
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.03);
       padding: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .lab-summary-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .lab-summary-title {
@@ -305,9 +319,18 @@
       color: #94a3b8;
       line-height: 1.5;
       background: rgba(255, 255, 255, 0.02);
-      border: 1px dashed rgba(148, 163, 184, 0.35);
-      border-radius: 8px;
-      padding: 12px;
+      border: 1px dashed rgba(148, 163, 184, 0.25);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .lab-empty-icon {
+      font-size: 22px;
+      opacity: 0.7;
+      flex-shrink: 0;
     }
 
     .btn:focus-visible,
@@ -450,14 +473,14 @@
     </section>
 
     <aside class="sidebar" id="analytics-sidebar">
-      <div class="sidebar-title">Live Metrics</div>
+      <div class="sidebar-title"><span class="sidebar-title-icon">📊</span> Live Metrics</div>
       <div id="analytics-panel"></div>
     </aside>
 
     <aside class="sidebar" id="detail-sidebar">
-      <div class="sidebar-title">Lab Assessment</div>
+      <div class="sidebar-title"><span class="sidebar-title-icon">🧪</span> Lab Assessment</div>
       <div id="lab-summary"></div>
-      <div class="sidebar-title">Node Details</div>
+      <div class="sidebar-title"><span class="sidebar-title-icon">🔍</span> Node Details</div>
       <div id="node-detail"></div>
     </aside>
   </main>
@@ -788,8 +811,9 @@
             : 'local data';
         container.innerHTML = `
           <div class="lab-empty">
-            No lab report loaded. Analytics is running with ${sourceLabel}.<br />
-            Use <strong>Import Report</strong> or open Analytics from Simulation.
+            <span class="lab-empty-icon">🔬</span>
+            <span>No lab report loaded. Analytics is running with ${sourceLabel}.<br />
+            Use <strong>Import Report</strong> or open Analytics from Simulation.</span>
           </div>
         `;
         return;
