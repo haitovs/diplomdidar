@@ -42,11 +42,17 @@ export class TopologyEditor {
     this.nodeIdCounter = 1;
     this.linkIdCounter = 1;
     this.lastDeviceType = 'switch';
+    this.dragState = null;
+    this.suppressNextClick = false;
 
     this.boundHandlers = {
       click: (e) => this.handleClick(e),
       dblclick: (e) => this.handleDoubleClick(e),
       contextmenu: (e) => this.handleContextMenu(e),
+      mousedown: (e) => this.handleMouseDown(e),
+      mousemove: (e) => this.handleMouseMove(e),
+      mouseup: () => this.handleMouseUp(),
+      mouseleave: () => this.handleMouseUp(),
       dragover: (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
@@ -103,6 +109,10 @@ export class TopologyEditor {
     this.canvas.addEventListener('click', this.boundHandlers.click);
     this.canvas.addEventListener('dblclick', this.boundHandlers.dblclick);
     this.canvas.addEventListener('contextmenu', this.boundHandlers.contextmenu);
+    this.canvas.addEventListener('mousedown', this.boundHandlers.mousedown);
+    this.canvas.addEventListener('mousemove', this.boundHandlers.mousemove);
+    this.canvas.addEventListener('mouseup', this.boundHandlers.mouseup);
+    this.canvas.addEventListener('mouseleave', this.boundHandlers.mouseleave);
     
     // Drag and drop from palette
     this.canvas.addEventListener('dragover', this.boundHandlers.dragover);
@@ -127,6 +137,11 @@ export class TopologyEditor {
    * Handle canvas click
    */
   handleClick(e) {
+    if (this.suppressNextClick) {
+      this.suppressNextClick = false;
+      return;
+    }
+
     const rect = this.canvas.getBoundingClientRect();
     const viewX = e.clientX - rect.left;
     const viewY = e.clientY - rect.top;
@@ -209,6 +224,105 @@ export class TopologyEditor {
       if (this.options.onLinkSelect) {
         this.options.onLinkSelect(null);
       }
+    }
+  }
+
+  /**
+   * Start node drag (select mode only).
+   */
+  handleMouseDown(e) {
+    if (this.mode !== 'select') return;
+    if (e.button !== 0 || e.shiftKey) return;
+
+    const rect = this.canvas.getBoundingClientRect();
+    const viewX = e.clientX - rect.left;
+    const viewY = e.clientY - rect.top;
+    const { x, y } = this.toWorldCoordinates(viewX, viewY);
+    const node = this.renderer.findNodeAt(x, y);
+    if (!node) return;
+
+    this.dragState = {
+      nodeId: node.id,
+      startX: x,
+      startY: y,
+      lastX: x,
+      lastY: y,
+      moved: false,
+    };
+    this.canvas.style.cursor = 'grabbing';
+  }
+
+  /**
+   * Continue node drag.
+   */
+  handleMouseMove(e) {
+    if (!this.dragState) return;
+
+    const rect = this.canvas.getBoundingClientRect();
+    const viewX = e.clientX - rect.left;
+    const viewY = e.clientY - rect.top;
+    const { x, y } = this.toWorldCoordinates(viewX, viewY);
+
+    const dx = Math.abs(x - this.dragState.lastX);
+    const dy = Math.abs(y - this.dragState.lastY);
+    if (!this.dragState.moved && dx + dy < 0.5) {
+      return;
+    }
+
+    this.dragState.moved = true;
+    this.dragState.lastX = x;
+    this.dragState.lastY = y;
+    this.updateNodePositionLive(this.dragState.nodeId, x, y);
+  }
+
+  /**
+   * Finish node drag.
+   */
+  handleMouseUp() {
+    if (!this.dragState) return;
+
+    const { nodeId, moved, lastX, lastY } = this.dragState;
+    this.dragState = null;
+
+    if (moved) {
+      // Optional snap to grid when drag ends.
+      if (this.options.snapToGrid) {
+        const snappedX = Math.round(lastX / this.options.gridSize) * this.options.gridSize;
+        const snappedY = Math.round(lastY / this.options.gridSize) * this.options.gridSize;
+        this.updateNodePositionLive(nodeId, snappedX, snappedY);
+      }
+
+      this.saveState();
+      this.emitChange();
+      this.suppressNextClick = true;
+    }
+
+    this.updateCursor();
+  }
+
+  /**
+   * Update node position in editor + renderer without committing history.
+   */
+  updateNodePositionLive(nodeId, x, y) {
+    const node = this.nodes.find((entry) => entry.id === nodeId);
+    if (!node) return;
+
+    const width = this.canvas.offsetWidth || this.canvas.width || 1;
+    const height = this.canvas.offsetHeight || this.canvas.height || 1;
+    const clampedX = Math.min(width, Math.max(0, x));
+    const clampedY = Math.min(height, Math.max(0, y));
+
+    node.x = clampedX;
+    node.y = clampedY;
+    node.position = {
+      x: clampedX / width,
+      y: clampedY / height,
+    };
+
+    this.updateRenderer();
+
+    if (this.renderer.selectedNode === nodeId && this.options.onNodeSelect) {
+      this.options.onNodeSelect(node);
     }
   }
 
@@ -769,6 +883,10 @@ export class TopologyEditor {
     this.canvas.removeEventListener('click', this.boundHandlers.click);
     this.canvas.removeEventListener('dblclick', this.boundHandlers.dblclick);
     this.canvas.removeEventListener('contextmenu', this.boundHandlers.contextmenu);
+    this.canvas.removeEventListener('mousedown', this.boundHandlers.mousedown);
+    this.canvas.removeEventListener('mousemove', this.boundHandlers.mousemove);
+    this.canvas.removeEventListener('mouseup', this.boundHandlers.mouseup);
+    this.canvas.removeEventListener('mouseleave', this.boundHandlers.mouseleave);
     this.canvas.removeEventListener('dragover', this.boundHandlers.dragover);
     this.canvas.removeEventListener('drop', this.boundHandlers.drop);
     document.removeEventListener('keydown', this.boundHandlers.keydown);

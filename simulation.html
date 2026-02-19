@@ -723,6 +723,8 @@
           <div><strong>Pattern:</strong> <span id="info-pattern">Classroom</span></div>
           <div><strong>Speed:</strong> <span id="info-speed">1×</span></div>
           <div><strong>Frames:</strong> <span id="info-frames">0</span></div>
+          <div><strong>Active Flows:</strong> <span id="info-flows">0</span></div>
+          <div><strong>Dropped Demand:</strong> <span id="info-dropped">0 Mbps</span></div>
           <div><strong>Status:</strong> <span id="info-status">Stopped</span></div>
         </div>
       </div>
@@ -885,6 +887,8 @@
       onTick: (state) => {
         document.getElementById('sim-time').textContent = state.formattedTime;
         document.getElementById('info-frames').textContent = state.frame;
+        document.getElementById('info-flows').textContent = state.activeFlows;
+        document.getElementById('info-dropped').textContent = `${state.droppedDemandMbps} Mbps`;
         const metrics = metricsCollector.update({
           nodes: renderer.nodes,
           links: renderer.links,

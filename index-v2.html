@@ -249,10 +249,10 @@
       </a>
       
       <div class="flex gap-2 md-hide">
-        <a href="demo-v2.html" class="btn btn-ghost">Demo</a>
-        <a href="playground-v2.html" class="btn btn-ghost">Playground</a>
-        <a href="analytics.html" class="btn btn-ghost">Analytics</a>
-        <a href="simulation.html" class="btn btn-primary btn-ripple">▶ Simulation</a>
+        <a href="playground-v2.html" class="btn btn-ghost">Build</a>
+        <a href="simulation.html" class="btn btn-ghost">Run</a>
+        <a href="analytics.html" class="btn btn-ghost">Analyze</a>
+        <a href="playground-v2.html" class="btn btn-primary btn-ripple">▶ Start Lab</a>
       </div>
       
       <button class="btn btn-icon btn-ghost sm-show" id="menu-toggle" style="display: none;">☰</button>
@@ -279,11 +279,11 @@
       </p>
       
       <div class="hero-actions">
-        <a href="simulation.html" class="btn btn-primary btn-lg btn-ripple btn-shine">
-          ▶ Launch Simulation
+        <a href="playground-v2.html" class="btn btn-primary btn-lg btn-ripple btn-shine">
+          1️⃣ Build Topology
         </a>
-        <a href="playground-v2.html" class="btn btn-secondary btn-lg btn-ripple">
-          🎮 Open Playground
+        <a href="simulation.html" class="btn btn-secondary btn-lg btn-ripple">
+          2️⃣ Run Scenario
         </a>
       </div>
     </div>
@@ -292,44 +292,35 @@
   <!-- Features Section -->
   <section class="features">
     <div class="features-header">
-      <h2 class="features-title">Course-Oriented Workflow</h2>
-      <p class="features-subtitle">Create topology, run scenarios, analyze outcomes, and document findings</p>
+      <h2 class="features-title">Three-Step Workflow</h2>
+      <p class="features-subtitle">Build topology, run failures/traffic, analyze results and report</p>
     </div>
     
     <div class="features-grid list-stagger">
-      <a href="demo-v2.html" class="feature-card card-lift">
-        <div class="feature-icon">🎨</div>
-        <h3 class="feature-title">Enhanced Visualization</h3>
-        <p class="feature-description">
-          Professional-grade network rendering with animated data flows, 
-          glow effects, and real-time load indicators. Export as PNG, JSON, or PDF.
-        </p>
-      </a>
-      
       <a href="playground-v2.html" class="feature-card card-lift">
-        <div class="feature-icon">🎮</div>
-        <h3 class="feature-title">Drag & Drop Editor</h3>
+        <div class="feature-icon">1️⃣</div>
+        <h3 class="feature-title">Build</h3>
         <p class="feature-description">
-          Build custom topologies with pan/zoom canvas, device dragging, 
-          connection editor, and real-time visualization.
-        </p>
-      </a>
-      
-      <a href="analytics.html" class="feature-card card-lift">
-        <div class="feature-icon">📊</div>
-        <h3 class="feature-title">Live Analytics</h3>
-        <p class="feature-description">
-          Monitor throughput, latency, packet loss, and utilization 
-          with real-time charts and metrics dashboards.
+          Place devices, connect links, and set network parameters.
+          If no topology is saved, a starter topology is loaded automatically.
         </p>
       </a>
       
       <a href="simulation.html" class="feature-card card-lift">
-        <div class="feature-icon">⚙️</div>
-        <h3 class="feature-title">Traffic Simulation</h3>
+        <div class="feature-icon">2️⃣</div>
+        <h3 class="feature-title">Run</h3>
         <p class="feature-description">
-          Simulate classroom, exam, lab, and DDoS traffic patterns. 
-          Test failures, cascading outages, and network resilience with movable devices.
+          Execute deterministic traffic and failure scenarios.
+          Trigger faults, recover, and watch objective scoring in real time.
+        </p>
+      </a>
+      
+      <a href="analytics.html" class="feature-card card-lift">
+        <div class="feature-icon">3️⃣</div>
+        <h3 class="feature-title">Analyze</h3>
+        <p class="feature-description">
+          Review metrics and lab outcomes from the latest simulation run.
+          Import exported report files for grading or presentation evidence.
         </p>
       </a>
     </div>
@@ -339,20 +330,20 @@
   <section class="stats">
     <div class="stats-grid">
       <div class="stat-item">
-        <div class="stat-value">8+</div>
-        <div class="stat-label">Device Types</div>
+        <div class="stat-value">3</div>
+        <div class="stat-label">Core Steps</div>
       </div>
       <div class="stat-item">
-        <div class="stat-value">7</div>
-        <div class="stat-label">Traffic Patterns</div>
+        <div class="stat-value">3</div>
+        <div class="stat-label">Lab Scenarios</div>
       </div>
       <div class="stat-item">
-        <div class="stat-value">60</div>
-        <div class="stat-label">FPS Rendering</div>
+        <div class="stat-value">1</div>
+        <div class="stat-label">Reliable Workflow</div>
       </div>
       <div class="stat-item">
-        <div class="stat-value">12+</div>
-        <div class="stat-label">Lab Exercises</div>
+        <div class="stat-value">100%</div>
+        <div class="stat-label">Deterministic Runs</div>
       </div>
     </div>
   </section>
@@ -363,10 +354,9 @@
       © 2024 Network Training Simulator Lab · Faculty of Information Technologies
     </p>
     <div class="footer-links">
-      <a href="demo-v2.html" class="footer-link">Demo</a>
-      <a href="playground-v2.html" class="footer-link">Playground</a>
-      <a href="analytics.html" class="footer-link">Analytics</a>
-      <a href="simulation.html" class="footer-link">Simulation</a>
+      <a href="playground-v2.html" class="footer-link">Build</a>
+      <a href="simulation.html" class="footer-link">Run</a>
+      <a href="analytics.html" class="footer-link">Analyze</a>
     </div>
   </footer>
 
@@ -377,10 +367,6 @@
         <span class="mobile-nav-icon">🏠</span>
         <span>Home</span>
       </a>
-      <a href="demo-v2.html" class="mobile-nav-item">
-        <span class="mobile-nav-icon">🎨</span>
-        <span>Demo</span>
-      </a>
       <a href="playground-v2.html" class="mobile-nav-item">
         <span class="mobile-nav-icon">🎮</span>
         <span>Build</span>
@@ -388,6 +374,10 @@
       <a href="simulation.html" class="mobile-nav-item">
         <span class="mobile-nav-icon">▶️</span>
         <span>Run</span>
+      </a>
+      <a href="analytics.html" class="mobile-nav-item">
+        <span class="mobile-nav-icon">📊</span>
+        <span>Analyze</span>
       </a>
     </div>
   </nav>

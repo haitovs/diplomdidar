@@ -124,12 +124,15 @@ export class SimulationController {
     });
     
     // Callback
+    const trafficStats = this.trafficGen.getRuntimeStats ? this.trafficGen.getRuntimeStats() : null;
     if (this.onTick) {
       this.onTick({
         time: this.trafficGen.getTime(),
         formattedTime: this.trafficGen.getFormattedTime(),
         frame: this.frameCount,
         activeFailures: this.failureSim.getActiveFailures().length,
+        activeFlows: trafficStats?.activeFlows || 0,
+        droppedDemandMbps: trafficStats?.droppedDemandMbps || 0,
       });
     }
     
@@ -248,6 +251,7 @@ export class SimulationController {
       formattedTime: this.trafficGen.getFormattedTime(),
       speed: this.trafficGen.simSpeed,
       pattern: this.trafficGen.pattern,
+      runtimeTraffic: this.trafficGen.getRuntimeStats ? this.trafficGen.getRuntimeStats() : null,
       activeFailures: this.failureSim.getActiveFailures(),
       failureHistory: this.failureSim.getHistory(10),
     };

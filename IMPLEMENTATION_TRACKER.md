@@ -187,6 +187,10 @@ Last updated: 2026-02-18
   - Improved editor guidance with step-by-step quick tips for add/link/edit/simulate workflow.
   - Fixed mode behavior so Add Node always has a selected device and mode button state is explicit.
   - Added node/link selection callbacks to keep property panel in sync and clear cleanly.
+- Updated `index-v2.html`:
+  - Reduced landing-page navigation to a single course flow: Build -> Run -> Analyze.
+  - Removed demo-first links from top/footer/mobile navigation to reduce user confusion.
+  - Updated hero/feature copy to reflect practical lab workflow rather than showcase mode.
 - Updated `simulation.html`:
   - Added `Edit Topology` action to round-trip current topology back into playground editing.
   - Replaced fragile click-based auto-start with explicit controller startup + UI-state sync after topology load.
@@ -194,9 +198,18 @@ Last updated: 2026-02-18
   - Added resilient Add Node fallback (`switch`) when no pending device is set.
   - Added link hit-testing for select/delete operations and link callback support for property editing.
   - Hardened drag/drop device extraction for Safari-compatible MIME types.
+  - Added direct node dragging in Select mode with grid snap-on-drop, history integration, and click suppression after drag.
 - Updated `src/playground/DevicePalette.js`:
   - Added multi-type `dataTransfer.setData(...)` for cross-browser drag/drop reliability.
   - Added programmatic device selection API used by toolbar mode flow.
+- Updated `src/engine/TrafficGenerator.js`:
+  - Reworked runtime logic from decorative per-node waves to deterministic path-based flow routing.
+  - Added shortest-path traffic routing, per-link routed demand accumulation, dropped-demand tracking, and topology-aware congestion behavior.
+  - Added runtime node status normalization (`healthy/degraded/warning/critical`) derived from actual computed load each tick.
+- Updated `src/engine/SimulationController.js`:
+  - Exposed runtime traffic stats (`activeFlows`, `droppedDemandMbps`) in tick payload and state snapshot.
+- Updated `simulation.html`:
+  - Added runtime traffic indicators (active flows and dropped demand) to Simulation Info panel for visible, interpretable scenario behavior.
 - Re-verified regression suite:
   - `./scripts/run-smoke-checks.sh` passed.
   - `make smoke` passed.
