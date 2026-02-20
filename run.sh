@@ -1,8 +1,29 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="${ROOT_DIR}/web"
+
 PORT="${PORT:-4040}"
+HOST="${HOST:-0.0.0.0}"
 BASE_URL="http://localhost:${PORT}/"
+
+print_banner() {
+    echo "========================================"
+    echo " Network Training Simulator Lab (React)"
+    echo "========================================"
+    echo ""
+    echo "Starting React dev server on ${HOST}:${PORT}..."
+    echo ""
+    echo "Routes:"
+    echo "- Home:        ${BASE_URL}"
+    echo "- Playground:  ${BASE_URL}playground"
+    echo "- Simulation:  ${BASE_URL}simulation"
+    echo "- Analytics:   ${BASE_URL}analytics"
+    echo ""
+    echo "Press Ctrl+C to stop the server"
+    echo ""
+}
 
 open_browser() {
     local url="$1"
@@ -27,33 +48,37 @@ open_browser() {
     echo "Could not auto-open browser. Open manually: $url"
 }
 
-echo "========================================"
-echo " Network Training Simulator Lab (React)"
-echo "========================================"
-echo ""
-echo "Starting React dev server on port ${PORT}..."
-echo ""
-echo "Routes:"
-echo "- Home:        ${BASE_URL}"
-echo "- Playground:  ${BASE_URL}playground"
-echo "- Simulation:  ${BASE_URL}simulation"
-echo "- Analytics:   ${BASE_URL}analytics"
-echo ""
-echo "Press Ctrl+C to stop the server"
-echo ""
+ensure_dependencies() {
+    if [[ "${SKIP_INSTALL:-0}" == "1" ]]; then
+        return 0
+    fi
 
-open_browser "${BASE_URL}"
+    if [[ -d node_modules ]]; then
+        return 0
+    fi
+
+    echo "Installing web dependencies..."
+    if [[ -f package-lock.json ]]; then
+        npm ci --no-audit --no-fund
+    else
+        npm install --no-audit --no-fund
+    fi
+}
 
 if ! command -v npm >/dev/null 2>&1; then
-    echo "npm is required to run the React app."
+    echo "Error: npm is required to run the React app."
     exit 1
 fi
 
-cd web
-
-if [[ ! -d node_modules ]]; then
-    echo "Installing dependencies..."
-    npm install
+if [[ ! -d "${APP_DIR}" ]]; then
+    echo "Error: web app directory not found: ${APP_DIR}"
+    exit 1
 fi
 
-npm run dev -- --host 0.0.0.0 --port "${PORT}" --strictPort
+cd "${APP_DIR}"
+
+print_banner
+open_browser "${BASE_URL}"
+ensure_dependencies
+
+npm run dev -- --host "${HOST}" --port "${PORT}" --strictPort
