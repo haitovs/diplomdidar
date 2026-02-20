@@ -202,43 +202,136 @@
         opacity: 0.8;
       }
 
-      .pattern-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-
-      .pattern-btn {
-        padding: 10px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+      /* Scenario control */
+      .scenario-select {
+        width: 100%;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 8px;
         color: #e2e8f0;
+        font-size: 13px;
         cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        margin-bottom: 6px;
+      }
+      .scenario-select option {
+        background: #1e293b;
+        color: #e2e8f0;
+      }
+      .scenario-desc {
         font-size: 11px;
-        text-align: center;
-        transition: all 0.25s ease;
+        color: #64748b;
+        line-height: 1.4;
+        padding: 4px 0 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        margin-bottom: 10px;
       }
 
-      .pattern-btn:hover {
-        background: rgba(99, 102, 241, 0.1);
-        border-color: rgba(99, 102, 241, 0.35);
-        transform: translateY(-1px);
+      /* Sliders */
+      .slider-group { margin-bottom: 10px; }
+      .slider-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #94a3b8;
+        margin-bottom: 4px;
+      }
+      .slider-value {
+        color: #c7d2fe;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .sim-slider {
+        width: 100%;
+        height: 4px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+      }
+      .sim-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #6366f1;
+        box-shadow: 0 0 6px rgba(99, 102, 241, 0.5);
+        cursor: pointer;
       }
 
-      .pattern-btn.active {
-        background: rgba(99, 102, 241, 0.15);
-        border-color: rgba(99, 102, 241, 0.6);
-        box-shadow:
-          0 0 16px rgba(99, 102, 241, 0.15),
-          inset 0 0 0 1px rgba(99, 102, 241, 0.1);
+      /* Tabs */
+      .tab-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .tab-bar {
+        display: flex;
+        gap: 2px;
+        margin-bottom: 8px;
+      }
+      .tab-btn {
+        flex: 1;
+        padding: 6px 4px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 6px;
+        color: #64748b;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .tab-btn:hover { color: #94a3b8; background: rgba(255, 255, 255, 0.05); }
+      .tab-btn.active {
+        background: rgba(99, 102, 241, 0.12);
+        border-color: rgba(99, 102, 241, 0.3);
         color: #c7d2fe;
       }
+      .tab-content { display: none; flex: 1; overflow-y: auto; min-height: 0; }
+      .tab-content.active { display: block; }
 
-      .pattern-btn .icon {
-        font-size: 20px;
-        display: block;
-        margin-bottom: 6px;
+      /* Node health grid */
+      .node-health-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .node-health-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 6px;
+        font-size: 11px;
+        color: #94a3b8;
+        width: calc(50% - 3px);
+        box-sizing: border-box;
+      }
+      .health-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .health-dot.healthy { background: #22c55e; box-shadow: 0 0 4px rgba(34, 197, 94, 0.5); }
+      .health-dot.warning { background: #f59e0b; box-shadow: 0 0 4px rgba(245, 158, 11, 0.5); }
+      .health-dot.degraded { background: #f97316; box-shadow: 0 0 4px rgba(249, 115, 22, 0.5); }
+      .health-dot.critical { background: #ef4444; box-shadow: 0 0 4px rgba(239, 68, 68, 0.5); }
+      .health-dot.offline { background: #6b7280; }
+      .health-load {
+        margin-left: auto;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
       }
 
       /* Empty state component */
@@ -434,6 +527,51 @@
         }
       }
 
+      /* Zoom controls overlay */
+      .zoom-controls {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 4px 6px;
+        z-index: 10;
+      }
+      .zoom-btn {
+        width: 28px;
+        height: 28px;
+        border: none;
+        background: rgba(255, 255, 255, 0.06);
+        color: #94a3b8;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, color 0.15s;
+      }
+      .zoom-btn:hover {
+        background: rgba(99, 102, 241, 0.3);
+        color: #e2e8f0;
+      }
+      .zoom-level {
+        font-size: 11px;
+        color: #94a3b8;
+        min-width: 40px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+      }
+      .zoom-fit {
+        font-size: 16px;
+        margin-left: 2px;
+      }
+
       .event-log {
         max-height: 200px;
         overflow-y: auto;
@@ -484,15 +622,69 @@
         text-decoration: none;
       }
 
-      .sim-info-list {
-        font-size: 12px;
-        color: #94a3b8;
-        line-height: 1.8;
+      /* Performance metrics cards */
+      .perf-metrics { display: flex; flex-direction: column; gap: 10px; }
+      .perf-card { padding: 0; }
+      .perf-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 4px;
       }
-
-      .sim-info-list strong {
-        color: #cbd5e1;
-        font-weight: 600;
+      .perf-label { font-size: 11px; color: #94a3b8; }
+      .perf-val {
+        font-size: 13px;
+        font-weight: 700;
+        color: #e2e8f0;
+        font-variant-numeric: tabular-nums;
+      }
+      .perf-bar {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .perf-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.4s ease, background 0.4s ease;
+        width: 0%;
+      }
+      .throughput-fill { background: #6366f1; }
+      .latency-fill { background: #22c55e; }
+      .loss-fill { background: #22c55e; }
+      .perf-row {
+        display: flex;
+        gap: 6px;
+        margin-top: 2px;
+      }
+      .perf-mini {
+        flex: 1;
+        padding: 6px 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 6px;
+        text-align: center;
+      }
+      .perf-mini-label {
+        display: block;
+        font-size: 10px;
+        color: #64748b;
+        margin-bottom: 2px;
+      }
+      .perf-mini-val {
+        font-size: 12px;
+        font-weight: 700;
+        color: #c7d2fe;
+        font-variant-numeric: tabular-nums;
+      }
+      .sim-info-strip {
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        font-size: 10px;
+        color: #64748b;
+        text-align: center;
       }
 
       .quick-actions {
@@ -796,36 +988,71 @@
 
     <main>
       <aside class="sidebar">
+        <!-- Scenario Control -->
         <div class="panel">
           <div class="panel-title">
-            <span class="panel-title-icon">📡</span> Traffic Pattern
+            <span class="panel-title-icon">📡</span> Scenario Control
           </div>
-          <div class="pattern-grid" id="pattern-grid"></div>
+          <select class="scenario-select" id="pattern-select">
+            <!-- populated by JS -->
+          </select>
+          <div class="scenario-desc" id="scenario-desc">Standard lecture with video streaming</div>
+
+          <div class="slider-group">
+            <label class="slider-label">
+              <span>Base Load</span>
+              <span class="slider-value" id="slider-load-val">40%</span>
+            </label>
+            <input type="range" class="sim-slider" id="slider-load" min="5" max="100" value="40" />
+          </div>
+
+          <div class="slider-group">
+            <label class="slider-label">
+              <span>Burst Probability</span>
+              <span class="slider-value" id="slider-burst-val">10%</span>
+            </label>
+            <input type="range" class="sim-slider" id="slider-burst" min="0" max="80" value="10" />
+          </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-title">
-            <span class="panel-title-icon">⚠️</span> Active Failures
+        <!-- Tabbed panels: Health / Failures / Log -->
+        <div class="panel tab-panel">
+          <div class="tab-bar">
+            <button class="tab-btn active" data-tab="health">💚 Health</button>
+            <button class="tab-btn" data-tab="failures">⚠️ Failures</button>
+            <button class="tab-btn" data-tab="log">📋 Log</button>
           </div>
-          <div class="failure-list" id="failure-list">
-            <div class="empty-state">
-              <span class="empty-state-icon">✅</span>
-              <span>No active failures</span>
+
+          <div class="tab-content active" id="tab-health">
+            <div class="node-health-grid" id="node-health-grid">
+              <!-- populated by JS: colored dots per node -->
             </div>
           </div>
-        </div>
 
-        <div class="panel">
-          <div class="panel-title">
-            <span class="panel-title-icon">📋</span> Event Log
+          <div class="tab-content" id="tab-failures">
+            <div class="failure-list" id="failure-list">
+              <div class="empty-state">
+                <span class="empty-state-icon">✅</span>
+                <span>No active failures</span>
+              </div>
+            </div>
           </div>
-          <div class="event-log" id="event-log"></div>
+
+          <div class="tab-content" id="tab-log">
+            <div class="event-log" id="event-log"></div>
+          </div>
         </div>
       </aside>
 
       <section class="canvas-area">
         <canvas id="simulation-canvas"></canvas>
         <div class="toast-container" id="toast-container"></div>
+        <div class="zoom-controls" id="zoom-controls">
+          <button class="zoom-btn" id="zoom-in" title="Zoom In">+</button>
+          <span class="zoom-level" id="zoom-level">100%</span>
+          <button class="zoom-btn" id="zoom-out" title="Zoom Out">−</button>
+          <button class="zoom-btn zoom-fit" id="zoom-fit" title="Fit to View">⊡</button>
+        </div>
       </section>
 
       <aside class="sidebar sidebar-right">
@@ -855,24 +1082,47 @@
 
         <div class="panel">
           <div class="panel-title">
-            <span class="panel-title-icon">ℹ️</span> Simulation Info
+            <span class="panel-title-icon">📈</span> Live Performance
           </div>
-          <div class="sim-info-list">
-            <div>
-              <strong>Pattern:</strong> <span id="info-pattern">Classroom</span>
+          <div class="perf-metrics">
+            <div class="perf-card">
+              <div class="perf-header">
+                <span class="perf-label">Throughput</span>
+                <span class="perf-val" id="perf-throughput">0 Mbps</span>
+              </div>
+              <div class="perf-bar"><div class="perf-fill throughput-fill" id="bar-throughput"></div></div>
             </div>
-            <div><strong>Speed:</strong> <span id="info-speed">1×</span></div>
-            <div><strong>Frames:</strong> <span id="info-frames">0</span></div>
-            <div>
-              <strong>Active Flows:</strong> <span id="info-flows">0</span>
+            <div class="perf-card">
+              <div class="perf-header">
+                <span class="perf-label">Latency</span>
+                <span class="perf-val" id="perf-latency">0 ms</span>
+              </div>
+              <div class="perf-bar"><div class="perf-fill latency-fill" id="bar-latency"></div></div>
             </div>
-            <div>
-              <strong>Dropped Demand:</strong>
-              <span id="info-dropped">0 Mbps</span>
+            <div class="perf-card">
+              <div class="perf-header">
+                <span class="perf-label">Packet Loss</span>
+                <span class="perf-val" id="perf-loss">0%</span>
+              </div>
+              <div class="perf-bar"><div class="perf-fill loss-fill" id="bar-loss"></div></div>
             </div>
-            <div>
-              <strong>Status:</strong> <span id="info-status">Stopped</span>
+            <div class="perf-row">
+              <div class="perf-mini">
+                <span class="perf-mini-label">Flows</span>
+                <span class="perf-mini-val" id="info-flows">0</span>
+              </div>
+              <div class="perf-mini">
+                <span class="perf-mini-label">Jitter</span>
+                <span class="perf-mini-val" id="perf-jitter">0 ms</span>
+              </div>
+              <div class="perf-mini">
+                <span class="perf-mini-label">Energy</span>
+                <span class="perf-mini-val" id="perf-energy">0 kW</span>
+              </div>
             </div>
+          </div>
+          <div class="sim-info-strip">
+            <span id="info-pattern">Classroom</span> · <span id="info-speed">1×</span> · Frame <span id="info-frames">0</span> · <span id="info-status">Stopped</span>
           </div>
         </div>
 
@@ -925,6 +1175,7 @@
 
     <script type="module">
       import { CanvasRenderer } from "./src/rendering/CanvasRenderer.js";
+      import { CanvasNavigator } from "./src/rendering/CanvasNavigator.js";
       import {
         SimulationController,
         TRAFFIC_PATTERNS,
@@ -1048,6 +1299,16 @@
       // Initialize
       const canvas = document.getElementById("simulation-canvas");
       const renderer = new CanvasRenderer(canvas, { showGrid: true });
+
+      // Canvas zoom / pan
+      const navigator = new CanvasNavigator(canvas, {
+        onTransformChange(t) {
+          renderer.setTransform(t);
+          document.getElementById('zoom-level').textContent =
+            Math.round(t.scale * 100) + '%';
+        },
+      });
+
       const metricsCollector = new MetricsCollector();
       const lifecycle = new LifecycleManager();
       const on = (target, event, handler, options) =>
@@ -1150,8 +1411,6 @@
           document.getElementById("sim-time").textContent = state.formattedTime;
           document.getElementById("info-frames").textContent = state.frame;
           document.getElementById("info-flows").textContent = state.activeFlows;
-          document.getElementById("info-dropped").textContent =
-            `${state.droppedDemandMbps} Mbps`;
           const metrics = metricsCollector.update({
             nodes: renderer.nodes,
             links: renderer.links,
@@ -1178,8 +1437,9 @@
         },
       });
 
-      // Render pattern buttons
-      const patternGrid = document.getElementById("pattern-grid");
+      // ---- Scenario dropdown ----
+      const patternSelect = document.getElementById("pattern-select");
+      const scenarioDescEl = document.getElementById("scenario-desc");
       const patternIcons = {
         classroom: "📚",
         exam: "📝",
@@ -1191,26 +1451,86 @@
       };
 
       Object.entries(TRAFFIC_PATTERNS).forEach(([key, pattern]) => {
-        const btn = document.createElement("button");
-        btn.className = `pattern-btn ${key === "classroom" ? "active" : ""}`;
-        btn.dataset.pattern = key;
-        btn.innerHTML = `<span class="icon">${patternIcons[key] || "📊"}</span>${pattern.label}`;
-        on(btn, "click", () => {
-          patternGrid
-            .querySelectorAll(".pattern-btn")
-            .forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
-          simController.setTrafficPattern(key);
-          document.getElementById("info-pattern").textContent = pattern.label;
-          const mappedScenario = scenarioForPattern(key);
-          if (labScenarioSelect.value !== mappedScenario) {
-            labScenarioSelect.value = mappedScenario;
-            labEvaluator.setScenario(mappedScenario);
-            updateLabPanel(labEvaluator.getResult());
-          }
-        });
-        patternGrid.appendChild(btn);
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = `${patternIcons[key] || "📊"} ${pattern.label}`;
+        if (key === "classroom") opt.selected = true;
+        patternSelect.appendChild(opt);
       });
+
+      on(patternSelect, "change", () => {
+        const key = patternSelect.value;
+        const pattern = TRAFFIC_PATTERNS[key];
+        simController.setTrafficPattern(key);
+        scenarioDescEl.textContent = pattern.description;
+        document.getElementById("info-pattern").textContent = pattern.label;
+
+        // Sync sliders with new pattern defaults
+        const loadSlider = document.getElementById("slider-load");
+        const burstSlider = document.getElementById("slider-burst");
+        loadSlider.value = Math.round(pattern.baseLoad * 100);
+        burstSlider.value = Math.round(pattern.burstChance * 100);
+        document.getElementById("slider-load-val").textContent =
+          loadSlider.value + "%";
+        document.getElementById("slider-burst-val").textContent =
+          burstSlider.value + "%";
+
+        // Sync lab scenario
+        const mappedScenario = scenarioForPattern(key);
+        if (labScenarioSelect.value !== mappedScenario) {
+          labScenarioSelect.value = mappedScenario;
+          labEvaluator.setScenario(mappedScenario);
+          updateLabPanel(labEvaluator.getResult());
+        }
+        addLogEntry(`Scenario → ${pattern.label}`);
+      });
+
+      // ---- Sliders ----
+      on(document.getElementById("slider-load"), "input", (e) => {
+        const val = parseInt(e.target.value, 10);
+        document.getElementById("slider-load-val").textContent = val + "%";
+        simController.trafficGen.setParam("baseLoad", val / 100);
+      });
+      on(document.getElementById("slider-burst"), "input", (e) => {
+        const val = parseInt(e.target.value, 10);
+        document.getElementById("slider-burst-val").textContent = val + "%";
+        simController.trafficGen.setParam("burstChance", val / 100);
+      });
+
+      // ---- Tab switching ----
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        on(btn, "click", () => {
+          document
+            .querySelectorAll(".tab-btn")
+            .forEach((b) => b.classList.remove("active"));
+          document
+            .querySelectorAll(".tab-content")
+            .forEach((c) => c.classList.remove("active"));
+          btn.classList.add("active");
+          document
+            .getElementById("tab-" + btn.dataset.tab)
+            .classList.add("active");
+        });
+      });
+
+      // ---- Node health grid (updates every tick) ----
+      const healthGrid = document.getElementById("node-health-grid");
+      function updateNodeHealthGrid() {
+        if (!renderer.nodes || renderer.nodes.length === 0) return;
+        healthGrid.innerHTML = "";
+        renderer.nodes.forEach((node) => {
+          const status = node.status || "healthy";
+          const loadPct = Math.round((node.targetLoad || 0) * 100);
+          const item = document.createElement("div");
+          item.className = "node-health-item";
+          item.innerHTML = `
+            <span class="health-dot ${status}"></span>
+            <span class="health-name">${node.label || node.id}</span>
+            <span class="health-load">${loadPct}%</span>
+          `;
+          healthGrid.appendChild(item);
+        });
+      }
 
       // UI Controls
 
@@ -1226,8 +1546,8 @@
       });
 
       on(document.getElementById("btn-rewind"), "click", () => {
-        simController.setTime(8.0);
-        logEvent("Time reset to 08:00");
+        simController.setTime(0.0);
+        logEvent("Time reset to 00:00");
       });
 
       on(labScenarioSelect, "change", () => {
@@ -1272,7 +1592,7 @@
       // Reset button handler
       on(resetBtn, "click", () => {
         simController.reset();
-        simController.setTime(8); // Reset to 08:00
+        simController.setTime(0); // Reset to 00:00
         labEvaluator.reset();
         updateLabPanel(labEvaluator.getResult());
         logEvent("Simulation reset");
@@ -1379,14 +1699,16 @@
         }
       });
 
-      // Node dragging functionality - NEW
+      // Node dragging + hover cursor
       let draggedNode = null;
       let isDraggingNode = false;
 
       on(canvas, "mousedown", (e) => {
+        if (navigator.isPanning || e.button !== 0) return;
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const { x, y } = navigator.screenToWorld(sx, sy);
 
         if (renderer && renderer.findNodeAt) {
           draggedNode = renderer.findNodeAt(x, y);
@@ -1398,18 +1720,30 @@
       });
 
       on(canvas, "mousemove", (e) => {
-        if (!isDraggingNode || !draggedNode) return;
-
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const { x, y } = navigator.screenToWorld(sx, sy);
 
-        if (renderer && renderer.updateNodePosition) {
+        if (isDraggingNode && draggedNode) {
           renderer.updateNodePosition(draggedNode.id, x, y);
+        } else if (!navigator.isPanning) {
+          // Hover cursor feedback
+          const hoverNode = renderer.findNodeAt(x, y);
+          canvas.style.cursor = hoverNode ? "grab" : "default";
         }
       });
 
       on(canvas, "mouseup", () => {
+        if (isDraggingNode) {
+          isDraggingNode = false;
+          // Keep grab cursor if still over the node
+          canvas.style.cursor = draggedNode ? "grab" : "default";
+          draggedNode = null;
+        }
+      });
+
+      on(canvas, "mouseleave", () => {
         if (isDraggingNode) {
           isDraggingNode = false;
           draggedNode = null;
@@ -1424,20 +1758,43 @@
         updateFailureList();
       });
 
-      on(canvas, "mouseleave", () => {
-        if (isDraggingNode) {
-          isDraggingNode = false;
-          draggedNode = null;
-          canvas.style.cursor = "default";
-        }
-      });
-
       on(document.getElementById("btn-screenshot"), "click", () => {
         const link = document.createElement("a");
         link.download = `simulation-${Date.now()}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
       });
+
+      // Zoom controls
+      on(document.getElementById('zoom-in'), 'click', () => {
+        const t = navigator.getTransform();
+        const newScale = Math.min(3.0, t.scale * 1.2);
+        const cx = canvas.clientWidth / 2;
+        const cy = canvas.clientHeight / 2;
+        const ratio = newScale / t.scale;
+        navigator.scale = newScale;
+        navigator.offsetX = cx - (cx - t.offsetX) * ratio;
+        navigator.offsetY = cy - (cy - t.offsetY) * ratio;
+        renderer.setTransform(navigator.getTransform());
+        document.getElementById('zoom-level').textContent = Math.round(newScale * 100) + '%';
+      });
+      on(document.getElementById('zoom-out'), 'click', () => {
+        const t = navigator.getTransform();
+        const newScale = Math.max(0.3, t.scale / 1.2);
+        const cx = canvas.clientWidth / 2;
+        const cy = canvas.clientHeight / 2;
+        const ratio = newScale / t.scale;
+        navigator.scale = newScale;
+        navigator.offsetX = cx - (cx - t.offsetX) * ratio;
+        navigator.offsetY = cy - (cy - t.offsetY) * ratio;
+        renderer.setTransform(navigator.getTransform());
+        document.getElementById('zoom-level').textContent = Math.round(newScale * 100) + '%';
+      });
+      on(document.getElementById('zoom-fit'), 'click', () => {
+        navigator.fitToContent(renderer.nodes);
+      });
+      // Prevent context menu on canvas for right-click pan
+      on(canvas, 'contextmenu', (e) => e.preventDefault());
 
       // Helper functions
       function setSimulationUiState(isPaused = false) {
@@ -1561,6 +1918,34 @@
           metrics.utilization + "%";
         document.getElementById("m-failures").textContent =
           simController.failureSim.getActiveFailures().length;
+
+        // Performance cards
+        document.getElementById("perf-throughput").textContent =
+          metrics.throughput + " Mbps";
+        document.getElementById("bar-throughput").style.width =
+          Math.min(100, (metrics.throughput / 10000) * 100) + "%";
+
+        document.getElementById("perf-latency").textContent =
+          metrics.latency + " ms";
+        const latPct = Math.min(100, (metrics.latency / 100) * 100);
+        const latBar = document.getElementById("bar-latency");
+        latBar.style.width = latPct + "%";
+        latBar.style.background =
+          metrics.latency < 20 ? "#22c55e" : metrics.latency < 50 ? "#f59e0b" : "#ef4444";
+
+        document.getElementById("perf-loss").textContent =
+          metrics.packetLoss.toFixed(1) + "%";
+        const lossBar = document.getElementById("bar-loss");
+        lossBar.style.width = Math.min(100, metrics.packetLoss * 5) + "%";
+        lossBar.style.background =
+          metrics.packetLoss < 1 ? "#22c55e" : metrics.packetLoss < 5 ? "#f59e0b" : "#ef4444";
+
+        document.getElementById("perf-jitter").textContent =
+          metrics.jitter + " ms";
+        document.getElementById("perf-energy").textContent =
+          metrics.energy + " kW";
+
+        updateNodeHealthGrid();
       }
 
       function updateFailureList() {

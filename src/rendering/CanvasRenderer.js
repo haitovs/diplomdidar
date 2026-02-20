@@ -101,19 +101,27 @@ export class CanvasRenderer {
    */
   handleResize() {
     const rect = this.canvas.getBoundingClientRect();
+    const oldW = this.width || rect.width;
+    const oldH = this.height || rect.height;
     this.width = rect.width;
     this.height = rect.height;
     this.canvas.width = rect.width * this.dpr;
     this.canvas.height = rect.height * this.dpr;
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
-    // Update node positions
-    this.nodes.forEach(node => {
-      if (node.position) {
-        node.x = node.position.x * this.width;
-        node.y = node.position.y * this.height;
-      }
-    });
+    // Scale existing node positions proportionally (only when nodes exist)
+    if (this.nodes.length > 0 && oldW > 0 && oldH > 0) {
+      const scaleX = this.width / oldW;
+      const scaleY = this.height / oldH;
+      this.nodes.forEach(node => {
+        node.x *= scaleX;
+        node.y *= scaleY;
+        if (node.position) {
+          node.position.x = node.x / this.width;
+          node.position.y = node.y / this.height;
+        }
+      });
+    }
   }
 
   /**
@@ -247,19 +255,30 @@ export class CanvasRenderer {
     this.ctx.strokeStyle = this.options.gridColor;
     this.ctx.lineWidth = 1;
 
+    // Calculate visible area accounting for transform
+    let startX = 0, startY = 0, endX = this.width, endY = this.height;
+    if (this.transform) {
+      startX = -this.transform.offsetX / this.transform.scale;
+      startY = -this.transform.offsetY / this.transform.scale;
+      endX = (this.width - this.transform.offsetX) / this.transform.scale;
+      endY = (this.height - this.transform.offsetY) / this.transform.scale;
+    }
+    startX = Math.floor(startX / size) * size;
+    startY = Math.floor(startY / size) * size;
+
     // Vertical lines
-    for (let x = 0; x <= this.width; x += size) {
+    for (let x = startX; x <= endX; x += size) {
       this.ctx.beginPath();
-      this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x, this.height);
+      this.ctx.moveTo(x, startY);
+      this.ctx.lineTo(x, endY);
       this.ctx.stroke();
     }
 
     // Horizontal lines
-    for (let y = 0; y <= this.height; y += size) {
+    for (let y = startY; y <= endY; y += size) {
       this.ctx.beginPath();
-      this.ctx.moveTo(0, y);
-      this.ctx.lineTo(this.width, y);
+      this.ctx.moveTo(startX, y);
+      this.ctx.lineTo(endX, y);
       this.ctx.stroke();
     }
   }

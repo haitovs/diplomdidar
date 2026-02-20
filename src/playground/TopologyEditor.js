@@ -253,15 +253,22 @@ export class TopologyEditor {
   }
 
   /**
-   * Continue node drag.
+   * Continue node drag or show hover cursor.
    */
   handleMouseMove(e) {
-    if (!this.dragState) return;
-
     const rect = this.canvas.getBoundingClientRect();
     const viewX = e.clientX - rect.left;
     const viewY = e.clientY - rect.top;
     const { x, y } = this.toWorldCoordinates(viewX, viewY);
+
+    if (!this.dragState) {
+      // Hover cursor feedback in select mode
+      if (this.mode === 'select') {
+        const hoverNode = this.renderer.findNodeAt(x, y);
+        this.canvas.style.cursor = hoverNode ? 'grab' : 'default';
+      }
+      return;
+    }
 
     const dx = Math.abs(x - this.dragState.lastX);
     const dy = Math.abs(y - this.dragState.lastY);

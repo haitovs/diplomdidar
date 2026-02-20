@@ -121,6 +121,51 @@
       display: block;
     }
 
+    /* Zoom controls overlay */
+    .zoom-controls {
+      position: absolute;
+      bottom: 80px;
+      left: 16px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 4px 6px;
+      z-index: 10;
+    }
+    .zoom-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: rgba(255, 255, 255, 0.06);
+      color: #94a3b8;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .zoom-btn:hover {
+      background: rgba(99, 102, 241, 0.3);
+      color: #e2e8f0;
+    }
+    .zoom-level {
+      font-size: 11px;
+      color: #94a3b8;
+      min-width: 40px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .zoom-fit {
+      font-size: 16px;
+      margin-left: 2px;
+    }
+
     .time-control {
       position: absolute;
       bottom: 20px;
@@ -460,9 +505,15 @@
   <main>
     <section class="canvas-area">
       <canvas id="analytics-canvas"></canvas>
+      <div class="zoom-controls" id="zoom-controls">
+        <button class="zoom-btn" id="zoom-in" title="Zoom In">+</button>
+        <span class="zoom-level" id="zoom-level">100%</span>
+        <button class="zoom-btn" id="zoom-out" title="Zoom Out">−</button>
+        <button class="zoom-btn zoom-fit" id="zoom-fit" title="Fit to View">⊡</button>
+      </div>
       <div class="time-control">
         <button class="btn btn-secondary" id="btn-rewind">⏪</button>
-        <div class="time-display" id="sim-time">08:00</div>
+        <div class="time-display" id="sim-time">00:00</div>
         <div class="speed-control">
           <button class="speed-btn" data-speed="0.5">0.5x</button>
           <button class="speed-btn active" data-speed="1">1x</button>
@@ -487,6 +538,7 @@
 
   <script type="module">
     import { CanvasRenderer } from './src/rendering/CanvasRenderer.js';
+    import { CanvasNavigator } from './src/rendering/CanvasNavigator.js';
     import { MetricsCollector } from './src/analytics/MetricsCollector.js';
     import { AnalyticsPanel } from './src/analytics/AnalyticsPanel.js';
     import { NodeDetailView } from './src/analytics/NodeDetailView.js';
@@ -540,6 +592,16 @@
     const lifecycle = new LifecycleManager();
     const on = (target, event, handler, options) => lifecycle.on(target, event, handler, options);
     const renderer = new CanvasRenderer(canvas, { showGrid: true });
+
+    // Canvas zoom / pan
+    const canvasNav = new CanvasNavigator(canvas, {
+      onTransformChange(t) {
+        renderer.setTransform(t);
+        document.getElementById('zoom-level').textContent =
+          Math.round(t.scale * 100) + '%';
+      },
+    });
+
     const metricsCollector = new MetricsCollector();
     const analyticsPanel = new AnalyticsPanel(document.getElementById('analytics-panel'), metricsCollector);
     const nodeDetailView = new NodeDetailView(document.getElementById('node-detail'), metricsCollector);
@@ -578,20 +640,113 @@
       setStatus('Running', '#22c55e');
     });
 
-    on(canvas, 'click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const node = renderer.findNodeAt(x, y);
-      if (!node) {
-        renderer.selectNode(null);
-        nodeDetailView.clear();
-        return;
-      }
+    // ---- Node dragging + click ----
+    let draggedNode = null;
+    let isDraggingNode = false;
+    let dragStartPos = null;
 
-      renderer.selectNode(node.id);
-      nodeDetailView.showNode(node);
+    on(canvas, 'mousedown', (e) => {
+      if (canvasNav.isPanning || e.button !== 0) return;
+      const rect = canvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      const { x, y } = canvasNav.screenToWorld(sx, sy);
+      const node = renderer.findNodeAt(x, y);
+      if (node) {
+        draggedNode = node;
+        dragStartPos = { x, y };
+        isDraggingNode = false; // only becomes true on actual movement
+        canvas.style.cursor = 'grabbing';
+      }
     });
+
+    on(canvas, 'mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      const { x, y } = canvasNav.screenToWorld(sx, sy);
+
+      if (draggedNode && dragStartPos) {
+        const dx = x - dragStartPos.x;
+        const dy = y - dragStartPos.y;
+        if (!isDraggingNode && Math.sqrt(dx * dx + dy * dy) > 3) {
+          isDraggingNode = true;
+        }
+        if (isDraggingNode) {
+          renderer.updateNodePosition(draggedNode.id, x, y);
+        }
+      } else {
+        // Hover cursor feedback
+        const hoverNode = renderer.findNodeAt(x, y);
+        canvas.style.cursor = hoverNode ? 'grab' : 'default';
+      }
+    });
+
+    on(canvas, 'mouseup', (e) => {
+      if (draggedNode && !isDraggingNode) {
+        // It was a click, not a drag — select the node
+        renderer.selectNode(draggedNode.id);
+        nodeDetailView.showNode(draggedNode);
+      }
+      if (draggedNode && isDraggingNode) {
+        canvas.style.cursor = 'grab';
+      } else if (!draggedNode) {
+        // Clicked empty area
+        if (!canvasNav.isPanning) {
+          const rect = canvas.getBoundingClientRect();
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+          const { x, y } = canvasNav.screenToWorld(sx, sy);
+          const node = renderer.findNodeAt(x, y);
+          if (!node) {
+            renderer.selectNode(null);
+            nodeDetailView.clear();
+          }
+        }
+      }
+      draggedNode = null;
+      isDraggingNode = false;
+      dragStartPos = null;
+    });
+
+    on(canvas, 'mouseleave', () => {
+      if (draggedNode) {
+        draggedNode = null;
+        isDraggingNode = false;
+        dragStartPos = null;
+        canvas.style.cursor = 'default';
+      }
+    });
+
+    // Zoom controls
+    on(document.getElementById('zoom-in'), 'click', () => {
+      const t = canvasNav.getTransform();
+      const newScale = Math.min(3.0, t.scale * 1.2);
+      const cx = canvas.clientWidth / 2;
+      const cy = canvas.clientHeight / 2;
+      const ratio = newScale / t.scale;
+      canvasNav.scale = newScale;
+      canvasNav.offsetX = cx - (cx - t.offsetX) * ratio;
+      canvasNav.offsetY = cy - (cy - t.offsetY) * ratio;
+      renderer.setTransform(canvasNav.getTransform());
+      document.getElementById('zoom-level').textContent = Math.round(newScale * 100) + '%';
+    });
+    on(document.getElementById('zoom-out'), 'click', () => {
+      const t = canvasNav.getTransform();
+      const newScale = Math.max(0.3, t.scale / 1.2);
+      const cx = canvas.clientWidth / 2;
+      const cy = canvas.clientHeight / 2;
+      const ratio = newScale / t.scale;
+      canvasNav.scale = newScale;
+      canvasNav.offsetX = cx - (cx - t.offsetX) * ratio;
+      canvasNav.offsetY = cy - (cy - t.offsetY) * ratio;
+      renderer.setTransform(canvasNav.getTransform());
+      document.getElementById('zoom-level').textContent = Math.round(newScale * 100) + '%';
+    });
+    on(document.getElementById('zoom-fit'), 'click', () => {
+      canvasNav.fitToContent(renderer.nodes);
+    });
+    on(canvas, 'contextmenu', (e) => e.preventDefault());
 
     on(pauseBtn, 'click', () => {
       if (!simController.isRunning) {
