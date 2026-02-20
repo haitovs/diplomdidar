@@ -124,7 +124,7 @@ export class DevicePalette {
     
     item.innerHTML = `
       <div class="device-icon" style="background-color: ${config.color}20; border-color: ${config.color};">
-        <img src="icons/${config.icon}.svg" alt="${config.label}" onerror="this.remove()" />
+        <img src="/icons/${config.icon}.svg" alt="${config.label}" onerror="this.remove()" />
       </div>
       <div class="device-label">${config.label}</div>
     `;

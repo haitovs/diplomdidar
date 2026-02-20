@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-PORT="${PORT:-4173}"
+PORT="${PORT:-4040}"
 BASE_URL="http://localhost:${PORT}/"
 
 open_browser() {
@@ -28,29 +28,32 @@ open_browser() {
 }
 
 echo "========================================"
-echo " Network Training Simulator Lab"
+echo " Network Training Simulator Lab (React)"
 echo "========================================"
 echo ""
-echo "Starting local server on port ${PORT}..."
+echo "Starting React dev server on port ${PORT}..."
 echo ""
-echo "Available pages:"
-echo "- Home Page:    ${BASE_URL}"
-echo "- Demo:         ${BASE_URL}demo-v2.html"
-echo "- Playground:   ${BASE_URL}playground-v2.html"
-echo "- Simulation:   ${BASE_URL}simulation.html"
-echo "- Analytics:    ${BASE_URL}analytics.html"
+echo "Routes:"
+echo "- Home:        ${BASE_URL}"
+echo "- Playground:  ${BASE_URL}playground"
+echo "- Simulation:  ${BASE_URL}simulation"
+echo "- Analytics:   ${BASE_URL}analytics"
 echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
 
 open_browser "${BASE_URL}"
 
-# Try Python 3 http.server
-if command -v python3 &> /dev/null; then
-    echo "Starting with Python 3..."
-    python3 -m http.server "${PORT}"
-else
-    # Fallback to npx serve
-    echo "Python 3 not found, trying npx serve..."
-    npx serve . -p "${PORT}"
+if ! command -v npm >/dev/null 2>&1; then
+    echo "npm is required to run the React app."
+    exit 1
 fi
+
+cd web
+
+if [[ ! -d node_modules ]]; then
+    echo "Installing dependencies..."
+    npm install
+fi
+
+npm run dev -- --host 0.0.0.0 --port "${PORT}" --strictPort

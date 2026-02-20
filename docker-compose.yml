@@ -1,0 +1,7 @@
+services:
+  frontend:
+    build: .
+    container_name: network-training-simulator
+    ports:
+      - "4040:80"
+    restart: unless-stopped

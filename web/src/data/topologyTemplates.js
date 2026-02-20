@@ -1,0 +1,53 @@
+export const defaultTopology = {
+  nodes: [
+    { id: 'internet', label: 'Internet', type: 'cloud', position: { x: 0.5, y: 0.08 }, load: 0.3 },
+    { id: 'firewall', label: 'Firewall', type: 'firewall', position: { x: 0.5, y: 0.22 }, load: 0.4 },
+    { id: 'core1', label: 'Core-1', type: 'coreRouter', position: { x: 0.3, y: 0.4 }, load: 0.45 },
+    { id: 'core2', label: 'Core-2', type: 'coreRouter', position: { x: 0.7, y: 0.4 }, load: 0.45 },
+    { id: 'sw1', label: 'Switch-A', type: 'switch', position: { x: 0.15, y: 0.62 }, load: 0.35 },
+    { id: 'sw2', label: 'Switch-B', type: 'switch', position: { x: 0.5, y: 0.62 }, load: 0.35 },
+    { id: 'sw3', label: 'Switch-C', type: 'switch', position: { x: 0.85, y: 0.62 }, load: 0.35 },
+    { id: 'ap1', label: 'AP-Lab', type: 'accessPoint', position: { x: 0.1, y: 0.84 }, load: 0.3 },
+    { id: 'srv1', label: 'App Server', type: 'server', position: { x: 0.35, y: 0.84 }, load: 0.4 },
+    { id: 'srv2', label: 'DB Server', type: 'server', position: { x: 0.55, y: 0.84 }, load: 0.4 },
+    { id: 'lab1', label: 'XR Lab', type: 'lab', position: { x: 0.75, y: 0.84 }, load: 0.4 },
+    { id: 'iot1', label: 'Sensors', type: 'iot', position: { x: 0.9, y: 0.84 }, load: 0.25 },
+  ],
+  links: [
+    { id: 'l1', source: 'internet', target: 'firewall', type: 'wan' },
+    { id: 'l2', source: 'firewall', target: 'core1', type: 'fiber' },
+    { id: 'l3', source: 'firewall', target: 'core2', type: 'fiber' },
+    { id: 'l4', source: 'core1', target: 'core2', type: 'fiber' },
+    { id: 'l5', source: 'core1', target: 'sw1', type: 'ethernet' },
+    { id: 'l6', source: 'core1', target: 'sw2', type: 'ethernet' },
+    { id: 'l7', source: 'core2', target: 'sw2', type: 'ethernet' },
+    { id: 'l8', source: 'core2', target: 'sw3', type: 'ethernet' },
+    { id: 'l9', source: 'sw1', target: 'ap1', type: 'ethernet' },
+    { id: 'l10', source: 'sw1', target: 'srv1', type: 'ethernet' },
+    { id: 'l11', source: 'sw2', target: 'srv2', type: 'ethernet' },
+    { id: 'l12', source: 'sw3', target: 'lab1', type: 'ethernet' },
+    { id: 'l13', source: 'sw3', target: 'iot1', type: 'wireless' },
+  ],
+};
+
+export const starterTopology = {
+  nodes: [
+    { id: 'internet', label: 'Internet', type: 'cloud', position: { x: 0.5, y: 0.08 }, load: 0.3 },
+    { id: 'fw', label: 'Firewall', type: 'firewall', position: { x: 0.5, y: 0.22 }, load: 0.4 },
+    { id: 'core-a', label: 'Core-1', type: 'coreRouter', position: { x: 0.3, y: 0.4 }, load: 0.45 },
+    { id: 'core-b', label: 'Core-2', type: 'coreRouter', position: { x: 0.7, y: 0.4 }, load: 0.45 },
+    { id: 'sw-a', label: 'Switch-A', type: 'switch', position: { x: 0.2, y: 0.62 }, load: 0.35 },
+    { id: 'sw-b', label: 'Switch-B', type: 'switch', position: { x: 0.5, y: 0.62 }, load: 0.35 },
+    { id: 'srv', label: 'App Server', type: 'server', position: { x: 0.5, y: 0.82 }, load: 0.4 },
+  ],
+  links: [
+    { id: 'l1', source: 'internet', target: 'fw', type: 'wan' },
+    { id: 'l2', source: 'fw', target: 'core-a', type: 'fiber' },
+    { id: 'l3', source: 'fw', target: 'core-b', type: 'fiber' },
+    { id: 'l4', source: 'core-a', target: 'core-b', type: 'fiber' },
+    { id: 'l5', source: 'core-a', target: 'sw-a', type: 'ethernet' },
+    { id: 'l6', source: 'core-a', target: 'sw-b', type: 'ethernet' },
+    { id: 'l7', source: 'core-b', target: 'sw-b', type: 'ethernet' },
+    { id: 'l8', source: 'sw-b', target: 'srv', type: 'ethernet' },
+  ],
+};

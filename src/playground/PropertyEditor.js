@@ -92,7 +92,7 @@ export class PropertyEditor {
       <div class="editor-header">
         <div class="editor-title">
           <span class="editor-icon" style="background-color: ${config.color}20; border-color: ${config.color};">
-            <img src="icons/${config.icon}.svg" alt="${config.label}" />
+            <img src="/icons/${config.icon}.svg" alt="${config.label}" />
           </span>
           <span class="editor-label">Edit Node</span>
         </div>

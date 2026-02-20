@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="labGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <!-- Flask body -->
+  <path d="M24 8 L24 24 L12 48 Q10 54 16 56 L48 56 Q54 54 52 48 L40 24 L40 8 Z" 
+        fill="#1e293b" stroke="url(#labGrad)" stroke-width="2"/>
+  <!-- Neck ring -->
+  <rect x="22" y="6" width="20" height="4" rx="1" fill="url(#labGrad)"/>
+  <!-- Liquid -->
+  <path d="M16 50 L20 42 Q24 40 32 42 Q40 40 44 42 L48 50 Q48 52 44 52 L20 52 Q16 52 16 50 Z" 
+        fill="url(#labGrad)" opacity="0.6"/>
+  <!-- Bubbles -->
+  <circle cx="26" cy="44" r="2" fill="#22c55e"/>
+  <circle cx="34" cy="46" r="1.5" fill="#22c55e"/>
+  <circle cx="40" cy="42" r="2.5" fill="#22c55e"/>
+  <!-- Steam -->
+  <path d="M28 4 Q26 0 28 -2" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <path d="M36 4 Q38 0 36 -2" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+</svg>

@@ -74,7 +74,7 @@ export class NodeDetailView {
     this.container.innerHTML = `
       <div class="detail-header">
         <div class="node-icon" style="background: ${config.color}20; border-color: ${config.color};">
-          <img src="icons/${config.icon}.svg" alt="${config.label}" onerror="this.style.display='none'" />
+          <img src="/icons/${config.icon}.svg" alt="${config.label}" onerror="this.style.display='none'" />
         </div>
         <div class="node-info">
           <div class="node-name">${node.label}</div>

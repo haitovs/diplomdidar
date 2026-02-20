@@ -1,0 +1,10 @@
+.git
+.DS_Store
+node_modules
+web/node_modules
+*.md
+run.sh
+Makefile
+scripts
+IMPLEMENTATION_TRACKER.md
+legacy

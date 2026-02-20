@@ -214,6 +214,42 @@ Last updated: 2026-02-18
   - `./scripts/run-smoke-checks.sh` passed.
   - `make smoke` passed.
 
+### 2026-02-20
+- Migrated application shell to React (`web/`) with route-based workflow:
+  - Added `web/` app scaffold (Vite + React Router) with pages for `/`, `/playground`, `/simulation`, `/analytics`.
+  - Added unified React navigation and responsive app layout styles.
+- Implemented React-integrated playground:
+  - Wired `CanvasRenderer`, `CanvasNavigator`, `TopologyEditor`, `DevicePalette`, and `PropertyEditor` into `web/src/pages/PlaygroundPage.jsx`.
+  - Added topology persistence/import/export and handoff from Playground to Simulation using `localStorage`.
+- Implemented React-integrated simulation:
+  - Wired `SimulationController` + `MetricsCollector` into `web/src/pages/SimulationPage.jsx`.
+  - Added pattern selection, speed controls, failure/recovery actions, report export, and round-trip edit flow back to Playground.
+- Implemented analytics report page in React:
+  - Added report import + local latest-report load in `web/src/pages/AnalyticsPage.jsx`.
+  - Added topology preview canvas and report KPI snapshot display.
+- Updated deployment/runtime for React:
+  - Replaced static-file Docker flow with multi-stage build serving `web/dist` via Nginx.
+  - Updated `run.sh` to run React dev server from `web/`.
+  - Updated `README.md` to reflect React architecture and workflow.
+- Reorganized root structure:
+  - Moved previous root HTML pages into `legacy/` (`index.html`, `index-v2.html`, `playground-v2.html`, `simulation.html`, `analytics.html`).
+  - Removed `demo-v2.html`.
+- Added migration-focused smoke guard:
+  - Updated `scripts/check-lifecycle-pages.mjs` to verify React routes/pages exist and legacy HTML is not present at root.
+- Cross-route icon reliability:
+  - Changed dynamic icon paths in reusable modules (`DevicePalette`, `PropertyEditor`, `NodeDetailView`) to use absolute `/icons/...` paths.
+  - Updated React icon preloader to use `/icons/...`.
+- Validation:
+  - `./scripts/run-smoke-checks.sh` passed.
+  - `docker compose config` passed.
+  - Added page/control QA scripts:
+    - `scripts/check-react-page-controls.mjs` validates route/page control wiring for Home, Playground, Simulation, and Analytics.
+    - `scripts/smoke-simulation-actions.mjs` exercises runtime action paths behind simulation controls (pattern, speed, pause/resume, failure/recover, reset).
+  - Expanded smoke runner:
+    - `scripts/run-smoke-checks.sh` now includes React control-wiring checks and simulation action smoke checks.
+  - Browser automation attempt:
+    - Safari WebDriver session creation blocked by system setting: enable `Allow remote automation` in Safari Developer settings.
+
 ## Next In Queue
 - [x] Expand editor smoke checks to include zoom-aware pointer interaction (`handleClick` path) and import/export stubs.
 - [x] Add teardown checks for dynamically created UI elements (toasts/log entries) under rapid actions.
