@@ -95,7 +95,10 @@ const check = (condition, message) => {
 
 const canvas = new MockCanvas();
 const renderer = new MockRenderer();
-const editor = new TopologyEditor(canvas, renderer);
+let mockPanning = false;
+const editor = new TopologyEditor(canvas, renderer, {
+  isPanning: () => mockPanning,
+});
 
 check(editor.history.length === 1, 'Expected initial history snapshot');
 check(editor.historyIndex === 0, 'Expected initial history index = 0');
@@ -142,6 +145,30 @@ editor.setPendingDevice('switch');
 editor.handleClick({ clientX: 300, clientY: 250, shiftKey: false });
 const transformedAddNode = editor.nodes[editor.nodes.length - 1];
 check(transformedAddNode.x === 120 && transformedAddNode.y === 120, 'Expected addNode via transformed click to use world coordinates');
+
+const countBeforePanningClick = editor.nodes.length;
+mockPanning = true;
+editor.handleClick({ clientX: 300, clientY: 250, shiftKey: false });
+mockPanning = false;
+check(editor.nodes.length === countBeforePanningClick, 'Expected click to be ignored while panning');
+
+editor.setMode('select');
+editor.handleMouseDown({ button: 0, shiftKey: false, ctrlKey: true, metaKey: false, clientX: 300, clientY: 250 });
+check(editor.dragState === null, 'Expected ctrl+mousedown to skip node drag start');
+
+const modeBeforeDrop = editor.mode;
+editor.handleDrop({
+  preventDefault() {},
+  clientX: 350,
+  clientY: 260,
+  dataTransfer: {
+    getData(type) {
+      if (type === 'device') return 'router';
+      return '';
+    },
+  },
+});
+check(editor.mode === modeBeforeDrop, 'Expected drop-add not to force add-node mode');
 
 anchorClicked = false;
 editor.exportJSON();

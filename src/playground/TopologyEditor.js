@@ -19,6 +19,7 @@ export class TopologyEditor {
       onLinkSelect: null,
       onLinkAdd: null,
       onTopologyChange: null,
+      isPanning: null,
       snapToGrid: true,
       gridSize: 40,
       ...options,
@@ -51,8 +52,8 @@ export class TopologyEditor {
       contextmenu: (e) => this.handleContextMenu(e),
       mousedown: (e) => this.handleMouseDown(e),
       mousemove: (e) => this.handleMouseMove(e),
-      mouseup: () => this.handleMouseUp(),
-      mouseleave: () => this.handleMouseUp(),
+      mouseup: (e) => this.handleMouseUp(e),
+      mouseleave: (e) => this.handleMouseUp(e),
       dragover: (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
@@ -137,6 +138,7 @@ export class TopologyEditor {
    * Handle canvas click
    */
   handleClick(e) {
+    if (this.options.isPanning?.()) return;
     if (this.suppressNextClick) {
       this.suppressNextClick = false;
       return;
@@ -232,7 +234,8 @@ export class TopologyEditor {
    */
   handleMouseDown(e) {
     if (this.mode !== 'select') return;
-    if (e.button !== 0 || e.shiftKey) return;
+    if (this.options.isPanning?.()) return;
+    if (e.button !== 0 || e.shiftKey || e.ctrlKey || e.metaKey) return;
 
     const rect = this.canvas.getBoundingClientRect();
     const viewX = e.clientX - rect.left;
@@ -245,8 +248,12 @@ export class TopologyEditor {
       nodeId: node.id,
       startX: x,
       startY: y,
+      startViewX: viewX,
+      startViewY: viewY,
       lastX: x,
       lastY: y,
+      lastViewX: viewX,
+      lastViewY: viewY,
       moved: false,
     };
     this.canvas.style.cursor = 'grabbing';
@@ -264,21 +271,27 @@ export class TopologyEditor {
     if (!this.dragState) {
       // Hover cursor feedback in select mode
       if (this.mode === 'select') {
+        if (this.options.isPanning?.()) {
+          this.canvas.style.cursor = 'grabbing';
+          return;
+        }
         const hoverNode = this.renderer.findNodeAt(x, y);
         this.canvas.style.cursor = hoverNode ? 'grab' : 'default';
       }
       return;
     }
 
-    const dx = Math.abs(x - this.dragState.lastX);
-    const dy = Math.abs(y - this.dragState.lastY);
-    if (!this.dragState.moved && dx + dy < 0.5) {
+    const screenDx = viewX - this.dragState.startViewX;
+    const screenDy = viewY - this.dragState.startViewY;
+    if (!this.dragState.moved && Math.hypot(screenDx, screenDy) < 4) {
       return;
     }
 
     this.dragState.moved = true;
     this.dragState.lastX = x;
     this.dragState.lastY = y;
+    this.dragState.lastViewX = viewX;
+    this.dragState.lastViewY = viewY;
     this.updateNodePositionLive(this.dragState.nodeId, x, y);
   }
 
@@ -425,8 +438,8 @@ export class TopologyEditor {
       const viewX = e.clientX - rect.left;
       const viewY = e.clientY - rect.top;
       const { x, y } = this.toWorldCoordinates(viewX, viewY);
-      this.setPendingDevice(deviceType);
       this.addNode(x, y, deviceType);
+      this.updateCursor();
     }
   }
 

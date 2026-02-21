@@ -78,6 +78,7 @@ export default function PlaygroundPage() {
     });
 
     const editor = new TopologyEditor(canvas, renderer, {
+      isPanning: () => navigator.isPanning,
       onNodeSelect: (node) => {
         if (node) {
           propertyEditor.editNode(node);
@@ -127,6 +128,7 @@ export default function PlaygroundPage() {
       renderer.setIconCache(cache);
       editor.loadTopology({ nodes: normalized.nodes, links: normalized.links });
       editor.setMode('select');
+      navigator.fitToContent(renderer.nodes, 80);
       refreshStats();
       setStatus('Topology loaded');
     });
@@ -215,6 +217,50 @@ export default function PlaygroundPage() {
     const renderer = instancesRef.current.renderer;
     if (!navigator || !renderer) return;
     navigator.fitToContent(renderer.nodes);
+    setStatus('View fitted to topology');
+  };
+
+  const updateZoom = (zoomFactor) => {
+    const navigator = instancesRef.current.navigator;
+    const renderer = instancesRef.current.renderer;
+    const canvas = canvasRef.current;
+    if (!navigator || !renderer || !canvas) return;
+
+    const transform = navigator.getTransform();
+    const targetScale = Math.max(navigator.minScale, Math.min(navigator.maxScale, transform.scale * zoomFactor));
+    const ratio = targetScale / transform.scale;
+    const centerX = canvas.clientWidth / 2;
+    const centerY = canvas.clientHeight / 2;
+
+    navigator.scale = targetScale;
+    navigator.offsetX = centerX - (centerX - transform.offsetX) * ratio;
+    navigator.offsetY = centerY - (centerY - transform.offsetY) * ratio;
+
+    renderer.setTransform(navigator.getTransform());
+    setZoom(Math.round(targetScale * 100));
+  };
+
+  const onZoomIn = () => updateZoom(1.2);
+  const onZoomOut = () => updateZoom(1 / 1.2);
+
+  const onDeleteSelection = () => {
+    const editor = instancesRef.current.editor;
+    if (!editor) return;
+    editor.deleteSelected?.();
+    persistTopology(editor);
+    setStatus('Selected items removed');
+  };
+
+  const onLoadStarter = () => {
+    const editor = instancesRef.current.editor;
+    const renderer = instancesRef.current.renderer;
+    const navigator = instancesRef.current.navigator;
+    if (!editor || !renderer || !navigator) return;
+
+    editor.loadTopology(starterTopology);
+    navigator.fitToContent(renderer.nodes, 80);
+    persistTopology(editor);
+    setStatus('Starter topology loaded');
   };
 
   const onSimulate = () => {
@@ -227,17 +273,36 @@ export default function PlaygroundPage() {
 
   return (
     <section className="page page-playground">
-      <div className="toolbar">
-        <button onClick={() => setEditorMode('select')} className={mode === 'select' ? 'active' : ''}>Select</button>
-        <button onClick={() => setEditorMode('addNode')} className={mode === 'addNode' ? 'active' : ''}>Add Node</button>
-        <button onClick={() => setEditorMode('addLink')} className={mode === 'addLink' ? 'active' : ''}>Add Link</button>
-        <button onClick={onUndo}>Undo</button>
-        <button onClick={onRedo}>Redo</button>
-        <button onClick={onClear}>Clear</button>
-        <button onClick={onFit}>Fit</button>
-        <button onClick={onImportClick}>Import</button>
-        <button onClick={onExport}>Export</button>
-        <button className="btn-primary" onClick={onSimulate}>Simulate</button>
+      <div className="toolbar toolbar-comfort">
+        <div className="toolbar-group">
+          <button onClick={() => setEditorMode('select')} className={mode === 'select' ? 'active' : ''}>Select (V)</button>
+          <button onClick={() => setEditorMode('addNode')} className={mode === 'addNode' ? 'active' : ''}>Add Node (N)</button>
+          <button onClick={() => setEditorMode('addLink')} className={mode === 'addLink' ? 'active' : ''}>Add Link (L)</button>
+          <button onClick={onDeleteSelection}>Delete Selected</button>
+        </div>
+
+        <div className="toolbar-group">
+          <button onClick={onUndo}>Undo</button>
+          <button onClick={onRedo}>Redo</button>
+          <button onClick={onClear}>Clear</button>
+          <button onClick={onLoadStarter}>Load Starter</button>
+        </div>
+
+        <div className="toolbar-group toolbar-zoom">
+          <button onClick={onZoomOut}>−</button>
+          <span className="zoom-pill">{zoom}%</span>
+          <button onClick={onZoomIn}>+</button>
+          <button onClick={onFit}>Fit</button>
+        </div>
+
+        <div className="toolbar-spacer" />
+
+        <div className="toolbar-group">
+          <button onClick={onImportClick}>Import</button>
+          <button onClick={onExport}>Export</button>
+          <button className="btn-primary" onClick={onSimulate}>Simulate</button>
+        </div>
+
         <input ref={importInputRef} type="file" accept="application/json" onChange={onImportFile} hidden />
       </div>
 
@@ -249,7 +314,7 @@ export default function PlaygroundPage() {
 
         <div className="canvas-area">
           <canvas ref={canvasRef} className="editor-canvas" />
-          <div className="canvas-meta">Zoom {zoom}%</div>
+          <div className="canvas-meta">Mode {mode} • Zoom {zoom}%</div>
         </div>
 
         <aside className="panel panel-right">
@@ -260,6 +325,7 @@ export default function PlaygroundPage() {
 
       <div className="status-row">
         <span>{status}</span>
+        <span>Tip: Drag nodes in Select mode, hold Ctrl and drag to pan, scroll to zoom.</span>
         <span>{stats.nodes} nodes</span>
         <span>{stats.links} links</span>
       </div>

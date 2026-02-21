@@ -103,6 +103,7 @@ export default function SimulationPage() {
     preloadDeviceIcons().then((cache) => {
       renderer.setIconCache(cache);
       renderer.setTopology({ nodes: normalized.nodes, links: normalized.links });
+      navigator.fitToContent(renderer.nodes, 90);
       controller.setTrafficPattern(patternKey);
       controller.setSpeed(speed);
       controller.start();
@@ -151,6 +152,36 @@ export default function SimulationPage() {
     instancesRef.current.controller?.recoverAll();
   };
 
+  const updateZoom = (zoomFactor) => {
+    const navigator = instancesRef.current.navigator;
+    const renderer = instancesRef.current.renderer;
+    const canvas = canvasRef.current;
+    if (!navigator || !renderer || !canvas) return;
+
+    const transform = navigator.getTransform();
+    const targetScale = Math.max(navigator.minScale, Math.min(navigator.maxScale, transform.scale * zoomFactor));
+    const ratio = targetScale / transform.scale;
+    const centerX = canvas.clientWidth / 2;
+    const centerY = canvas.clientHeight / 2;
+
+    navigator.scale = targetScale;
+    navigator.offsetX = centerX - (centerX - transform.offsetX) * ratio;
+    navigator.offsetY = centerY - (centerY - transform.offsetY) * ratio;
+
+    renderer.setTransform(navigator.getTransform());
+    setZoom(Math.round(targetScale * 100));
+  };
+
+  const onZoomIn = () => updateZoom(1.2);
+  const onZoomOut = () => updateZoom(1 / 1.2);
+
+  const onFitView = () => {
+    const navigator = instancesRef.current.navigator;
+    const renderer = instancesRef.current.renderer;
+    if (!navigator || !renderer) return;
+    navigator.fitToContent(renderer.nodes, 90);
+  };
+
   const onEditTopology = () => {
     const renderer = instancesRef.current.renderer;
     if (!renderer) {
@@ -182,20 +213,37 @@ export default function SimulationPage() {
 
   return (
     <section className="page page-simulation">
-      <div className="toolbar">
-        <button onClick={onPauseResume}>{simInfo.paused ? 'Resume' : 'Pause'}</button>
-        <button onClick={onReset}>Reset</button>
-        <button onClick={onFailure}>Failure</button>
-        <button onClick={onRecover}>Recover</button>
-        <button onClick={onEditTopology}>Edit Topology</button>
-        <button onClick={onExportReport}>Export Report</button>
-        <Link to="/analytics" className="btn-secondary">Open Analytics</Link>
+      <div className="toolbar toolbar-comfort">
+        <div className="toolbar-group">
+          <button onClick={onPauseResume}>{simInfo.paused ? 'Resume' : 'Pause'}</button>
+          <button onClick={onReset}>Reset</button>
+        </div>
+
+        <div className="toolbar-group">
+          <button onClick={onFailure}>Inject Failure</button>
+          <button onClick={onRecover}>Recover All</button>
+        </div>
+
+        <div className="toolbar-group toolbar-zoom">
+          <button onClick={onZoomOut}>−</button>
+          <span className="zoom-pill">{zoom}%</span>
+          <button onClick={onZoomIn}>+</button>
+          <button onClick={onFitView}>Fit</button>
+        </div>
+
+        <div className="toolbar-spacer" />
+
+        <div className="toolbar-group">
+          <button onClick={onEditTopology}>Edit Topology</button>
+          <button onClick={onExportReport}>Export Report</button>
+          <Link to="/analytics" className="btn-secondary">Open Analytics</Link>
+        </div>
       </div>
 
       <div className="simulation-grid">
         <div className="canvas-area">
           <canvas ref={canvasRef} className="editor-canvas" />
-          <div className="canvas-meta">{simInfo.time} • zoom {zoom}%</div>
+          <div className="canvas-meta">{simInfo.time} • zoom {zoom}% • {simInfo.running ? 'running' : 'stopped'}</div>
         </div>
 
         <aside className="panel panel-right">

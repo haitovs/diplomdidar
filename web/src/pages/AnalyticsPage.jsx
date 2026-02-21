@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CanvasRenderer } from '@core/rendering/CanvasRenderer.js';
+import { CanvasNavigator } from '@core/rendering/CanvasNavigator.js';
 import { normalizeTopology } from '@core/utils/topologySchema.js';
 import { defaultTopology } from '../data/topologyTemplates.js';
 import { preloadDeviceIcons } from '../lib/iconCache.js';
@@ -15,10 +16,11 @@ function formatDate(value) {
 export default function AnalyticsPage() {
   const canvasRef = useRef(null);
   const importInputRef = useRef(null);
-  const rendererRef = useRef(null);
+  const viewerRef = useRef({});
 
   const [report, setReport] = useState(null);
   const [message, setMessage] = useState('No report loaded yet. Export a report from Simulation.');
+  const [zoom, setZoom] = useState(100);
 
   useEffect(() => {
     const rawReport = localStorage.getItem(STORAGE_KEYS.latestLabReport);
@@ -37,7 +39,13 @@ export default function AnalyticsPage() {
     if (!canvas) return;
 
     const renderer = new CanvasRenderer(canvas, { showGrid: true });
-    rendererRef.current = renderer;
+    const navigator = new CanvasNavigator(canvas, {
+      onTransformChange: (transform) => {
+        renderer.setTransform(transform);
+        setZoom(Math.round(transform.scale * 100));
+      },
+    });
+    viewerRef.current = { renderer, navigator };
 
     const topology = report?.topology || defaultTopology;
     const normalized = normalizeTopology(topology, {
@@ -48,11 +56,13 @@ export default function AnalyticsPage() {
     preloadDeviceIcons().then((cache) => {
       renderer.setIconCache(cache);
       renderer.setTopology({ nodes: normalized.nodes, links: normalized.links });
+      navigator.fitToContent(renderer.nodes, 90);
       renderer.start();
     });
 
     return () => {
-      rendererRef.current = null;
+      viewerRef.current = {};
+      navigator.destroy();
       renderer.destroy();
     };
   }, [report]);
@@ -85,10 +95,69 @@ export default function AnalyticsPage() {
     event.target.value = '';
   };
 
+  const onLoadLatestReport = () => {
+    const rawReport = localStorage.getItem(STORAGE_KEYS.latestLabReport);
+    if (!rawReport) {
+      setMessage('No saved report found. Export one from Simulation first.');
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(rawReport);
+      setReport(parsed);
+      setMessage('Loaded latest report from local storage.');
+    } catch {
+      setMessage('Stored report is invalid. Export a fresh report from Simulation.');
+    }
+  };
+
+  const onClearReport = () => {
+    setReport(null);
+    setMessage('Report cleared. Showing default topology preview.');
+  };
+
+  const updateZoom = (zoomFactor) => {
+    const navigator = viewerRef.current.navigator;
+    const renderer = viewerRef.current.renderer;
+    const canvas = canvasRef.current;
+    if (!navigator || !renderer || !canvas) return;
+
+    const transform = navigator.getTransform();
+    const targetScale = Math.max(navigator.minScale, Math.min(navigator.maxScale, transform.scale * zoomFactor));
+    const ratio = targetScale / transform.scale;
+    const centerX = canvas.clientWidth / 2;
+    const centerY = canvas.clientHeight / 2;
+
+    navigator.scale = targetScale;
+    navigator.offsetX = centerX - (centerX - transform.offsetX) * ratio;
+    navigator.offsetY = centerY - (centerY - transform.offsetY) * ratio;
+    renderer.setTransform(navigator.getTransform());
+    setZoom(Math.round(targetScale * 100));
+  };
+
+  const onZoomIn = () => updateZoom(1.2);
+  const onZoomOut = () => updateZoom(1 / 1.2);
+  const onFitView = () => {
+    const navigator = viewerRef.current.navigator;
+    const renderer = viewerRef.current.renderer;
+    if (!navigator || !renderer) return;
+    navigator.fitToContent(renderer.nodes, 90);
+  };
+
   return (
     <section className="page page-analytics">
-      <div className="toolbar">
-        <button onClick={() => importInputRef.current?.click()}>Import Report</button>
+      <div className="toolbar toolbar-comfort">
+        <div className="toolbar-group">
+          <button onClick={() => importInputRef.current?.click()}>Import Report</button>
+          <button onClick={onLoadLatestReport}>Load Latest</button>
+          <button onClick={onClearReport}>Clear Report</button>
+        </div>
+        <div className="toolbar-group toolbar-zoom">
+          <button onClick={onZoomOut}>−</button>
+          <span className="zoom-pill">{zoom}%</span>
+          <button onClick={onZoomIn}>+</button>
+          <button onClick={onFitView}>Fit</button>
+        </div>
         <input
           ref={importInputRef}
           type="file"
@@ -98,10 +167,10 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      <div className="simulation-grid">
+      <div className="analytics-grid">
         <div className="canvas-area">
           <canvas ref={canvasRef} className="editor-canvas" />
-          <div className="canvas-meta">Topology preview</div>
+          <div className="canvas-meta">Topology preview • zoom {zoom}%</div>
         </div>
 
         <aside className="panel panel-right">

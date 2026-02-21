@@ -249,6 +249,36 @@ Last updated: 2026-02-18
     - `scripts/run-smoke-checks.sh` now includes React control-wiring checks and simulation action smoke checks.
   - Browser automation attempt:
     - Safari WebDriver session creation blocked by system setting: enable `Allow remote automation` in Safari Developer settings.
+- UI comfort refactor (React pages):
+  - Fixed layout bug where `simulation-grid` used a 3-column template and left an empty ghost column that reduced usable map area.
+  - Expanded workspace widths and viewport-based canvas sizing for `playground`, `simulation`, and `analytics` pages.
+  - Added grouped control bars with clearer action hierarchy and larger hit targets.
+  - Added practical map instruments across pages:
+    - Zoom-in/zoom-out controls with visible zoom indicator.
+    - Fit-to-content action wired to `CanvasNavigator.fitToContent(...)`.
+    - Automatic initial fit after topology load to avoid off-center/underutilized map space.
+  - Improved Playground workflow usability:
+    - Added `Delete Selected` and `Load Starter` actions.
+    - Added mode-aware canvas meta/status guidance and interaction tip messaging.
+  - Improved Analytics workflow usability:
+    - Added `Load Latest` and `Clear Report` actions.
+    - Enabled pan/zoom instruments on topology preview.
+  - Re-verified regression suite:
+    - `./scripts/run-smoke-checks.sh` passed.
+- Interaction reliability hardening (editor instruments):
+  - Updated `TopologyEditor` to avoid pan-vs-drag/click conflicts:
+    - Added `isPanning` option hook and ignored click/drag initiation while panning.
+    - Ignored Ctrl/Meta mouse-down for node-drag start in select mode.
+  - Improved drag precision:
+    - Switched drag activation threshold to screen-space distance to reduce accidental drags under zoom.
+  - Stabilized drag-and-drop behavior:
+    - Palette drop now adds node directly without forcing global editor mode to `addNode`.
+  - Updated `PlaygroundPage` wiring:
+    - Passed `CanvasNavigator.isPanning` into `TopologyEditor` for reliable interaction gating.
+  - Expanded smoke coverage:
+    - `scripts/smoke-editor.mjs` now validates panning click suppression, ctrl-drag guard, and drop-mode stability.
+  - Re-verified regression suite:
+    - `./scripts/run-smoke-checks.sh` passed.
 
 ## Next In Queue
 - [x] Expand editor smoke checks to include zoom-aware pointer interaction (`handleClick` path) and import/export stubs.
