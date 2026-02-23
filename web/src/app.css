@@ -86,6 +86,10 @@ a {
   gap: 14px;
 }
 
+.page-home {
+  gap: 16px;
+}
+
 .hero-card {
   background: rgba(10, 20, 43, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -293,6 +297,19 @@ a {
   background: #020817;
 }
 
+/* Keep playground workspace at a stable map aspect instead of stretching with full viewport height. */
+.page-playground .workspace-grid {
+  height: clamp(520px, calc(100vh - 280px), 760px);
+  min-height: 520px;
+  align-items: stretch;
+}
+
+.page-playground .canvas-area,
+.page-playground .editor-canvas {
+  min-height: 0;
+  height: 100%;
+}
+
 .canvas-meta {
   position: absolute;
   left: 10px;
@@ -399,15 +416,156 @@ a {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.home-hero-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
+}
+
+.home-hero-main {
+  position: relative;
+  overflow: hidden;
+}
+
+.home-hero-main::after {
+  content: '';
+  position: absolute;
+  inset: auto -20% -45% 25%;
+  height: 320px;
+  background: radial-gradient(closest-side, rgba(37, 99, 235, 0.35), transparent 72%);
+  pointer-events: none;
+}
+
+.home-hero-copy {
+  max-width: 66ch;
+}
+
+.home-pill-row {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.home-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 11px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(15, 23, 42, 0.8);
+  color: #c6d7ff;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+}
+
+.home-hero-panel {
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(500px 180px at 90% 0%, rgba(45, 212, 191, 0.2), transparent 70%),
+    rgba(8, 18, 40, 0.94);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.home-hero-panel h3 {
+  margin: 0;
+  font-size: 1.02rem;
+  color: #dbe7ff;
+}
+
+.home-flow-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.home-flow-list li {
+  display: grid;
+  gap: 4px;
+  padding: 10px 11px;
+  border-radius: 10px;
+  background: rgba(15, 26, 53, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.home-flow-list strong {
+  font-size: 0.94rem;
+  color: #dbe7ff;
+}
+
+.home-flow-list span {
+  font-size: 0.87rem;
+  color: #9eb2d9;
+}
+
+.home-mini-kpis {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.home-mini-kpis article {
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: rgba(9, 20, 45, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  display: grid;
+  gap: 3px;
+}
+
+.home-mini-kpis strong {
+  font-size: 1.05rem;
+  color: #f1f5ff;
+}
+
+.home-mini-kpis span {
+  font-size: 0.78rem;
+  color: #aab9d6;
+}
+
+.home-panel-cta {
+  width: fit-content;
+}
+
+.home-section {
+  display: grid;
+  gap: 12px;
+}
+
+.home-section-header h2 {
+  margin: 0;
+  font-size: 1.22rem;
+}
+
+.home-section-header p {
+  margin: 4px 0 0;
+  color: #9db0d5;
+}
+
+.home-scenario-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .home-card {
   background: rgba(10, 20, 43, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .home-card h3 {
-  margin: 0 0 8px;
+  margin: 0;
 }
 
 .home-card p {
@@ -415,10 +573,34 @@ a {
   color: #9db0d5;
 }
 
-.home-section-title {
-  margin: 6px 0 2px;
-  font-size: 1.15rem;
-  color: #dbe7ff;
+.scenario-card {
+  border-color: rgba(77, 117, 190, 0.42);
+  background:
+    radial-gradient(600px 180px at 80% 0%, rgba(37, 99, 235, 0.15), transparent 70%),
+    rgba(10, 20, 43, 0.9);
+}
+
+.scenario-badge {
+  width: fit-content;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(96, 165, 250, 0.45);
+  background: rgba(30, 64, 175, 0.25);
+  color: #cfe2ff;
+}
+
+.scenario-outcome {
+  color: #d6e4ff;
+  font-size: 0.88rem;
+  min-height: 40px;
+}
+
+.scenario-launch {
+  margin-top: auto;
+  width: fit-content;
 }
 
 .control-group {
@@ -502,11 +684,26 @@ a {
   .analytics-grid {
     grid-template-columns: minmax(0, 1fr) 390px;
   }
+
+  .home-hero-layout {
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+  }
 }
 
 @media (max-width: 1180px) {
   .workspace-grid {
     grid-template-columns: 1fr;
+  }
+
+  .page-playground .workspace-grid {
+    height: auto;
+    min-height: 0;
+  }
+
+  .page-playground .canvas-area,
+  .page-playground .editor-canvas {
+    height: 460px;
+    min-height: 460px;
   }
 
   .panel-left {
@@ -516,6 +713,15 @@ a {
   .simulation-grid,
   .analytics-grid {
     grid-template-columns: 1fr;
+  }
+
+  .home-hero-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .home-scenario-grid,
+  .home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .panel-right {
@@ -532,6 +738,10 @@ a {
     grid-template-columns: 1fr;
   }
 
+  .home-scenario-grid {
+    grid-template-columns: 1fr;
+  }
+
   .workspace-grid,
   .simulation-grid,
   .analytics-grid {
@@ -543,6 +753,12 @@ a {
   }
 
   .canvas-area {
+    min-height: 430px;
+  }
+
+  .page-playground .canvas-area,
+  .page-playground .editor-canvas {
+    height: 430px;
     min-height: 430px;
   }
 
