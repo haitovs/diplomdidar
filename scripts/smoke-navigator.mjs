@@ -44,8 +44,10 @@ const check = (condition, message) => {
 };
 
 const canvas = new MockCanvas();
+let panToolActive = false;
 const navigator = new CanvasNavigator(canvas, {
   onTransformChange: () => {},
+  isPanToolActive: () => panToolActive,
 });
 
 check(canvas.listenerCount('wheel') === 1, 'Expected wheel listener to be registered');
@@ -71,6 +73,29 @@ check(navigator.offsetX === 50 && navigator.offsetY === 40, 'Expected panning mo
 navigator._onMouseUp({});
 check(!navigator.isPanning, 'Expected mouseup to stop panning');
 check(canvas.style.cursor === 'crosshair', 'Expected cursor to restore after panning');
+
+navigator._onMouseDown({
+  button: 0,
+  ctrlKey: false,
+  metaKey: false,
+  clientX: 150,
+  clientY: 170,
+  preventDefault() {},
+});
+check(!navigator.isPanning, 'Expected plain left click not to start panning outside pan tool mode');
+
+panToolActive = true;
+navigator._onMouseDown({
+  button: 0,
+  ctrlKey: false,
+  metaKey: false,
+  clientX: 180,
+  clientY: 190,
+  preventDefault() {},
+});
+check(navigator.isPanning, 'Expected pan tool active state to allow left-drag panning');
+navigator._onMouseUp({});
+panToolActive = false;
 
 let preventedSpaceDefault = false;
 navigator._onKeyDown({

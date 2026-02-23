@@ -112,6 +112,7 @@ export class TopologyEditor {
       select: 'default',
       addNode: 'crosshair',
       addLink: 'crosshair',
+      hand: 'grab',
       delete: 'not-allowed',
     };
     this.canvas.style.cursor = cursors[this.mode] || 'default';
@@ -172,6 +173,9 @@ export class TopologyEditor {
         
       case 'addLink':
         this.handleLinkClick(x, y);
+        break;
+
+      case 'hand':
         break;
         
       case 'delete':
@@ -593,6 +597,9 @@ export class TopologyEditor {
           break;
         case 'l':
           this.setMode('addLink');
+          break;
+        case 'h':
+          this.setMode('hand');
           break;
       }
     }

@@ -27,6 +27,7 @@ assertButtonCount('web/src/pages/PlaygroundPage.jsx', 10, 'too few actionable co
 assertContains('web/src/pages/PlaygroundPage.jsx', "setEditorMode('select')", 'missing Select mode button');
 assertContains('web/src/pages/PlaygroundPage.jsx', "setEditorMode('addNode')", 'missing Add Node mode button');
 assertContains('web/src/pages/PlaygroundPage.jsx', "setEditorMode('addLink')", 'missing Add Link mode button');
+assertContains('web/src/pages/PlaygroundPage.jsx', "setEditorMode('hand')", 'missing Hand mode button');
 assertContains('web/src/pages/PlaygroundPage.jsx', 'onUndo', 'missing Undo handler wiring');
 assertContains('web/src/pages/PlaygroundPage.jsx', 'onRedo', 'missing Redo handler wiring');
 assertContains('web/src/pages/PlaygroundPage.jsx', 'onClear', 'missing Clear handler wiring');
@@ -36,6 +37,7 @@ assertContains('web/src/pages/PlaygroundPage.jsx', 'onSimulate', 'missing Simula
 assertContains('web/src/pages/PlaygroundPage.jsx', 'new TopologyEditor', 'missing TopologyEditor initialization');
 assertContains('web/src/pages/PlaygroundPage.jsx', 'new DevicePalette', 'missing DevicePalette initialization');
 assertContains('web/src/pages/PlaygroundPage.jsx', 'new PropertyEditor', 'missing PropertyEditor initialization');
+assertContains('web/src/pages/PlaygroundPage.jsx', 'renderer.start()', 'missing playground renderer start');
 
 // Simulation controls and integrations
 assertButtonCount('web/src/pages/SimulationPage.jsx', 7, 'too few actionable controls');

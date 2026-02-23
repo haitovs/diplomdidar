@@ -293,6 +293,36 @@ Last updated: 2026-02-23
     - Included `smoke-navigator`.
 - Re-verified regression suite:
   - `./scripts/run-smoke-checks.sh` passed.
+- Playground functional baseline recovery:
+  - Updated `web/src/pages/PlaygroundPage.jsx`:
+    - Started renderer loop on page initialization (`renderer.start()`) to prevent dead-looking canvas after load.
+    - Added fallback load behavior: if saved topology exists but is empty, auto-load starter topology and persist it.
+    - Added explicit `Hand (H)` tool in toolbar for left-click pan workflow.
+    - Added guarded/clear toolbar actions with user feedback (`undo/redo/clear/export/simulate/import` now report invalid states).
+    - Added empty-canvas overlay with recovery actions (`Add First Node`, `Load Starter`, `Import JSON`).
+    - Added runtime status pills (renderer state + active mode) and richer map-usage guidance.
+    - Added disabled states for actions that are not currently valid (undo/redo/fit/export/simulate).
+  - Updated `src/rendering/CanvasNavigator.js`:
+    - Added `isPanToolActive` hook so left-drag panning is enabled in Hand mode.
+    - Kept temporary pan options (`Space`, `Ctrl/Cmd`, middle mouse) as alternate paths.
+  - Updated `src/playground/TopologyEditor.js`:
+    - Added `hand` mode cursor and click no-op behavior so hand tool does not trigger edit actions.
+    - Added `H` keyboard shortcut for hand mode.
+- Home page content expansion:
+  - Updated `web/src/pages/HomePage.jsx`:
+    - Added KPI validation cards to clarify practical simulator value.
+    - Added scenario recommendation cards with direct action buttons.
+    - Added direct analytics entry from hero action row.
+  - Updated `web/src/app.css`:
+    - Added styles for new home sections/cards and interactive status/empty-canvas UI components.
+- Regression coverage updates:
+  - Updated `scripts/smoke-navigator.mjs`:
+    - Added checks ensuring left-drag pan only activates when pan-tool callback is active.
+  - Updated `scripts/check-react-page-controls.mjs`:
+    - Added checks for `Hand` tool control and playground `renderer.start()` wiring.
+- Validation:
+  - `./scripts/run-smoke-checks.sh` passed.
+  - `npm run build` (in `web/`) passed.
 ## Next In Queue
 - [x] Expand editor smoke checks to include zoom-aware pointer interaction (`handleClick` path) and import/export stubs.
 - [x] Add teardown checks for dynamically created UI elements (toasts/log entries) under rapid actions.

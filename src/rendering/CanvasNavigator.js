@@ -1,6 +1,6 @@
 /**
  * Canvas Navigation Controller
- * Handles zoom (mouse wheel) and pan (middle-click, Ctrl+drag, or Space+drag) for the network canvas.
+ * Handles zoom (mouse wheel) and pan (middle-click, Ctrl+drag, Space+drag, or Hand-tool left drag) for the network canvas.
  * Works with CanvasRenderer's transform system.
  */
 export class CanvasNavigator {
@@ -19,6 +19,7 @@ export class CanvasNavigator {
     this.minScale = options.minScale ?? 0.3;
     this.maxScale = options.maxScale ?? 3.0;
     this.enableSpacePan = options.enableSpacePan ?? true;
+    this.isPanToolActive = options.isPanToolActive || (() => false);
 
     // Transform state
     this.scale = 1;
@@ -145,9 +146,10 @@ export class CanvasNavigator {
 
   _onMouseDown(e) {
     const isSpacePan = this.enableSpacePan && this._spacePressed && e.button === 0;
+    const isPanToolDrag = e.button === 0 && this.isPanToolActive();
 
     // Middle mouse button OR Ctrl+left click = pan
-    if (e.button === 1 || (e.button === 0 && (e.ctrlKey || e.metaKey)) || isSpacePan) {
+    if (e.button === 1 || (e.button === 0 && (e.ctrlKey || e.metaKey)) || isSpacePan || isPanToolDrag) {
       this._startPan(e);
       return;
     }
