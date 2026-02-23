@@ -331,13 +331,21 @@ export class CanvasRenderer {
    * Find node at coordinates
    */
   findNodeAt(x, y) {
-    return this.nodes.find(node => {
+    const scale = this.transform?.scale || 1;
+    const minWorldHitRadius = 14 / Math.max(scale, 0.1);
+
+    for (let i = this.nodes.length - 1; i >= 0; i -= 1) {
+      const node = this.nodes[i];
       const config = DEVICE_CONFIG[node.type] || DEVICE_CONFIG.switch;
-      const radius = config.radius;
+      const radius = Math.max(config.radius, minWorldHitRadius);
       const dx = node.x - x;
       const dy = node.y - y;
-      return Math.sqrt(dx * dx + dy * dy) < radius;
-    });
+      if (Math.sqrt(dx * dx + dy * dy) < radius) {
+        return node;
+      }
+    }
+
+    return null;
   }
 
   /**

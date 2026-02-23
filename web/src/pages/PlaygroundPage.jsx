@@ -25,6 +25,7 @@ export default function PlaygroundPage() {
   const instancesRef = useRef({});
 
   const [mode, setMode] = useState('select');
+  const [snapToGrid, setSnapToGrid] = useState(true);
   const [zoom, setZoom] = useState(100);
   const [stats, setStats] = useState({ nodes: 0, links: 0 });
   const [status, setStatus] = useState('Editor ready');
@@ -79,6 +80,22 @@ export default function PlaygroundPage() {
 
     const editor = new TopologyEditor(canvas, renderer, {
       isPanning: () => navigator.isPanning,
+      snapToGrid: true,
+      onNodeAdd: (node) => {
+        setStatus(`Added ${node.label}`);
+      },
+      onLinkAdd: (link) => {
+        setStatus(`Linked ${link.source} -> ${link.target}`);
+      },
+      onLinkStageChange: (stage) => {
+        if (stage.stage === 'source') {
+          setStatus(`Link mode: source selected (${stage.sourceId}). Click destination node.`);
+        } else if (stage.stage === 'created') {
+          setStatus(`Link created: ${stage.sourceId} -> ${stage.targetId}`);
+        } else if (instancesRef.current.editor?.mode === 'addLink') {
+          setStatus('Link mode: select source then destination node.');
+        }
+      },
       onNodeSelect: (node) => {
         if (node) {
           propertyEditor.editNode(node);
@@ -156,6 +173,9 @@ export default function PlaygroundPage() {
         palette.setSelectedDevice(targetDevice, false);
       }
       setStatus(`Add node mode: ${targetDevice}`);
+    } else if (nextMode === 'addLink') {
+      editor.setMode(nextMode);
+      setStatus('Link mode: click source node, then destination node.');
     } else {
       editor.setMode(nextMode);
       setStatus(`Mode: ${nextMode}`);
@@ -258,9 +278,20 @@ export default function PlaygroundPage() {
     if (!editor || !renderer || !navigator) return;
 
     editor.loadTopology(starterTopology);
+    editor.setMode('select');
+    setMode('select');
     navigator.fitToContent(renderer.nodes, 80);
     persistTopology(editor);
     setStatus('Starter topology loaded');
+  };
+
+  const onToggleSnap = () => {
+    const editor = instancesRef.current.editor;
+    if (!editor) return;
+    const next = !snapToGrid;
+    editor.setSnapToGrid(next);
+    setSnapToGrid(next);
+    setStatus(next ? 'Grid snap enabled' : 'Grid snap disabled');
   };
 
   const onSimulate = () => {
@@ -278,6 +309,7 @@ export default function PlaygroundPage() {
           <button onClick={() => setEditorMode('select')} className={mode === 'select' ? 'active' : ''}>Select (V)</button>
           <button onClick={() => setEditorMode('addNode')} className={mode === 'addNode' ? 'active' : ''}>Add Node (N)</button>
           <button onClick={() => setEditorMode('addLink')} className={mode === 'addLink' ? 'active' : ''}>Add Link (L)</button>
+          <button onClick={onToggleSnap} className={snapToGrid ? 'active' : ''}>Snap</button>
           <button onClick={onDeleteSelection}>Delete Selected</button>
         </div>
 
@@ -325,7 +357,7 @@ export default function PlaygroundPage() {
 
       <div className="status-row">
         <span>{status}</span>
-        <span>Tip: Drag nodes in Select mode, hold Ctrl and drag to pan, scroll to zoom.</span>
+        <span>Tip: Space+drag (or Ctrl+drag) pans. Scroll zooms. Arrow keys nudge selected nodes.</span>
         <span>{stats.nodes} nodes</span>
         <span>{stats.links} links</span>
       </div>

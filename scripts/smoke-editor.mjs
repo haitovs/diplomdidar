@@ -96,8 +96,16 @@ const check = (condition, message) => {
 const canvas = new MockCanvas();
 const renderer = new MockRenderer();
 let mockPanning = false;
+let lastNodeSelect = 'unset';
+let lastLinkSelect = 'unset';
 const editor = new TopologyEditor(canvas, renderer, {
   isPanning: () => mockPanning,
+  onNodeSelect: (node) => {
+    lastNodeSelect = node;
+  },
+  onLinkSelect: (link) => {
+    lastLinkSelect = link;
+  },
 });
 
 check(editor.history.length === 1, 'Expected initial history snapshot');
@@ -182,6 +190,45 @@ editor.importJSON({
 });
 check(editor.nodes.length === 1, 'Expected importJSON to load provided topology');
 check(editor.nodes[0].id === 'imported-1', 'Expected imported node id to match source');
+
+editor.setMode('select');
+editor.handleSelectClick(editor.nodes[0].x, editor.nodes[0].y, false);
+const nodeBeforeNudgeX = editor.nodes[0].x;
+const nudgePrevented = { value: false };
+editor.handleKeydown({
+  key: 'ArrowRight',
+  shiftKey: false,
+  ctrlKey: false,
+  metaKey: false,
+  target: { tagName: 'DIV' },
+  preventDefault() {
+    nudgePrevented.value = true;
+  },
+});
+const nodeAfterNudgeX = editor.nodes[0].x;
+check(nudgePrevented.value, 'Expected ArrowRight to prevent default while nudging');
+check(nodeAfterNudgeX === nodeBeforeNudgeX + 10, 'Expected ArrowRight to nudge selected node by 10px');
+
+editor.handleKeydown({
+  key: 'ArrowRight',
+  shiftKey: false,
+  ctrlKey: false,
+  metaKey: false,
+  target: { tagName: 'SELECT' },
+  preventDefault() {},
+});
+check(editor.nodes[0].x === nodeAfterNudgeX, 'Expected shortcuts ignored when a select field is focused');
+
+editor.setMode('select');
+editor.handleSelectClick(editor.nodes[0].x, editor.nodes[0].y, false);
+editor.deleteSelected();
+check(editor.nodes.length === 0, 'Expected deleteSelected to remove selected imported node');
+check(lastNodeSelect === null, 'Expected deleteSelected to clear node selection callback');
+check(lastLinkSelect === null, 'Expected deleteSelected to clear link selection callback');
+
+editor.setSnapToGrid(false);
+const unsnappedNode = editor.addNode(123, 157, 'switch');
+check(unsnappedNode.x === 123 && unsnappedNode.y === 157, 'Expected snap toggle off to preserve raw addNode coordinates');
 
 check(mockDocument.listenerCount('keydown') === 1, 'Expected keydown listener before destroy');
 editor.destroy();

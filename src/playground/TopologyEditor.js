@@ -18,6 +18,7 @@ export class TopologyEditor {
       onNodeSelect: null,
       onLinkSelect: null,
       onLinkAdd: null,
+      onLinkStageChange: null,
       onTopologyChange: null,
       isPanning: null,
       snapToGrid: true,
@@ -70,12 +71,16 @@ export class TopologyEditor {
    * Set editor mode
    */
   setMode(mode) {
+    const previousMode = this.mode;
     this.mode = mode;
     this.pendingLink = null;
     if (mode === 'addNode') {
       this.pendingDevice = this.pendingDevice || this.lastDeviceType || 'switch';
     } else {
       this.pendingDevice = null;
+    }
+    if (previousMode === 'addLink' || mode !== 'addLink') {
+      this.options.onLinkStageChange?.({ stage: 'idle' });
     }
     this.updateCursor();
   }
@@ -85,9 +90,18 @@ export class TopologyEditor {
    */
   setPendingDevice(deviceType) {
     this.mode = 'addNode';
+    this.pendingLink = null;
     this.pendingDevice = DEVICE_CONFIG[deviceType] ? deviceType : 'switch';
     this.lastDeviceType = this.pendingDevice;
+    this.options.onLinkStageChange?.({ stage: 'idle' });
     this.updateCursor();
+  }
+
+  /**
+   * Toggle grid snapping for drag/add operations.
+   */
+  setSnapToGrid(enabled) {
+    this.options.snapToGrid = Boolean(enabled);
   }
 
   /**
@@ -354,6 +368,7 @@ export class TopologyEditor {
     
     if (!node) {
       this.pendingLink = null;
+      this.options.onLinkStageChange?.({ stage: 'idle' });
       return;
     }
     
@@ -363,14 +378,26 @@ export class TopologyEditor {
       this.selectedNodes.clear();
       this.selectedNodes.add(node.id);
       this.renderer.selectNode(node.id);
+      this.options.onLinkStageChange?.({ stage: 'source', sourceId: node.id });
     } else {
       // Second node selected - create link
+      let createdLink = null;
       if (this.pendingLink.source !== node.id) {
-        this.addLink(this.pendingLink.source, node.id);
+        createdLink = this.addLink(this.pendingLink.source, node.id);
       }
       this.pendingLink = null;
       this.selectedNodes.clear();
       this.renderer.selectNode(null);
+      if (createdLink) {
+        this.options.onLinkStageChange?.({
+          stage: 'created',
+          sourceId: createdLink.source,
+          targetId: createdLink.target,
+          linkId: createdLink.id,
+        });
+      } else {
+        this.options.onLinkStageChange?.({ stage: 'idle' });
+      }
     }
   }
 
@@ -446,8 +473,12 @@ export class TopologyEditor {
   /**
    * Find link near a point for selection/deletion operations.
    */
-  findLinkAt(x, y, threshold = 14) {
+  findLinkAt(x, y, threshold = null) {
     let hit = null;
+    const scale = this.renderer?.transform?.scale || 1;
+    const worldThreshold = Number.isFinite(threshold)
+      ? threshold
+      : Math.max(8, 14 / Math.max(scale, 0.1));
 
     this.links.forEach((link) => {
       if (hit) return;
@@ -455,7 +486,7 @@ export class TopologyEditor {
       const target = this.renderer.nodeMap.get(link.target);
       if (!source || !target) return;
       const control = this.renderer.getControlPoint(link, source, target);
-      if (this.distanceToCurve(x, y, source, control, target) <= threshold) {
+      if (this.distanceToCurve(x, y, source, control, target) <= worldThreshold) {
         hit = link;
       }
     });
@@ -503,8 +534,15 @@ export class TopologyEditor {
    */
   handleKeydown(e) {
     // Only process if canvas is focused or no input is focused
-    const tagName = e.target.tagName.toLowerCase();
-    if (tagName === 'input' || tagName === 'textarea') return;
+    const target = e.target;
+    const tagName = target?.tagName?.toLowerCase?.() || '';
+    const isEditable = (
+      tagName === 'input' ||
+      tagName === 'textarea' ||
+      tagName === 'select' ||
+      target?.isContentEditable
+    );
+    if (isEditable) return;
     
     if (e.ctrlKey || e.metaKey) {
       switch (e.key) {
@@ -527,10 +565,25 @@ export class TopologyEditor {
         case 'Backspace':
           this.deleteSelected();
           break;
+        case 'ArrowUp':
+          e.preventDefault();
+          this.nudgeSelectedNodes(0, e.shiftKey ? -this.options.gridSize : -10);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          this.nudgeSelectedNodes(0, e.shiftKey ? this.options.gridSize : 10);
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          this.nudgeSelectedNodes(e.shiftKey ? -this.options.gridSize : -10, 0);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          this.nudgeSelectedNodes(e.shiftKey ? this.options.gridSize : 10, 0);
+          break;
         case 'Escape':
           this.setMode('select');
-          this.selectedNodes.clear();
-          this.renderer.selectNode(null);
+          this.resetSelection();
           break;
         case 'v':
           this.setMode('select');
@@ -619,9 +672,13 @@ export class TopologyEditor {
    * Delete a node and its connected links
    */
   deleteNode(nodeId) {
+    const shouldClearSelection = this.selectedNodes.has(nodeId) || this.renderer.selectedNode === nodeId;
     this.nodes = this.nodes.filter(n => n.id !== nodeId);
     this.links = this.links.filter(l => l.source !== nodeId && l.target !== nodeId);
     this.selectedNodes.delete(nodeId);
+    if (shouldClearSelection) {
+      this.resetSelection();
+    }
     
     this.saveState();
     this.updateRenderer();
@@ -632,8 +689,12 @@ export class TopologyEditor {
    * Delete a link
    */
   deleteLink(linkId) {
+    const shouldClearSelection = this.selectedLinks.has(linkId) || this.renderer.selectedLink === linkId;
     this.links = this.links.filter(l => l.id !== linkId);
     this.selectedLinks.delete(linkId);
+    if (shouldClearSelection) {
+      this.resetSelection();
+    }
     
     this.saveState();
     this.updateRenderer();
@@ -655,11 +716,63 @@ export class TopologyEditor {
       this.links = this.links.filter((link) => link.id !== linkId);
     });
     
-    this.selectedNodes.clear();
-    this.selectedLinks.clear();
+    this.resetSelection();
     this.saveState();
     this.updateRenderer();
     this.emitChange();
+  }
+
+  /**
+   * Move all selected nodes by delta (in world coordinates).
+   */
+  nudgeSelectedNodes(dx, dy) {
+    if (this.selectedNodes.size === 0) return false;
+    const width = this.canvas.offsetWidth || this.canvas.width || 1;
+    const height = this.canvas.offsetHeight || this.canvas.height || 1;
+    let movedAny = false;
+
+    this.selectedNodes.forEach((nodeId) => {
+      const node = this.nodes.find((entry) => entry.id === nodeId);
+      if (!node) return;
+
+      const nextX = Math.min(width, Math.max(0, node.x + dx));
+      const nextY = Math.min(height, Math.max(0, node.y + dy));
+      if (nextX === node.x && nextY === node.y) return;
+
+      movedAny = true;
+      node.x = nextX;
+      node.y = nextY;
+      node.position = {
+        x: nextX / width,
+        y: nextY / height,
+      };
+    });
+
+    if (!movedAny) return false;
+    this.saveState();
+    this.updateRenderer();
+
+    if (this.selectedNodes.size === 1 && this.options.onNodeSelect) {
+      const [nodeId] = this.selectedNodes;
+      const node = this.nodes.find((entry) => entry.id === nodeId);
+      this.options.onNodeSelect(node || null);
+    }
+
+    this.emitChange();
+    return true;
+  }
+
+  /**
+   * Clear all selections and notify panels.
+   */
+  resetSelection(notify = true) {
+    this.selectedNodes.clear();
+    this.selectedLinks.clear();
+    this.renderer.selectNode(null);
+    if (notify) {
+      this.options.onNodeSelect?.(null);
+      this.options.onLinkSelect?.(null);
+    }
   }
 
   /**
@@ -668,6 +781,10 @@ export class TopologyEditor {
   selectAll() {
     this.selectedNodes.clear();
     this.nodes.forEach(n => this.selectedNodes.add(n.id));
+    this.selectedLinks.clear();
+    this.renderer.selectNode(null);
+    this.options.onLinkSelect?.(null);
+    this.options.onNodeSelect?.(null);
   }
 
   /**
@@ -752,9 +869,7 @@ export class TopologyEditor {
     const state = this.history[this.historyIndex];
     this.nodes = JSON.parse(JSON.stringify(state.nodes));
     this.links = JSON.parse(JSON.stringify(state.links));
-    this.selectedNodes.clear();
-    this.selectedLinks.clear();
-    this.renderer.selectNode(null);
+    this.resetSelection();
     
     this.updateRenderer();
     this.emitChange();
@@ -770,9 +885,7 @@ export class TopologyEditor {
     const state = this.history[this.historyIndex];
     this.nodes = JSON.parse(JSON.stringify(state.nodes));
     this.links = JSON.parse(JSON.stringify(state.links));
-    this.selectedNodes.clear();
-    this.selectedLinks.clear();
-    this.renderer.selectNode(null);
+    this.resetSelection();
     
     this.updateRenderer();
     this.emitChange();
@@ -802,9 +915,7 @@ export class TopologyEditor {
     const normalized = normalizeTopology(topology, this.getNormalizationOptions());
     this.nodes = normalized.nodes;
     this.links = normalized.links;
-    this.selectedNodes.clear();
-    this.selectedLinks.clear();
-    this.renderer.selectNode(null);
+    this.resetSelection();
     
     // Update counters
     this.nodeIdCounter = this.getNextCounter(this.nodes, 'node');
@@ -825,9 +936,7 @@ export class TopologyEditor {
   clear() {
     this.nodes = [];
     this.links = [];
-    this.selectedNodes.clear();
-    this.selectedLinks.clear();
-    this.renderer.selectNode(null);
+    this.resetSelection();
     this.nodeIdCounter = 1;
     this.linkIdCounter = 1;
     this.saveState();

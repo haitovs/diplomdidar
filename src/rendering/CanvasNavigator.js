@@ -1,6 +1,6 @@
 /**
  * Canvas Navigation Controller
- * Handles zoom (mouse wheel) and pan (middle-click or Ctrl+drag) for the network canvas.
+ * Handles zoom (mouse wheel) and pan (middle-click, Ctrl+drag, or Space+drag) for the network canvas.
  * Works with CanvasRenderer's transform system.
  */
 export class CanvasNavigator {
@@ -18,6 +18,7 @@ export class CanvasNavigator {
     this.findNodeAt = options.findNodeAt || null;
     this.minScale = options.minScale ?? 0.3;
     this.maxScale = options.maxScale ?? 3.0;
+    this.enableSpacePan = options.enableSpacePan ?? true;
 
     // Transform state
     this.scale = 1;
@@ -30,6 +31,8 @@ export class CanvasNavigator {
     this._panStartY = 0;
     this._panStartOffsetX = 0;
     this._panStartOffsetY = 0;
+    this._spacePressed = false;
+    this._cursorBeforePan = '';
 
     // Bind handlers
     this._onWheel = this._onWheel.bind(this);
@@ -37,6 +40,9 @@ export class CanvasNavigator {
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onMouseUp = this._onMouseUp.bind(this);
     this._onDblClick = this._onDblClick.bind(this);
+    this._onKeyDown = this._onKeyDown.bind(this);
+    this._onKeyUp = this._onKeyUp.bind(this);
+    this._onWindowBlur = this._onWindowBlur.bind(this);
 
     // Attach
     canvas.addEventListener('wheel', this._onWheel, { passive: false });
@@ -44,6 +50,9 @@ export class CanvasNavigator {
     window.addEventListener('mousemove', this._onMouseMove);
     window.addEventListener('mouseup', this._onMouseUp);
     canvas.addEventListener('dblclick', this._onDblClick);
+    window.addEventListener('keydown', this._onKeyDown);
+    window.addEventListener('keyup', this._onKeyUp);
+    window.addEventListener('blur', this._onWindowBlur);
   }
 
   /** Get current transform object */
@@ -135,27 +144,17 @@ export class CanvasNavigator {
   }
 
   _onMouseDown(e) {
+    const isSpacePan = this.enableSpacePan && this._spacePressed && e.button === 0;
+
     // Middle mouse button OR Ctrl+left click = pan
-    if (e.button === 1 || (e.button === 0 && (e.ctrlKey || e.metaKey))) {
-      e.preventDefault();
-      this._isPanning = true;
-      this._panStartX = e.clientX;
-      this._panStartY = e.clientY;
-      this._panStartOffsetX = this.offsetX;
-      this._panStartOffsetY = this.offsetY;
-      this.canvas.style.cursor = 'grabbing';
+    if (e.button === 1 || (e.button === 0 && (e.ctrlKey || e.metaKey)) || isSpacePan) {
+      this._startPan(e);
       return;
     }
 
     // Right-click pan (optional — also handle button 2 for convenience)
     if (e.button === 2) {
-      e.preventDefault();
-      this._isPanning = true;
-      this._panStartX = e.clientX;
-      this._panStartY = e.clientY;
-      this._panStartOffsetX = this.offsetX;
-      this._panStartOffsetY = this.offsetY;
-      this.canvas.style.cursor = 'grabbing';
+      this._startPan(e);
     }
   }
 
@@ -171,10 +170,7 @@ export class CanvasNavigator {
   }
 
   _onMouseUp(e) {
-    if (this._isPanning) {
-      this._isPanning = false;
-      this.canvas.style.cursor = '';
-    }
+    this._stopPan();
   }
 
   _onDblClick(e) {
@@ -182,6 +178,45 @@ export class CanvasNavigator {
     if (e.ctrlKey || e.metaKey) {
       this.resetView();
     }
+  }
+
+  _onKeyDown(e) {
+    if (!this.enableSpacePan || e.code !== 'Space') return;
+    const target = e.target;
+    const tagName = target?.tagName?.toLowerCase?.() || '';
+    if (tagName === 'input' || tagName === 'textarea' || tagName === 'select' || target?.isContentEditable) {
+      return;
+    }
+    e.preventDefault();
+    this._spacePressed = true;
+  }
+
+  _onKeyUp(e) {
+    if (e.code !== 'Space') return;
+    this._spacePressed = false;
+  }
+
+  _onWindowBlur() {
+    this._spacePressed = false;
+    this._stopPan();
+  }
+
+  _startPan(e) {
+    e.preventDefault();
+    this._isPanning = true;
+    this._panStartX = e.clientX;
+    this._panStartY = e.clientY;
+    this._panStartOffsetX = this.offsetX;
+    this._panStartOffsetY = this.offsetY;
+    this._cursorBeforePan = this.canvas.style.cursor || '';
+    this.canvas.style.cursor = 'grabbing';
+  }
+
+  _stopPan() {
+    if (!this._isPanning) return;
+    this._isPanning = false;
+    this.canvas.style.cursor = this._cursorBeforePan;
+    this._cursorBeforePan = '';
   }
 
   _emitChange() {
@@ -195,10 +230,14 @@ export class CanvasNavigator {
 
   /** Cleanup */
   destroy() {
+    this._stopPan();
     this.canvas.removeEventListener('wheel', this._onWheel);
     this.canvas.removeEventListener('mousedown', this._onMouseDown);
     window.removeEventListener('mousemove', this._onMouseMove);
     window.removeEventListener('mouseup', this._onMouseUp);
     this.canvas.removeEventListener('dblclick', this._onDblClick);
+    window.removeEventListener('keydown', this._onKeyDown);
+    window.removeEventListener('keyup', this._onKeyUp);
+    window.removeEventListener('blur', this._onWindowBlur);
   }
 }

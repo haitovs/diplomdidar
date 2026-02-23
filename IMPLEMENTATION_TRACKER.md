@@ -1,6 +1,6 @@
 # Project Stabilization Tracker
 
-Last updated: 2026-02-18
+Last updated: 2026-02-23
 
 ## Scope
 - Stabilize simulation logic and UI interactions.
@@ -265,21 +265,34 @@ Last updated: 2026-02-18
     - Enabled pan/zoom instruments on topology preview.
   - Re-verified regression suite:
     - `./scripts/run-smoke-checks.sh` passed.
-- Interaction reliability hardening (editor instruments):
-  - Updated `TopologyEditor` to avoid pan-vs-drag/click conflicts:
-    - Added `isPanning` option hook and ignored click/drag initiation while panning.
-    - Ignored Ctrl/Meta mouse-down for node-drag start in select mode.
-  - Improved drag precision:
-    - Switched drag activation threshold to screen-space distance to reduce accidental drags under zoom.
-  - Stabilized drag-and-drop behavior:
-    - Palette drop now adds node directly without forcing global editor mode to `addNode`.
-  - Updated `PlaygroundPage` wiring:
-    - Passed `CanvasNavigator.isPanning` into `TopologyEditor` for reliable interaction gating.
-  - Expanded smoke coverage:
-    - `scripts/smoke-editor.mjs` now validates panning click suppression, ctrl-drag guard, and drop-mode stability.
-  - Re-verified regression suite:
-    - `./scripts/run-smoke-checks.sh` passed.
 
+### 2026-02-23
+- Interaction precision and instrument usability hardening:
+  - Updated `src/playground/TopologyEditor.js`:
+    - Added `onLinkStageChange` callback for explicit add-link workflow guidance (source selected / created / idle).
+    - Added `setSnapToGrid(enabled)` API for runtime snap control from UI.
+    - Added keyboard node nudging with arrow keys (`10px`, `Shift` = `gridSize`) and safe shortcut guard for `input/textarea/select/contentEditable`.
+    - Added centralized `resetSelection()` so delete/undo/redo/load/clear consistently clear property panel state.
+    - Made link hit-testing zoom-aware (`worldThreshold` derived from current scale) for reliable link selection at any zoom.
+  - Updated `src/rendering/CanvasRenderer.js`:
+    - Improved node hit-testing to prefer topmost node (reverse traversal) and enforce minimum screen-space hit radius under zoom-out.
+  - Updated `src/rendering/CanvasNavigator.js`:
+    - Added temporary `Space+drag` pan support (in addition to `Ctrl+drag`/middle mouse).
+    - Added cursor restore logic after pan so tool cursors (`crosshair`, etc.) do not get lost.
+    - Added key listener teardown and blur safety reset.
+  - Updated `web/src/pages/PlaygroundPage.jsx`:
+    - Added `Snap` toolbar toggle wired to editor API.
+    - Added clearer runtime status messages for add-link workflow and node/link actions.
+    - Updated interaction tip text for pan/zoom/nudge instruments.
+- Regression coverage expanded:
+  - Updated `scripts/smoke-editor.mjs`:
+    - Added checks for keyboard nudge behavior, editable-field shortcut guard, selection reset callbacks, and snap toggle behavior.
+  - Added `scripts/smoke-navigator.mjs`:
+    - Added checks for ctrl-pan, space-pan, cursor restoration, and listener cleanup.
+  - Updated `scripts/run-smoke-checks.sh`:
+    - Included `smoke-navigator`.
+- Re-verified regression suite:
+  - `./scripts/run-smoke-checks.sh` passed.
 ## Next In Queue
 - [x] Expand editor smoke checks to include zoom-aware pointer interaction (`handleClick` path) and import/export stubs.
 - [x] Add teardown checks for dynamically created UI elements (toasts/log entries) under rapid actions.
