@@ -1,7 +1,7 @@
 services:
-  frontend:
+  app:
     build: .
-    container_name: network-training-simulator
+    container_name: didar-network-sim
     ports:
-      - "4040:80"
+      - "4088:4088"
     restart: unless-stopped
