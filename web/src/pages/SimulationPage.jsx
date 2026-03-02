@@ -11,7 +11,6 @@ import { STORAGE_KEYS } from '../lib/storage.js';
 
 import SimulationControls from '../components/SimulationControls.jsx';
 import EventList from '../components/EventList.jsx';
-import PacketDetailPanel from '../components/PacketDetailPanel.jsx';
 import CliTerminal from '../components/CliTerminal.jsx';
 import DeviceConfigDialog from '../components/DeviceConfigDialog.jsx';
 import PingDialog from '../components/PingDialog.jsx';
@@ -34,7 +33,6 @@ export default function SimulationPage() {
   const [zoom, setZoom] = useState(100);
   const [simState, setSimState] = useState({ stepCount: 0, eventsQueued: 0, packetsInFlight: 0 });
   const [events, setEvents] = useState([]);
-  const [selectedFrame, setSelectedFrame] = useState(null);
   const [rightPanel, setRightPanel] = useState('events');
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showPingDialog, setShowPingDialog] = useState(false);
@@ -51,6 +49,11 @@ export default function SimulationPage() {
 
   // Force re-render counter for info panel refresh
   const [, forceUpdate] = useState(0);
+
+  // Ref for auto-step timer cleanup
+  const autoStepRef = useRef(null);
+  // Track pointer-down position for click vs drag detection
+  const pointerDownRef = useRef(null);
 
   const refreshState = useCallback(() => {
     const engine = instancesRef.current.engine;
@@ -114,7 +117,14 @@ export default function SimulationPage() {
     preloadDeviceIcons().then((cache) => {
       renderer.setIconCache(cache);
       renderer.setTopology({ nodes: normalized.nodes, links: normalized.links });
-      navigator.fitToContent(renderer.nodes, 90);
+      renderer.handleResize();
+      // Double-rAF ensures CSS layout is fully resolved before fitting
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          renderer.handleResize();
+          navigator.fitToContent(renderer.nodes, 90);
+        });
+      });
       renderer.start();
 
       engine.initialize({ nodes: normalized.nodes, links: normalized.links });
@@ -129,6 +139,7 @@ export default function SimulationPage() {
     });
 
     return () => {
+      if (autoStepRef.current) clearInterval(autoStepRef.current);
       instancesRef.current = {};
       engine.destroy();
       navigator.destroy();
@@ -155,8 +166,31 @@ export default function SimulationPage() {
     instancesRef.current.engine?.setSpeed(s);
   };
 
+  const autoStepEvents = useCallback((engine) => {
+    // Clear any existing auto-step timer
+    if (autoStepRef.current) clearInterval(autoStepRef.current);
+
+    let stepsRemaining = 60; // safety cap
+    const interval = setInterval(() => {
+      const state = engine.getState();
+      if (state.eventsQueued === 0 || stepsRemaining <= 0) {
+        clearInterval(interval);
+        autoStepRef.current = null;
+        refreshState();
+        return;
+      }
+      engine.stepForward();
+      stepsRemaining--;
+    }, 150);
+    autoStepRef.current = interval;
+  }, [refreshState]);
+
   const handlePing = (sourceId, destIp) => {
-    instancesRef.current.engine?.ping(sourceId, destIp, 4);
+    const engine = instancesRef.current.engine;
+    if (!engine) return;
+    engine.ping(sourceId, destIp, 4);
+    refreshState();
+    autoStepEvents(engine);
   };
 
   const handleEditTopology = () => {
@@ -251,6 +285,9 @@ export default function SimulationPage() {
           const destIp = destDevice?.interfaces?.find(i => i.ipAddress)?.ipAddress;
           if (destIp) {
             engine.ping(pduSource.id, destIp, 1);
+            refreshState();
+            // Auto-step queued events so the user sees the simulation play out
+            autoStepEvents(engine);
           }
         }
         setPduSource(null);
@@ -266,11 +303,15 @@ export default function SimulationPage() {
         return;
       }
       const canvasRect = canvasRef.current.getBoundingClientRect();
+      const rawX = coords.clientX - canvasRect.left + 20;
+      const rawY = coords.clientY - canvasRect.top - 20;
+      // Clamp so form stays within the canvas area
       setFloatingIp({
         device: node,
-        x: coords.clientX - canvasRect.left + 20,
-        y: coords.clientY - canvasRect.top - 20,
+        x: Math.min(rawX, canvasRect.width - 260),
+        y: Math.max(rawY, 10),
       });
+      renderer.selectNode(node.id);
       return;
     }
 
@@ -283,6 +324,22 @@ export default function SimulationPage() {
       setRightPanel('events');
       setEditingHostname(false);
     }
+  };
+
+  const handlePointerDown = (e) => {
+    if (e.button !== 0) return; // only track left button
+    pointerDownRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handlePointerUp = (e) => {
+    if (e.button !== 0) return;
+    const down = pointerDownRef.current;
+    pointerDownRef.current = null;
+    if (!down) return;
+    // Skip if the pointer moved more than 5px (it was a drag/pan, not a click)
+    const dist = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+    if (dist > 5) return;
+    handleCanvasClick(e);
   };
 
   const handleCanvasDblClick = (e) => {
@@ -386,7 +443,8 @@ export default function SimulationPage() {
           <canvas
             ref={canvasRef}
             className="editor-canvas"
-            onClick={handleCanvasClick}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
             onDoubleClick={handleCanvasDblClick}
             onMouseMove={handleCanvasMouseMove}
           />
@@ -424,10 +482,7 @@ export default function SimulationPage() {
 
           <div className="sim-panel-body">
             {rightPanel === 'events' && (
-              <>
-                <EventList events={events} currentStep={simState.stepCount} />
-                <PacketDetailPanel frame={selectedFrame} />
-              </>
+              <EventList events={events} currentStep={simState.stepCount} />
             )}
 
             {rightPanel === 'cli' && deviceForPanel && (

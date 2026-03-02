@@ -55,10 +55,15 @@ export class CanvasRenderer {
   }
 
   setTopology(topology) {
+    // Use uniform scaling so the layout isn't distorted by canvas aspect ratio
+    const dim = Math.min(this.width, this.height);
+    const padX = (this.width - dim) / 2;
+    const padY = (this.height - dim) / 2;
+
     this.nodes = (topology.nodes || []).map(node => ({
       ...node,
-      x: node.position?.x * this.width || this.width / 2,
-      y: node.position?.y * this.height || this.height / 2,
+      x: (node.position?.x ?? 0.5) * dim + padX,
+      y: (node.position?.y ?? 0.5) * dim + padY,
       type: node.type || 'switch',
     }));
 
@@ -85,26 +90,12 @@ export class CanvasRenderer {
 
   handleResize() {
     const rect = this.canvas.getBoundingClientRect();
-    const oldW = this.width || rect.width;
-    const oldH = this.height || rect.height;
     this.width = rect.width;
     this.height = rect.height;
     this.canvas.width = rect.width * this.dpr;
     this.canvas.height = rect.height * this.dpr;
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-
-    if (this.nodes.length > 0 && oldW > 0 && oldH > 0) {
-      const scaleX = this.width / oldW;
-      const scaleY = this.height / oldH;
-      this.nodes.forEach(node => {
-        node.x *= scaleX;
-        node.y *= scaleY;
-        if (node.position) {
-          node.position.x = node.x / this.width;
-          node.position.y = node.y / this.height;
-        }
-      });
-    }
+    // Node positions are managed by fitToContent — no non-uniform rescaling here
   }
 
   start() {

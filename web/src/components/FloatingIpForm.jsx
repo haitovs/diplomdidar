@@ -29,9 +29,9 @@ export default function FloatingIpForm({ device, networkStack, x, y, onApply, on
     onApply(device.id, ip, mask, gateway);
   };
 
-  // Clamp position to stay within canvas area
+  // Position near the clicked device
   const style = {
-    left: Math.min(x, 400),
+    left: x,
     top: Math.max(y, 10),
   };
 
