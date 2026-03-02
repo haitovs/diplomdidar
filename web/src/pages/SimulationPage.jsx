@@ -5,7 +5,7 @@ import { CanvasNavigator } from '@core/rendering/CanvasNavigator.js';
 import { PacketSimulationEngine } from '@core/engine/PacketSimulationEngine.js';
 import { normalizeTopology, serializeTopology } from '@core/utils/topologySchema.js';
 import { isRouterType, isSwitchType, isEndpointType } from '@core/network/InterfaceManager.js';
-import { defaultTopology } from '../data/topologyTemplates.js';
+import { defaultTopology, defaultIpConfig } from '../data/topologyTemplates.js';
 import { preloadDeviceIcons } from '../lib/iconCache.js';
 import { STORAGE_KEYS } from '../lib/storage.js';
 
@@ -16,6 +16,7 @@ import CliTerminal from '../components/CliTerminal.jsx';
 import DeviceConfigDialog from '../components/DeviceConfigDialog.jsx';
 import PingDialog from '../components/PingDialog.jsx';
 import FloatingIpForm from '../components/FloatingIpForm.jsx';
+import DeviceListOverlay from '../components/DeviceListOverlay.jsx';
 
 const TOOL_HINTS = {
   pdu: 'Simple PDU: Click source device',
@@ -34,7 +35,7 @@ export default function SimulationPage() {
   const [simState, setSimState] = useState({ stepCount: 0, eventsQueued: 0, packetsInFlight: 0 });
   const [events, setEvents] = useState([]);
   const [selectedFrame, setSelectedFrame] = useState(null);
-  const [rightPanel, setRightPanel] = useState('events'); // 'events' | 'cli' | 'config' | 'info'
+  const [rightPanel, setRightPanel] = useState('events');
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showPingDialog, setShowPingDialog] = useState(false);
   const [nodes, setNodes] = useState([]);
@@ -42,7 +43,14 @@ export default function SimulationPage() {
   // Tool state
   const [activeTool, setActiveTool] = useState('select');
   const [pduSource, setPduSource] = useState(null);
-  const [floatingIp, setFloatingIp] = useState(null); // { device, x, y }
+  const [floatingIp, setFloatingIp] = useState(null);
+
+  // Hostname editing
+  const [editingHostname, setEditingHostname] = useState(false);
+  const [hostnameValue, setHostnameValue] = useState('');
+
+  // Force re-render counter for info panel refresh
+  const [, forceUpdate] = useState(0);
 
   const refreshState = useCallback(() => {
     const engine = instancesRef.current.engine;
@@ -72,14 +80,14 @@ export default function SimulationPage() {
     engine.on('step', refreshState);
     engine.on('deliver', (evt) => {
       refreshState();
-      if (evt?.packet?.destNodeId) {
-        renderer.addPingResult(evt.packet.destNodeId, true);
+      if (evt?.nodeId) {
+        renderer.addPingResult(evt.nodeId, true);
       }
     });
     engine.on('drop', (evt) => {
       refreshState();
-      if (evt?.packet?.currentNodeId) {
-        renderer.addPingResult(evt.packet.currentNodeId, false);
+      if (evt?.nodeId) {
+        renderer.addPingResult(evt.nodeId, false);
       }
     });
     engine.on('reset', refreshState);
@@ -88,8 +96,14 @@ export default function SimulationPage() {
 
     const savedTopologyRaw = localStorage.getItem(STORAGE_KEYS.playgroundTopology);
     let topology = defaultTopology;
+    let useDefaultIps = true;
     if (savedTopologyRaw) {
-      try { topology = JSON.parse(savedTopologyRaw); } catch { topology = defaultTopology; }
+      try {
+        topology = JSON.parse(savedTopologyRaw);
+        useDefaultIps = false;
+      } catch {
+        topology = defaultTopology;
+      }
     }
 
     const normalized = normalizeTopology(topology, {
@@ -104,6 +118,12 @@ export default function SimulationPage() {
       renderer.start();
 
       engine.initialize({ nodes: normalized.nodes, links: normalized.links });
+
+      // Apply default IPs if using the built-in topology
+      if (useDefaultIps && defaultIpConfig) {
+        applyIpConfig(engine.networkStack, defaultIpConfig);
+      }
+
       setNodes(normalized.nodes);
       refreshState();
     });
@@ -189,14 +209,20 @@ export default function SimulationPage() {
     const link = !node ? renderer.findLinkAt(coords.x, coords.y) : null;
     renderer.setHoveredLink(link?.id || null);
 
-    // Cursor feedback
-    if (activeTool === 'pdu') {
-      canvas.style.cursor = node ? 'pointer' : 'crosshair';
-    } else if (activeTool === 'ip') {
+    if (activeTool === 'pdu' || activeTool === 'ip') {
       canvas.style.cursor = node ? 'pointer' : 'crosshair';
     } else {
       canvas.style.cursor = node || link ? 'pointer' : 'default';
     }
+  };
+
+  const selectDeviceOnCanvas = (node) => {
+    const renderer = instancesRef.current.renderer;
+    if (!renderer) return;
+    setSelectedDevice(node);
+    renderer.selectNode(node.id);
+    setRightPanel('info');
+    setEditingHostname(false);
   };
 
   const handleCanvasClick = (e) => {
@@ -213,11 +239,9 @@ export default function SimulationPage() {
     if (activeTool === 'pdu') {
       if (!node) return;
       if (!pduSource) {
-        // First click: select source
         setPduSource(node);
         renderer.setPduSourceNode(node.id);
       } else {
-        // Second click: ping destination
         if (node.id !== pduSource.id) {
           const destDevice = engine.networkStack?.getNode(node.id);
           const destIp = destDevice?.interfaces?.find(i => i.ipAddress)?.ipAddress;
@@ -225,7 +249,6 @@ export default function SimulationPage() {
             engine.ping(pduSource.id, destIp, 1);
           }
         }
-        // Reset PDU state
         setPduSource(null);
         renderer.setPduSourceNode(null);
       }
@@ -238,7 +261,6 @@ export default function SimulationPage() {
         setFloatingIp(null);
         return;
       }
-      // Position form near the click, but in screen coords
       const canvasRect = canvasRef.current.getBoundingClientRect();
       setFloatingIp({
         device: node,
@@ -250,13 +272,12 @@ export default function SimulationPage() {
 
     // Select tool mode (default)
     if (node) {
-      setSelectedDevice(node);
-      renderer.selectNode(node.id);
-      setRightPanel('info');
+      selectDeviceOnCanvas(node);
     } else {
       setSelectedDevice(null);
       renderer.selectNode(null);
       setRightPanel('events');
+      setEditingHostname(false);
     }
   };
 
@@ -271,6 +292,7 @@ export default function SimulationPage() {
     if (!node) return;
 
     setSelectedDevice(node);
+    setEditingHostname(false);
 
     if (isRouterType(node.type) || isSwitchType(node.type)) {
       setRightPanel('cli');
@@ -293,6 +315,40 @@ export default function SimulationPage() {
     }
     setFloatingIp(null);
     refreshState();
+    forceUpdate(n => n + 1);
+  };
+
+  // Hostname editing
+  const startEditHostname = (hostname) => {
+    setEditingHostname(true);
+    setHostnameValue(hostname || '');
+  };
+
+  const commitHostname = () => {
+    if (!selectedDevice || !hostnameValue.trim()) {
+      setEditingHostname(false);
+      return;
+    }
+    const engine = instancesRef.current.engine;
+    const renderer = instancesRef.current.renderer;
+    if (engine?.networkStack) {
+      engine.networkStack.setHostname(selectedDevice.id, hostnameValue.trim());
+    }
+    // Also update the renderer's node so the canvas label refreshes
+    if (renderer) {
+      const rNode = renderer.nodeMap.get(selectedDevice.id);
+      if (rNode) {
+        rNode.hostname = hostnameValue.trim();
+        rNode.label = hostnameValue.trim();
+      }
+    }
+    setEditingHostname(false);
+    forceUpdate(n => n + 1);
+  };
+
+  const handleHostnameKeyDown = (e) => {
+    if (e.key === 'Enter') commitHostname();
+    if (e.key === 'Escape') setEditingHostname(false);
   };
 
   const deviceForPanel = selectedDevice
@@ -316,9 +372,7 @@ export default function SimulationPage() {
         onSpeedChange={handleSpeedChange}
         onSendPing={() => setShowPingDialog(true)}
         onEditTopology={handleEditTopology}
-        stepCount={simState.stepCount}
         eventsQueued={simState.eventsQueued}
-        packetsInFlight={simState.packetsInFlight}
         activeTool={activeTool}
         onToolChange={handleToolChange}
       />
@@ -345,6 +399,12 @@ export default function SimulationPage() {
               onClose={() => setFloatingIp(null)}
             />
           )}
+          <DeviceListOverlay
+            nodes={nodes}
+            selectedDeviceId={selectedDevice?.id}
+            onSelectDevice={selectDeviceOnCanvas}
+            networkStack={instancesRef.current.engine?.networkStack}
+          />
           <div className="canvas-meta">
             {mode} mode | step {simState.stepCount} | {simState.eventsQueued} queued | {simState.packetsInFlight} in flight | zoom {zoom}%
           </div>
@@ -380,20 +440,37 @@ export default function SimulationPage() {
                 device={deviceForPanel}
                 networkStack={instancesRef.current.engine?.networkStack}
                 onClose={() => setRightPanel('events')}
-                onApply={() => refreshState()}
+                onApply={() => { refreshState(); forceUpdate(n => n + 1); }}
               />
             )}
 
             {rightPanel === 'info' && deviceForPanel && (
               <div className="device-info-panel">
-                <h4>{deviceForPanel.hostname}</h4>
+                {editingHostname ? (
+                  <input
+                    className="hostname-input"
+                    value={hostnameValue}
+                    onChange={e => setHostnameValue(e.target.value)}
+                    onBlur={commitHostname}
+                    onKeyDown={handleHostnameKeyDown}
+                    autoFocus
+                    spellCheck={false}
+                  />
+                ) : (
+                  <h4
+                    className="hostname-editable"
+                    onClick={() => startEditHostname(deviceForPanel.hostname)}
+                    title="Click to rename"
+                  >
+                    {deviceForPanel.hostname}
+                    <span className="hostname-edit-icon">&#9998;</span>
+                  </h4>
+                )}
                 <div className="device-info-actions">
                   {(isRouterType(deviceForPanel.type) || isSwitchType(deviceForPanel.type)) && (
                     <button className="btn-sm" onClick={() => setRightPanel('cli')}>Open Terminal</button>
                   )}
-                  {isEndpointType(deviceForPanel.type) && (
-                    <button className="btn-sm" onClick={() => setRightPanel('config')}>Configure IP</button>
-                  )}
+                  <button className="btn-sm" onClick={() => setRightPanel('config')}>Configure IP</button>
                 </div>
                 <div className="kv-list">
                   <div><span>Type</span><strong>{deviceForPanel.type}</strong></div>
@@ -426,9 +503,9 @@ export default function SimulationPage() {
                 )}
                 <h4>ARP Table</h4>
                 <div className="device-table-list">
-                  {instancesRef.current.engine?.networkStack?.getArpTable(deviceForPanel.id)?.getEntries()?.map((e, i) => (
+                  {instancesRef.current.engine?.networkStack?.getArpTable(deviceForPanel.id)?.getEntries()?.map((entry, i) => (
                     <div key={i} className="device-table-row">
-                      <code>{e.ip} {'->'} {e.mac}</code>
+                      <code>{entry.ip} {'->'} {entry.mac}</code>
                     </div>
                   )) || <div className="empty-table">Empty</div>}
                 </div>
@@ -455,8 +532,20 @@ export default function SimulationPage() {
         <span className="status-pill ok">Step {simState.stepCount}</span>
         <span className="status-pill info">{simState.eventsQueued} queued</span>
         <span>{simState.packetsInFlight} packets in flight</span>
-        <span>Click device for info | Double-click router/switch for CLI | Double-click PC for config</span>
+        <span>Click device for info | Double-click for CLI/Config</span>
       </div>
     </section>
   );
+}
+
+/**
+ * Apply pre-configured IPs from an IP config map after engine initialization.
+ */
+function applyIpConfig(networkStack, ipConfig) {
+  if (!networkStack) return;
+  for (const [nodeId, configs] of Object.entries(ipConfig)) {
+    for (const cfg of configs) {
+      networkStack.setInterfaceIp(nodeId, cfg.iface, cfg.ip, cfg.mask);
+    }
+  }
 }
