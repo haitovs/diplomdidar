@@ -3,6 +3,28 @@ import { CliParser, CLI_MODES } from '@core/cli/CliParser.js';
 import { CliHistory } from '@core/cli/CliHistory.js';
 import { executeCommand } from '@core/cli/CliCommands.js';
 
+function buildWelcomeBanner(hostname) {
+  return [
+    `+${'─'.repeat(46)}+`,
+    `│  ${hostname.padEnd(44)}│`,
+    `│  Cisco IOS CLI Simulator                    │`,
+    `+${'─'.repeat(46)}+`,
+    '',
+    '  Quick Reference:',
+    '  ─────────────────────────────────────────',
+    '  enable                 Enter privileged mode',
+    '  configure terminal     Enter config mode',
+    '  show ip interface brief Show interface IPs',
+    '  show ip route          Show routing table',
+    '  show arp               Show ARP table',
+    '  ping <ip>              Send ICMP ping',
+    '  exit                   Exit current mode',
+    '  ?                      Show available commands',
+    '  ─────────────────────────────────────────',
+    '',
+  ];
+}
+
 export default function CliTerminal({ device, networkStack, simulationEngine, onClose }) {
   const [lines, setLines] = useState([]);
   const [input, setInput] = useState('');
@@ -17,11 +39,7 @@ export default function CliTerminal({ device, networkStack, simulationEngine, on
     const parser = new CliParser(hostname);
     parserRef.current = parser;
 
-    setLines([
-      `--- ${hostname} CLI ---`,
-      `Type "?" for help, "enable" for privileged mode.`,
-      '',
-    ]);
+    setLines(buildWelcomeBanner(hostname));
     setInput('');
   }, [device?.id]);
 

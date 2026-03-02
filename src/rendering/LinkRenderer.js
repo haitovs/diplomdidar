@@ -27,17 +27,24 @@ export class LinkRenderer {
     this.frame++;
   }
 
-  render(link, source, target, control, health = { status: 'up' }, isSelected = false) {
+  render(link, source, target, control, health = { status: 'up' }, isSelected = false, isHovered = false) {
     if (!source || !target) return;
 
     const config = LINK_CONFIG[link.type] || LINK_CONFIG.ethernet;
     const statusConfig = LINK_STATUS[health.status] || LINK_STATUS.up;
+
+    if (isHovered) {
+      this.drawHoverGlow(source, target, control);
+    }
 
     if (isSelected) {
       this.drawSelectionGlow(source, target, control);
     }
 
     this.drawLink(source, target, control, config, statusConfig, health);
+
+    // Draw status triangles at each endpoint
+    this.drawStatusTriangles(source, target, health.status);
 
     // Draw interface labels near endpoints
     if (link.sourceInterface || link.targetInterface) {
@@ -48,6 +55,53 @@ export class LinkRenderer {
     if (link.bandwidth) {
       this.drawBandwidthLabel(source, target, control, link.bandwidth, health.status);
     }
+  }
+
+  drawHoverGlow(source, target, control) {
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    this.ctx.lineWidth = 10;
+    this.ctx.lineCap = 'round';
+    this.ctx.beginPath();
+    this.ctx.moveTo(source.x, source.y);
+    this.ctx.quadraticCurveTo(control.x, control.y, target.x, target.y);
+    this.ctx.stroke();
+    this.ctx.lineCap = 'butt';
+  }
+
+  drawStatusTriangles(source, target, status) {
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 60) return;
+
+    const nx = dx / len;
+    const ny = dy / len;
+    const triSize = 6;
+    const triDist = 38;
+
+    const color = status === 'down' ? '#ef4444' : '#22c55e';
+    this.ctx.fillStyle = color;
+
+    // Triangle near source
+    const sx = source.x + nx * triDist;
+    const sy = source.y + ny * triDist;
+    this.drawTriangle(sx, sy, nx, ny, triSize);
+
+    // Triangle near target
+    const tx = target.x - nx * triDist;
+    const ty = target.y - ny * triDist;
+    this.drawTriangle(tx, ty, -nx, -ny, triSize);
+  }
+
+  drawTriangle(cx, cy, nx, ny, size) {
+    const perpX = -ny;
+    const perpY = nx;
+    this.ctx.beginPath();
+    this.ctx.moveTo(cx + nx * size, cy + ny * size);
+    this.ctx.lineTo(cx + perpX * size * 0.6, cy + perpY * size * 0.6);
+    this.ctx.lineTo(cx - perpX * size * 0.6, cy - perpY * size * 0.6);
+    this.ctx.closePath();
+    this.ctx.fill();
   }
 
   drawSelectionGlow(source, target, control) {

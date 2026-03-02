@@ -10,7 +10,7 @@ import { PacketRenderer } from './PacketRenderer.js';
 const RENDER_CONFIG = {
   targetFPS: 60,
   backgroundColor: '#0a0f1a',
-  gridColor: 'rgba(255, 255, 255, 0.03)',
+  gridDotColor: 'rgba(255, 255, 255, 0.08)',
   gridSize: 40,
   showGrid: true,
 };
@@ -31,7 +31,10 @@ export class CanvasRenderer {
     this.linkHealthMap = new Map();
     this.selectedNode = null;
     this.hoveredNode = null;
+    this.hoveredLink = null;
     this.selectedLink = null;
+    this.pduSourceNode = null;
+    this.pingResults = []; // { nodeId, success, startTime }
 
     this.frame = 0;
     this.lastFrameTime = 0;
@@ -167,8 +170,9 @@ export class CanvasRenderer {
       const health = this.linkHealthMap.get(link.id) || { status: 'up' };
       const control = this.getControlPoint(link, source, target);
       const isSelected = this.selectedLink === link.id;
+      const isHovered = this.hoveredLink === link.id;
 
-      this.linkRenderer.render(link, source, target, control, health, isSelected);
+      this.linkRenderer.render(link, source, target, control, health, isSelected, isHovered);
     });
 
     // Draw packets
@@ -178,8 +182,12 @@ export class CanvasRenderer {
     this.nodes.forEach(node => {
       const isSelected = this.selectedNode === node.id;
       const isHovered = this.hoveredNode === node.id;
-      this.nodeRenderer.render(node, isSelected, isHovered);
+      const isPduSource = this.pduSourceNode === node.id;
+      this.nodeRenderer.render(node, isSelected, isHovered, isPduSource);
     });
+
+    // Draw ping result overlays
+    this.drawPingResults();
 
     if (this.resetTransform) {
       this.resetTransform();
@@ -188,8 +196,7 @@ export class CanvasRenderer {
 
   drawGrid() {
     const size = this.options.gridSize;
-    this.ctx.strokeStyle = this.options.gridColor;
-    this.ctx.lineWidth = 1;
+    this.ctx.fillStyle = this.options.gridDotColor;
 
     let startX = 0, startY = 0, endX = this.width, endY = this.height;
     if (this.transform) {
@@ -202,16 +209,69 @@ export class CanvasRenderer {
     startY = Math.floor(startY / size) * size;
 
     for (let x = startX; x <= endX; x += size) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, startY);
-      this.ctx.lineTo(x, endY);
-      this.ctx.stroke();
+      for (let y = startY; y <= endY; y += size) {
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 1, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
     }
-    for (let y = startY; y <= endY; y += size) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(startX, y);
-      this.ctx.lineTo(endX, y);
-      this.ctx.stroke();
+  }
+
+  setHoveredLink(linkId) {
+    this.hoveredLink = linkId;
+  }
+
+  setPduSourceNode(nodeId) {
+    this.pduSourceNode = nodeId;
+  }
+
+  addPingResult(nodeId, success) {
+    this.pingResults.push({ nodeId, success, startTime: performance.now() });
+  }
+
+  findLinkAt(x, y) {
+    const threshold = 8;
+    for (let i = this.links.length - 1; i >= 0; i--) {
+      const link = this.links[i];
+      const source = this.nodeMap.get(link.source);
+      const target = this.nodeMap.get(link.target);
+      if (!source || !target) continue;
+
+      const dist = pointToSegmentDist(x, y, source.x, source.y, target.x, target.y);
+      if (dist < threshold) return link;
+    }
+    return null;
+  }
+
+  drawPingResults() {
+    const now = performance.now();
+    const duration = 3000;
+    this.pingResults = this.pingResults.filter(r => now - r.startTime < duration);
+
+    for (const result of this.pingResults) {
+      const node = this.nodeMap.get(result.nodeId);
+      if (!node) continue;
+
+      const elapsed = now - result.startTime;
+      const alpha = Math.max(0, 1 - elapsed / duration);
+      const offsetY = -10 * (elapsed / duration);
+
+      const config = DEVICE_CONFIG[node.type] || DEVICE_CONFIG.switch;
+      const ix = node.x + config.radius + 12;
+      const iy = node.y - config.radius + offsetY;
+
+      this.ctx.globalAlpha = alpha;
+      this.ctx.font = 'bold 16px Inter';
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      if (result.success) {
+        this.ctx.fillStyle = '#22c55e';
+        this.ctx.fillText('\u2713', ix, iy);
+      } else {
+        this.ctx.fillStyle = '#ef4444';
+        this.ctx.fillText('\u2717', ix, iy);
+      }
+      this.ctx.globalAlpha = 1;
     }
   }
 
@@ -296,5 +356,14 @@ CanvasRenderer.prototype.applyTransform = function () {
 CanvasRenderer.prototype.resetTransform = function () {
   this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 };
+
+function pointToSegmentDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return Math.hypot(px - ax, py - ay);
+  let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
 
 export { DEVICE_CONFIG, LINK_CONFIG };

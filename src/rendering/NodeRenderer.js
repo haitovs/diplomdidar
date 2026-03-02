@@ -119,7 +119,7 @@ export class NodeRenderer {
     this.frame++;
   }
 
-  render(node, isSelected = false, isHovered = false) {
+  render(node, isSelected = false, isHovered = false, isPduSource = false) {
     const config = DEVICE_CONFIG[node.type] || DEVICE_CONFIG.switch;
     const statusConfig = STATUS_CONFIG[node.status] || STATUS_CONFIG.up;
     const x = node.x;
@@ -128,6 +128,11 @@ export class NodeRenderer {
 
     // Draw outer glow
     this.drawGlow(x, y, radius, config.glowColor);
+
+    // Draw PDU source ring
+    if (isPduSource) {
+      this.drawPduSourceRing(x, y, radius);
+    }
 
     // Draw selection ring
     if (isSelected) {
@@ -275,12 +280,62 @@ export class NodeRenderer {
   }
 
   /**
-   * Draw hostname label below the node.
+   * Draw hostname label below the node with pill background.
    */
   drawLabel(x, y, radius, hostname) {
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    this.ctx.font = '11px Inter';
+    const text = hostname || 'Unknown';
+    this.ctx.font = '12px Inter';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText(hostname || 'Unknown', x, y + radius + 16);
+    this.ctx.textBaseline = 'middle';
+    const metrics = this.ctx.measureText(text);
+    const tw = metrics.width;
+    const th = 18;
+    const ty = y + radius + 16;
+
+    // Dark pill background
+    this.ctx.fillStyle = 'rgba(10, 15, 30, 0.85)';
+    this.ctx.beginPath();
+    const px = x - tw / 2 - 6;
+    const py = ty - th / 2;
+    const pw = tw + 12;
+    const pr = 5;
+    this.ctx.moveTo(px + pr, py);
+    this.ctx.lineTo(px + pw - pr, py);
+    this.ctx.quadraticCurveTo(px + pw, py, px + pw, py + pr);
+    this.ctx.lineTo(px + pw, py + th - pr);
+    this.ctx.quadraticCurveTo(px + pw, py + th, px + pw - pr, py + th);
+    this.ctx.lineTo(px + pr, py + th);
+    this.ctx.quadraticCurveTo(px, py + th, px, py + th - pr);
+    this.ctx.lineTo(px, py + pr);
+    this.ctx.quadraticCurveTo(px, py, px + pr, py);
+    this.ctx.closePath();
+    this.ctx.fill();
+
+    // Border
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    this.ctx.lineWidth = 1;
+    this.ctx.stroke();
+
+    // Text
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    this.ctx.fillText(text, x, ty);
+  }
+
+  /**
+   * Draw animated green dashed ring for PDU source selection.
+   */
+  drawPduSourceRing(x, y, radius) {
+    const dashOffset = (this.frame * 0.8) % 20;
+    this.ctx.strokeStyle = '#22c55e';
+    this.ctx.lineWidth = 3;
+    this.ctx.setLineDash([6, 4]);
+    this.ctx.lineDashOffset = dashOffset;
+
+    // Pulsing radius
+    const pulse = 1 + Math.sin(this.frame * 0.06) * 0.06;
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, (radius + 12) * pulse, 0, Math.PI * 2);
+    this.ctx.stroke();
+    this.ctx.setLineDash([]);
   }
 }

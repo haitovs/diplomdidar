@@ -5,6 +5,7 @@ export default function SimulationControls({
   onSendPing,
   onEditTopology,
   stepCount, eventsQueued, packetsInFlight,
+  activeTool, onToolChange,
 }) {
   return (
     <div className="toolbar toolbar-comfort">
@@ -48,6 +49,32 @@ export default function SimulationControls({
           ))}
         </div>
       )}
+
+      <div className="toolbar-group tool-select-group">
+        <div className="mode-toggle">
+          <button
+            className={activeTool === 'select' ? 'active' : ''}
+            onClick={() => onToolChange('select')}
+            title="Select tool"
+          >
+            Select
+          </button>
+          <button
+            className={activeTool === 'pdu' ? 'active' : ''}
+            onClick={() => onToolChange('pdu')}
+            title="Simple PDU: click source, then destination to ping"
+          >
+            Simple PDU
+          </button>
+          <button
+            className={activeTool === 'ip' ? 'active' : ''}
+            onClick={() => onToolChange('ip')}
+            title="Assign IP: click a device to configure its IP"
+          >
+            Assign IP
+          </button>
+        </div>
+      </div>
 
       <div className="toolbar-group">
         <button className="btn-primary" onClick={onSendPing}>Send Ping</button>

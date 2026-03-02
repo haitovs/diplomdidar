@@ -15,6 +15,13 @@ import PacketDetailPanel from '../components/PacketDetailPanel.jsx';
 import CliTerminal from '../components/CliTerminal.jsx';
 import DeviceConfigDialog from '../components/DeviceConfigDialog.jsx';
 import PingDialog from '../components/PingDialog.jsx';
+import FloatingIpForm from '../components/FloatingIpForm.jsx';
+
+const TOOL_HINTS = {
+  pdu: 'Simple PDU: Click source device',
+  pdu_dest: 'Simple PDU: Now click destination device',
+  ip: 'Assign IP: Click a device to configure',
+};
 
 export default function SimulationPage() {
   const navigate = useNavigate();
@@ -31,6 +38,11 @@ export default function SimulationPage() {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [showPingDialog, setShowPingDialog] = useState(false);
   const [nodes, setNodes] = useState([]);
+
+  // Tool state
+  const [activeTool, setActiveTool] = useState('select');
+  const [pduSource, setPduSource] = useState(null);
+  const [floatingIp, setFloatingIp] = useState(null); // { device, x, y }
 
   const refreshState = useCallback(() => {
     const engine = instancesRef.current.engine;
@@ -58,8 +70,18 @@ export default function SimulationPage() {
     const engine = new PacketSimulationEngine();
 
     engine.on('step', refreshState);
-    engine.on('deliver', refreshState);
-    engine.on('drop', refreshState);
+    engine.on('deliver', (evt) => {
+      refreshState();
+      if (evt?.packet?.destNodeId) {
+        renderer.addPingResult(evt.packet.destNodeId, true);
+      }
+    });
+    engine.on('drop', (evt) => {
+      refreshState();
+      if (evt?.packet?.currentNodeId) {
+        renderer.addPingResult(evt.packet.currentNodeId, false);
+      }
+    });
     engine.on('reset', refreshState);
 
     instancesRef.current = { renderer, navigator, engine };
@@ -126,29 +148,20 @@ export default function SimulationPage() {
     navigate('/playground');
   };
 
-  const updateZoom = (factor) => {
-    const nav = instancesRef.current.navigator;
+  const handleToolChange = (tool) => {
+    setActiveTool(tool);
+    setPduSource(null);
+    setFloatingIp(null);
     const renderer = instancesRef.current.renderer;
-    const canvas = canvasRef.current;
-    if (!nav || !renderer || !canvas) return;
-
-    const transform = nav.getTransform();
-    const targetScale = Math.max(nav.minScale, Math.min(nav.maxScale, transform.scale * factor));
-    const ratio = targetScale / transform.scale;
-    const cx = canvas.clientWidth / 2;
-    const cy = canvas.clientHeight / 2;
-
-    nav.scale = targetScale;
-    nav.offsetX = cx - (cx - transform.offsetX) * ratio;
-    nav.offsetY = cy - (cy - transform.offsetY) * ratio;
-    renderer.setTransform(nav.getTransform());
-    setZoom(Math.round(targetScale * 100));
+    if (renderer) {
+      renderer.setPduSourceNode(null);
+    }
   };
 
-  const handleCanvasClick = (e) => {
+  const getCanvasCoords = (e) => {
     const canvas = canvasRef.current;
     const renderer = instancesRef.current.renderer;
-    if (!canvas || !renderer) return;
+    if (!canvas || !renderer) return null;
 
     const rect = canvas.getBoundingClientRect();
     let x = e.clientX - rect.left;
@@ -159,13 +172,86 @@ export default function SimulationPage() {
       x = (x - transform.offsetX) / transform.scale;
       y = (y - transform.offsetY) / transform.scale;
     }
+    return { x, y, clientX: e.clientX, clientY: e.clientY, rect };
+  };
 
-    const node = renderer.findNodeAt(x, y);
+  const handleCanvasMouseMove = (e) => {
+    const renderer = instancesRef.current.renderer;
+    const canvas = canvasRef.current;
+    if (!renderer || !canvas) return;
+
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
+
+    const node = renderer.findNodeAt(coords.x, coords.y);
+    renderer.setHoveredNode(node?.id || null);
+
+    const link = !node ? renderer.findLinkAt(coords.x, coords.y) : null;
+    renderer.setHoveredLink(link?.id || null);
+
+    // Cursor feedback
+    if (activeTool === 'pdu') {
+      canvas.style.cursor = node ? 'pointer' : 'crosshair';
+    } else if (activeTool === 'ip') {
+      canvas.style.cursor = node ? 'pointer' : 'crosshair';
+    } else {
+      canvas.style.cursor = node || link ? 'pointer' : 'default';
+    }
+  };
+
+  const handleCanvasClick = (e) => {
+    const renderer = instancesRef.current.renderer;
+    const engine = instancesRef.current.engine;
+    if (!renderer || !engine) return;
+
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
+
+    const node = renderer.findNodeAt(coords.x, coords.y);
+
+    // PDU tool mode
+    if (activeTool === 'pdu') {
+      if (!node) return;
+      if (!pduSource) {
+        // First click: select source
+        setPduSource(node);
+        renderer.setPduSourceNode(node.id);
+      } else {
+        // Second click: ping destination
+        if (node.id !== pduSource.id) {
+          const destDevice = engine.networkStack?.getNode(node.id);
+          const destIp = destDevice?.interfaces?.find(i => i.ipAddress)?.ipAddress;
+          if (destIp) {
+            engine.ping(pduSource.id, destIp, 1);
+          }
+        }
+        // Reset PDU state
+        setPduSource(null);
+        renderer.setPduSourceNode(null);
+      }
+      return;
+    }
+
+    // IP tool mode
+    if (activeTool === 'ip') {
+      if (!node) {
+        setFloatingIp(null);
+        return;
+      }
+      // Position form near the click, but in screen coords
+      const canvasRect = canvasRef.current.getBoundingClientRect();
+      setFloatingIp({
+        device: node,
+        x: coords.clientX - canvasRect.left + 20,
+        y: coords.clientY - canvasRect.top - 20,
+      });
+      return;
+    }
+
+    // Select tool mode (default)
     if (node) {
       setSelectedDevice(node);
       renderer.selectNode(node.id);
-
-      // Single click: show info
       setRightPanel('info');
     } else {
       setSelectedDevice(null);
@@ -175,21 +261,13 @@ export default function SimulationPage() {
   };
 
   const handleCanvasDblClick = (e) => {
-    const canvas = canvasRef.current;
     const renderer = instancesRef.current.renderer;
-    if (!canvas || !renderer) return;
+    if (!renderer) return;
 
-    const rect = canvas.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let y = e.clientY - rect.top;
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
 
-    const transform = renderer.transform;
-    if (transform) {
-      x = (x - transform.offsetX) / transform.scale;
-      y = (y - transform.offsetY) / transform.scale;
-    }
-
-    const node = renderer.findNodeAt(x, y);
+    const node = renderer.findNodeAt(coords.x, coords.y);
     if (!node) return;
 
     setSelectedDevice(node);
@@ -201,9 +279,31 @@ export default function SimulationPage() {
     }
   };
 
+  const handleFloatingIpApply = (nodeId, ip, mask, gateway) => {
+    const engine = instancesRef.current.engine;
+    if (!engine?.networkStack) return;
+
+    const device = engine.networkStack.getNode(nodeId);
+    const iface = device?.interfaces?.find(i => i.name);
+    if (iface) {
+      engine.networkStack.setInterfaceIp(nodeId, iface.name, ip, mask);
+    }
+    if (gateway) {
+      engine.networkStack.setDefaultGateway(nodeId, gateway);
+    }
+    setFloatingIp(null);
+    refreshState();
+  };
+
   const deviceForPanel = selectedDevice
     ? instancesRef.current.engine?.networkStack?.getNode(selectedDevice.id) || selectedDevice
     : null;
+
+  const toolHint = activeTool === 'pdu'
+    ? (pduSource ? TOOL_HINTS.pdu_dest : TOOL_HINTS.pdu)
+    : activeTool === 'ip'
+      ? TOOL_HINTS.ip
+      : null;
 
   return (
     <section className="page page-simulation">
@@ -219,6 +319,8 @@ export default function SimulationPage() {
         stepCount={simState.stepCount}
         eventsQueued={simState.eventsQueued}
         packetsInFlight={simState.packetsInFlight}
+        activeTool={activeTool}
+        onToolChange={handleToolChange}
       />
 
       <div className="simulation-grid">
@@ -228,7 +330,21 @@ export default function SimulationPage() {
             className="editor-canvas"
             onClick={handleCanvasClick}
             onDoubleClick={handleCanvasDblClick}
+            onMouseMove={handleCanvasMouseMove}
           />
+          {toolHint && (
+            <div className="canvas-tool-hint">{toolHint}</div>
+          )}
+          {floatingIp && (
+            <FloatingIpForm
+              device={floatingIp.device}
+              networkStack={instancesRef.current.engine?.networkStack}
+              x={floatingIp.x}
+              y={floatingIp.y}
+              onApply={handleFloatingIpApply}
+              onClose={() => setFloatingIp(null)}
+            />
+          )}
           <div className="canvas-meta">
             {mode} mode | step {simState.stepCount} | {simState.eventsQueued} queued | {simState.packetsInFlight} in flight | zoom {zoom}%
           </div>
@@ -271,6 +387,14 @@ export default function SimulationPage() {
             {rightPanel === 'info' && deviceForPanel && (
               <div className="device-info-panel">
                 <h4>{deviceForPanel.hostname}</h4>
+                <div className="device-info-actions">
+                  {(isRouterType(deviceForPanel.type) || isSwitchType(deviceForPanel.type)) && (
+                    <button className="btn-sm" onClick={() => setRightPanel('cli')}>Open Terminal</button>
+                  )}
+                  {isEndpointType(deviceForPanel.type) && (
+                    <button className="btn-sm" onClick={() => setRightPanel('config')}>Configure IP</button>
+                  )}
+                </div>
                 <div className="kv-list">
                   <div><span>Type</span><strong>{deviceForPanel.type}</strong></div>
                   <div><span>Status</span><strong>{deviceForPanel.status}</strong></div>
