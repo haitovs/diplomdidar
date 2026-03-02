@@ -209,10 +209,14 @@ export default function SimulationPage() {
     const link = !node ? renderer.findLinkAt(coords.x, coords.y) : null;
     renderer.setHoveredLink(link?.id || null);
 
+    // Don't override cursor while panning
+    const nav = instancesRef.current.navigator;
+    if (nav?.isPanning) return;
+
     if (activeTool === 'pdu' || activeTool === 'ip') {
       canvas.style.cursor = node ? 'pointer' : 'crosshair';
     } else {
-      canvas.style.cursor = node || link ? 'pointer' : 'default';
+      canvas.style.cursor = node ? 'pointer' : link ? 'pointer' : 'grab';
     }
   };
 

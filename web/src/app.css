@@ -245,7 +245,9 @@ a {
   display: grid;
   gap: 12px;
   grid-template-columns: minmax(0, 1.65fr) minmax(350px, 430px);
-  min-height: calc(100vh - 210px);
+  height: calc(100vh - 210px);
+  max-height: calc(100vh - 210px);
+  overflow: hidden;
 }
 
 /* analytics-grid removed */
@@ -281,15 +283,26 @@ a {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: linear-gradient(180deg, rgba(1, 14, 36, 0.85), rgba(2, 8, 24, 0.9));
-  min-height: calc(100vh - 210px);
+  min-height: 0;
+  height: 100%;
 }
 
 .editor-canvas {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: calc(100vh - 210px);
   background: #020817;
+}
+
+/* Simulation page: canvas fills its grid cell, no min-height forcing growth */
+.page-simulation .canvas-area {
+  min-height: 0;
+  height: 100%;
+}
+
+.page-simulation .editor-canvas {
+  min-height: 0;
+  height: 100%;
 }
 
 /* Keep playground workspace at a stable map aspect instead of stretching with full viewport height. */
@@ -703,6 +716,19 @@ a {
 
   .simulation-grid {
     grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .page-simulation .canvas-area,
+  .page-simulation .editor-canvas {
+    height: 460px;
+    min-height: 460px;
+  }
+
+  .sim-panel-right {
+    max-height: 420px;
   }
 
   .home-hero-layout {
@@ -735,6 +761,19 @@ a {
   .workspace-grid,
   .simulation-grid {
     grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .page-simulation .canvas-area,
+  .page-simulation .editor-canvas {
+    height: 430px;
+    min-height: 430px;
+  }
+
+  .page-simulation .sim-panel-right {
+    max-height: 380px;
   }
 
   .editor-canvas {
@@ -848,6 +887,8 @@ a {
 
 .sim-panel-right {
   overflow: hidden;
+  min-height: 0;
+  max-height: 100%;
 }
 
 /* ── CLI Terminal ── */
