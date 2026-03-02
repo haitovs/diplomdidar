@@ -16,13 +16,12 @@ function ensureContains(path, snippet, message) {
   }
 }
 
-['web/src/App.jsx', 'web/src/pages/PlaygroundPage.jsx', 'web/src/pages/SimulationPage.jsx', 'web/src/pages/AnalyticsPage.jsx'].forEach(checkExists);
+['web/src/App.jsx', 'web/src/pages/PlaygroundPage.jsx', 'web/src/pages/SimulationPage.jsx'].forEach(checkExists);
 
 ensureContains('web/src/App.jsx', "path=\"/playground\"", 'missing /playground route');
 ensureContains('web/src/App.jsx', "path=\"/simulation\"", 'missing /simulation route');
-ensureContains('web/src/App.jsx', "path=\"/analytics\"", 'missing /analytics route');
 ensureContains('web/src/pages/PlaygroundPage.jsx', 'new TopologyEditor', 'editor is not initialized');
-ensureContains('web/src/pages/SimulationPage.jsx', 'new SimulationController', 'simulation controller is not initialized');
+ensureContains('web/src/pages/SimulationPage.jsx', 'PacketSimulationEngine', 'packet simulation engine is not initialized');
 
 ['index.html', 'index-v2.html', 'playground-v2.html', 'simulation.html', 'analytics.html'].forEach((path) => {
   if (existsSync(path)) {

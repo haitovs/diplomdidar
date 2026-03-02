@@ -20,7 +20,6 @@ function assertButtonCount(path, minimum, message) {
 // Home page actions
 assertContains('web/src/pages/HomePage.jsx', 'to="/playground"', 'missing Playground navigation action');
 assertContains('web/src/pages/HomePage.jsx', 'to="/simulation"', 'missing Simulation navigation action');
-assertContains('web/src/pages/HomePage.jsx', 'to="/analytics"', 'missing Analytics navigation action');
 
 // Playground controls and integrations
 assertButtonCount('web/src/pages/PlaygroundPage.jsx', 10, 'too few actionable controls');
@@ -40,21 +39,12 @@ assertContains('web/src/pages/PlaygroundPage.jsx', 'new PropertyEditor', 'missin
 assertContains('web/src/pages/PlaygroundPage.jsx', 'renderer.start()', 'missing playground renderer start');
 
 // Simulation controls and integrations
-assertButtonCount('web/src/pages/SimulationPage.jsx', 7, 'too few actionable controls');
-assertContains('web/src/pages/SimulationPage.jsx', 'onPauseResume', 'missing pause/resume button wiring');
-assertContains('web/src/pages/SimulationPage.jsx', 'onReset', 'missing reset button wiring');
-assertContains('web/src/pages/SimulationPage.jsx', 'onFailure', 'missing failure button wiring');
-assertContains('web/src/pages/SimulationPage.jsx', 'onRecover', 'missing recover button wiring');
-assertContains('web/src/pages/SimulationPage.jsx', 'onEditTopology', 'missing edit topology button wiring');
-assertContains('web/src/pages/SimulationPage.jsx', 'onExportReport', 'missing export report wiring');
-assertContains('web/src/pages/SimulationPage.jsx', 'setPattern(', 'missing pattern selector wiring');
-assertContains('web/src/pages/SimulationPage.jsx', 'setSimSpeed(', 'missing speed controls wiring');
-assertContains('web/src/pages/SimulationPage.jsx', 'new SimulationController', 'missing SimulationController initialization');
-
-// Analytics controls and integrations
-assertContains('web/src/pages/AnalyticsPage.jsx', 'onClick={() => importInputRef.current?.click()}', 'missing report import trigger button');
-assertContains('web/src/pages/AnalyticsPage.jsx', 'onChange={onImportReport}', 'missing report import file handler');
-assertContains('web/src/pages/AnalyticsPage.jsx', 'localStorage.setItem(STORAGE_KEYS.latestLabReport', 'missing latest report persistence');
+assertButtonCount('web/src/pages/SimulationPage.jsx', 4, 'too few actionable controls');
+assertContains('web/src/pages/SimulationPage.jsx', 'handleStep', 'missing step forward handler wiring');
+assertContains('web/src/pages/SimulationPage.jsx', 'handleReset', 'missing reset button wiring');
+assertContains('web/src/pages/SimulationPage.jsx', 'handleEditTopology', 'missing edit topology button wiring');
+assertContains('web/src/pages/SimulationPage.jsx', 'handlePing', 'missing ping handler wiring');
+assertContains('web/src/pages/SimulationPage.jsx', 'PacketSimulationEngine', 'missing PacketSimulationEngine initialization');
 
 if (failures.length > 0) {
   console.error('check-react-page-controls: FAILED');

@@ -1,97 +1,81 @@
-import { SimulationController } from '../src/engine/SimulationController.js';
+import { PacketSimulationEngine } from '../src/engine/PacketSimulationEngine.js';
 import { normalizeTopology } from '../src/utils/topologySchema.js';
 import { defaultTopology } from '../web/src/data/topologyTemplates.js';
-
-class MockRenderer {
-  constructor() {
-    this.nodes = [];
-    this.links = [];
-    this.running = false;
-    this.particleSystem = {
-      addBurst() {},
-      getCount() {
-        return 0;
-      },
-    };
-  }
-
-  setTopology(topology) {
-    this.nodes = topology.nodes.map((node) => ({ ...node }));
-    this.links = topology.links.map((link) => ({ ...link }));
-  }
-
-  start() {
-    this.running = true;
-  }
-
-  pause() {
-    this.running = false;
-  }
-
-  resume() {
-    this.running = true;
-  }
-
-  updateLinkHealth(linkId, health) {
-    const link = this.links.find((item) => item.id === linkId);
-    if (link) link.health = health;
-  }
-}
 
 const failures = [];
 const check = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-const renderer = new MockRenderer();
 const normalized = normalizeTopology(defaultTopology, { canvasWidth: 1000, canvasHeight: 620 });
-renderer.setTopology({ nodes: normalized.nodes, links: normalized.links });
 
-const controller = new SimulationController(renderer, { updateInterval: 1000 });
+const engine = new PacketSimulationEngine();
 
 try {
-  check(controller.isRunning === false, 'controller should start stopped');
+  engine.initialize({ nodes: normalized.nodes, links: normalized.links });
 
-  controller.setTrafficPattern('exam');
-  check(controller.trafficGen.pattern?.label === 'Exam Period', 'pattern should switch to exam');
+  let state = engine.getState();
+  check(state.stepCount === 0, 'engine should start at step 0');
+  check(state.eventsQueued === 0, 'no events should be queued initially');
+  check(state.packetsInFlight === 0, 'no packets in flight initially');
 
-  controller.setSpeed(2);
-  check(controller.trafficGen.simSpeed === 2, 'simulation speed should be set to 2x');
+  // Configure IPs so ping can work
+  const ns = engine.networkStack;
 
-  controller.start();
-  check(controller.isRunning === true, 'controller should be running after start');
+  // PC0: 10.0.1.2/24 on its first interface, gateway 10.0.1.1
+  const pc0 = ns.getNode('pc0');
+  if (pc0 && pc0.interfaces.length > 0) {
+    ns.setInterfaceIp('pc0', pc0.interfaces[0].name, '10.0.1.2', '255.255.255.0');
+    ns.setDefaultGateway('pc0', '10.0.1.1');
+  }
 
-  // Exercise manual tick path (used by runtime updates and button-triggered state refresh)
-  controller.tick();
-  let state = controller.getState();
-  check(state.formattedTime !== undefined, 'state should expose formatted time');
-  check(state.runtimeTraffic !== null, 'state should include runtime traffic metrics');
+  // PC1: 10.0.1.3/24 on its first interface, gateway 10.0.1.1
+  const pc1 = ns.getNode('pc1');
+  if (pc1 && pc1.interfaces.length > 0) {
+    ns.setInterfaceIp('pc1', pc1.interfaces[0].name, '10.0.1.3', '255.255.255.0');
+    ns.setDefaultGateway('pc1', '10.0.1.1');
+  }
 
-  const pausedAfterToggle = controller.togglePause();
-  check(pausedAfterToggle === true, 'togglePause should pause on first call');
-  check(controller.getState().isPaused === true, 'state should indicate paused');
+  // Router0 Gig0/0: 10.0.1.1/24 (facing sw0 subnet)
+  const r0 = ns.getNode('r0');
+  if (r0 && r0.interfaces.length >= 2) {
+    ns.setInterfaceIp('r0', r0.interfaces[0].name, '10.0.1.1', '255.255.255.0');
+    ns.setInterfaceIp('r0', r0.interfaces[1].name, '10.0.2.1', '255.255.255.0');
+  }
 
-  const resumedAfterToggle = controller.togglePause();
-  check(resumedAfterToggle === false, 'togglePause should resume on second call');
-  check(controller.getState().isPaused === false, 'state should indicate resumed');
+  // Server0: 10.0.2.2/24, gateway 10.0.2.1
+  const srv0 = ns.getNode('srv0');
+  if (srv0 && srv0.interfaces.length > 0) {
+    ns.setInterfaceIp('srv0', srv0.interfaces[0].name, '10.0.2.2', '255.255.255.0');
+    ns.setDefaultGateway('srv0', '10.0.2.1');
+  }
 
-  // Exercise failure/recovery actions used by UI buttons
-  controller.triggerRandomFailure();
-  state = controller.getState();
-  check(Array.isArray(state.activeFailures), 'activeFailures should be an array');
+  // Send a ping from PC0 to PC1 (same subnet)
+  engine.ping('pc0', '10.0.1.3', 1);
+  state = engine.getState();
+  check(state.eventsQueued > 0, 'ping should enqueue events');
 
-  controller.recoverAll();
-  check(controller.getState().activeFailures.length === 0, 'recoverAll should clear failures');
+  // Step forward to process events
+  const initialEvents = state.eventsQueued;
+  engine.stepForward();
+  state = engine.getState();
+  check(state.stepCount === 1, 'step count should be 1 after one step');
 
-  controller.reset();
-  state = controller.getState();
-  check(state.activeFailures.length === 0, 'reset should keep failures cleared');
-  check(renderer.nodes.every((node) => node.status === 'healthy'), 'reset should restore node statuses');
+  // Test speed change
+  engine.setSpeed(2);
 
-  controller.stop();
-  check(controller.isRunning === false, 'controller should stop after stop()');
+  // Test mode change
+  engine.setMode('realtime');
+  engine.setMode('simulation');
+
+  // Test reset
+  engine.reset();
+  state = engine.getState();
+  check(state.stepCount === 0, 'reset should restore step count to 0');
+  check(state.eventsQueued === 0, 'reset should clear event queue');
+
 } finally {
-  controller.destroy();
+  engine.destroy();
 }
 
 if (failures.length > 0) {

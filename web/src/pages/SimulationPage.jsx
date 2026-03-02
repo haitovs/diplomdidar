@@ -1,44 +1,48 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CanvasRenderer } from '@core/rendering/CanvasRenderer.js';
 import { CanvasNavigator } from '@core/rendering/CanvasNavigator.js';
-import { MetricsCollector } from '@core/analytics/MetricsCollector.js';
-import { SimulationController, TRAFFIC_PATTERNS } from '@core/engine/SimulationController.js';
+import { PacketSimulationEngine } from '@core/engine/PacketSimulationEngine.js';
 import { normalizeTopology, serializeTopology } from '@core/utils/topologySchema.js';
+import { isRouterType, isSwitchType, isEndpointType } from '@core/network/InterfaceManager.js';
 import { defaultTopology } from '../data/topologyTemplates.js';
 import { preloadDeviceIcons } from '../lib/iconCache.js';
 import { STORAGE_KEYS } from '../lib/storage.js';
 
-function buildReport({ metrics, controller, renderer, patternKey }) {
-  const state = controller.getState();
-  const topology = serializeTopology({ nodes: renderer.nodes, links: renderer.links });
-
-  return {
-    version: 1,
-    generatedAt: new Date().toISOString(),
-    scenario: patternKey,
-    state: {
-      time: state.formattedTime,
-      speed: state.speed,
-      activeFailures: state.activeFailures.length,
-      activeFlows: state.runtimeTraffic?.activeFlows || 0,
-      droppedDemandMbps: state.runtimeTraffic?.droppedDemandMbps || 0,
-    },
-    metrics,
-    topology,
-  };
-}
+import SimulationControls from '../components/SimulationControls.jsx';
+import EventList from '../components/EventList.jsx';
+import PacketDetailPanel from '../components/PacketDetailPanel.jsx';
+import CliTerminal from '../components/CliTerminal.jsx';
+import DeviceConfigDialog from '../components/DeviceConfigDialog.jsx';
+import PingDialog from '../components/PingDialog.jsx';
 
 export default function SimulationPage() {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
   const instancesRef = useRef({});
 
-  const [patternKey, setPatternKey] = useState('classroom');
+  const [mode, setMode] = useState('simulation');
   const [speed, setSpeed] = useState(1);
   const [zoom, setZoom] = useState(100);
-  const [simInfo, setSimInfo] = useState({ time: '00:00', frame: 0, flows: 0, droppedDemandMbps: 0, paused: false, running: false });
-  const [metrics, setMetrics] = useState({ throughput: 0, latency: 0, packetLoss: 0, utilization: 0, activeConnections: 0 });
+  const [simState, setSimState] = useState({ stepCount: 0, eventsQueued: 0, packetsInFlight: 0 });
+  const [events, setEvents] = useState([]);
+  const [selectedFrame, setSelectedFrame] = useState(null);
+  const [rightPanel, setRightPanel] = useState('events'); // 'events' | 'cli' | 'config' | 'info'
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [showPingDialog, setShowPingDialog] = useState(false);
+  const [nodes, setNodes] = useState([]);
+
+  const refreshState = useCallback(() => {
+    const engine = instancesRef.current.engine;
+    if (!engine) return;
+    setSimState(engine.getState());
+    setEvents([...engine.eventLog]);
+
+    const renderer = instancesRef.current.renderer;
+    if (renderer && engine) {
+      renderer.setActivePackets(engine.activePackets);
+    }
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,48 +55,19 @@ export default function SimulationPage() {
         setZoom(Math.round(transform.scale * 100));
       },
     });
+    const engine = new PacketSimulationEngine();
 
-    const collector = new MetricsCollector();
+    engine.on('step', refreshState);
+    engine.on('deliver', refreshState);
+    engine.on('drop', refreshState);
+    engine.on('reset', refreshState);
 
-    const controller = new SimulationController(renderer, {
-      onTick: (tick) => {
-        const currentMetrics = collector.update({
-          nodes: renderer.nodes,
-          links: renderer.links,
-          particles: renderer.particleSystem.getCount(),
-        });
-
-        setSimInfo((prev) => ({
-          ...prev,
-          time: tick.formattedTime,
-          frame: tick.frame,
-          flows: tick.activeFlows,
-          droppedDemandMbps: tick.droppedDemandMbps,
-          paused: controller.getState().isPaused,
-          running: controller.isRunning,
-        }));
-
-        setMetrics({
-          throughput: currentMetrics.throughput,
-          latency: currentMetrics.latency,
-          packetLoss: currentMetrics.packetLoss,
-          utilization: currentMetrics.utilization,
-          activeConnections: currentMetrics.activeConnections,
-        });
-      },
-    });
-
-    instancesRef.current = { renderer, navigator, collector, controller };
+    instancesRef.current = { renderer, navigator, engine };
 
     const savedTopologyRaw = localStorage.getItem(STORAGE_KEYS.playgroundTopology);
     let topology = defaultTopology;
-
     if (savedTopologyRaw) {
-      try {
-        topology = JSON.parse(savedTopologyRaw);
-      } catch {
-        topology = defaultTopology;
-      }
+      try { topology = JSON.parse(savedTopologyRaw); } catch { topology = defaultTopology; }
     }
 
     const normalized = normalizeTopology(topology, {
@@ -104,191 +79,259 @@ export default function SimulationPage() {
       renderer.setIconCache(cache);
       renderer.setTopology({ nodes: normalized.nodes, links: normalized.links });
       navigator.fitToContent(renderer.nodes, 90);
-      controller.setTrafficPattern(patternKey);
-      controller.setSpeed(speed);
-      controller.start();
-      setSimInfo((prev) => ({ ...prev, running: true }));
+      renderer.start();
+
+      engine.initialize({ nodes: normalized.nodes, links: normalized.links });
+      setNodes(normalized.nodes);
+      refreshState();
     });
 
     return () => {
       instancesRef.current = {};
-      controller.destroy();
+      engine.destroy();
       navigator.destroy();
       renderer.destroy();
     };
   }, []);
 
-  const setPattern = (value) => {
-    setPatternKey(value);
-    instancesRef.current.controller?.setTrafficPattern(value);
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    instancesRef.current.engine?.setMode(newMode);
   };
 
-  const setSimSpeed = (value) => {
-    setSpeed(value);
-    instancesRef.current.controller?.setSpeed(value);
+  const handleStep = () => {
+    instancesRef.current.engine?.stepForward();
   };
 
-  const onPauseResume = () => {
-    const controller = instancesRef.current.controller;
-    if (!controller) return;
-
-    const paused = controller.togglePause();
-    setSimInfo((prev) => ({ ...prev, paused }));
+  const handleReset = () => {
+    instancesRef.current.engine?.reset();
+    refreshState();
   };
 
-  const onReset = () => {
-    const controller = instancesRef.current.controller;
-    if (!controller) return;
-
-    controller.reset();
-    setSimInfo({ time: '00:00', frame: 0, flows: 0, droppedDemandMbps: 0, paused: false, running: true });
+  const handleSpeedChange = (s) => {
+    setSpeed(s);
+    instancesRef.current.engine?.setSpeed(s);
   };
 
-  const onFailure = () => {
-    instancesRef.current.controller?.triggerRandomFailure();
+  const handlePing = (sourceId, destIp) => {
+    instancesRef.current.engine?.ping(sourceId, destIp, 4);
   };
 
-  const onRecover = () => {
-    instancesRef.current.controller?.recoverAll();
-  };
-
-  const updateZoom = (zoomFactor) => {
-    const navigator = instancesRef.current.navigator;
+  const handleEditTopology = () => {
     const renderer = instancesRef.current.renderer;
-    const canvas = canvasRef.current;
-    if (!navigator || !renderer || !canvas) return;
-
-    const transform = navigator.getTransform();
-    const targetScale = Math.max(navigator.minScale, Math.min(navigator.maxScale, transform.scale * zoomFactor));
-    const ratio = targetScale / transform.scale;
-    const centerX = canvas.clientWidth / 2;
-    const centerY = canvas.clientHeight / 2;
-
-    navigator.scale = targetScale;
-    navigator.offsetX = centerX - (centerX - transform.offsetX) * ratio;
-    navigator.offsetY = centerY - (centerY - transform.offsetY) * ratio;
-
-    renderer.setTransform(navigator.getTransform());
-    setZoom(Math.round(targetScale * 100));
-  };
-
-  const onZoomIn = () => updateZoom(1.2);
-  const onZoomOut = () => updateZoom(1 / 1.2);
-
-  const onFitView = () => {
-    const navigator = instancesRef.current.navigator;
-    const renderer = instancesRef.current.renderer;
-    if (!navigator || !renderer) return;
-    navigator.fitToContent(renderer.nodes, 90);
-  };
-
-  const onEditTopology = () => {
-    const renderer = instancesRef.current.renderer;
-    if (!renderer) {
-      navigate('/playground');
-      return;
+    if (renderer) {
+      const serialized = serializeTopology({ nodes: renderer.nodes, links: renderer.links });
+      localStorage.setItem(STORAGE_KEYS.playgroundTopology, JSON.stringify(serialized));
     }
-
-    const serialized = serializeTopology({ nodes: renderer.nodes, links: renderer.links });
-    localStorage.setItem(STORAGE_KEYS.playgroundTopology, JSON.stringify(serialized));
     navigate('/playground');
   };
 
-  const onExportReport = () => {
-    const controller = instancesRef.current.controller;
+  const updateZoom = (factor) => {
+    const nav = instancesRef.current.navigator;
     const renderer = instancesRef.current.renderer;
-    if (!controller || !renderer) return;
+    const canvas = canvasRef.current;
+    if (!nav || !renderer || !canvas) return;
 
-    const report = buildReport({ metrics, controller, renderer, patternKey });
-    localStorage.setItem(STORAGE_KEYS.latestLabReport, JSON.stringify(report));
+    const transform = nav.getTransform();
+    const targetScale = Math.max(nav.minScale, Math.min(nav.maxScale, transform.scale * factor));
+    const ratio = targetScale / transform.scale;
+    const cx = canvas.clientWidth / 2;
+    const cy = canvas.clientHeight / 2;
 
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'network-lab-report.json';
-    link.click();
-    URL.revokeObjectURL(url);
+    nav.scale = targetScale;
+    nav.offsetX = cx - (cx - transform.offsetX) * ratio;
+    nav.offsetY = cy - (cy - transform.offsetY) * ratio;
+    renderer.setTransform(nav.getTransform());
+    setZoom(Math.round(targetScale * 100));
   };
+
+  const handleCanvasClick = (e) => {
+    const canvas = canvasRef.current;
+    const renderer = instancesRef.current.renderer;
+    if (!canvas || !renderer) return;
+
+    const rect = canvas.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+
+    const transform = renderer.transform;
+    if (transform) {
+      x = (x - transform.offsetX) / transform.scale;
+      y = (y - transform.offsetY) / transform.scale;
+    }
+
+    const node = renderer.findNodeAt(x, y);
+    if (node) {
+      setSelectedDevice(node);
+      renderer.selectNode(node.id);
+
+      // Single click: show info
+      setRightPanel('info');
+    } else {
+      setSelectedDevice(null);
+      renderer.selectNode(null);
+      setRightPanel('events');
+    }
+  };
+
+  const handleCanvasDblClick = (e) => {
+    const canvas = canvasRef.current;
+    const renderer = instancesRef.current.renderer;
+    if (!canvas || !renderer) return;
+
+    const rect = canvas.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+
+    const transform = renderer.transform;
+    if (transform) {
+      x = (x - transform.offsetX) / transform.scale;
+      y = (y - transform.offsetY) / transform.scale;
+    }
+
+    const node = renderer.findNodeAt(x, y);
+    if (!node) return;
+
+    setSelectedDevice(node);
+
+    if (isRouterType(node.type) || isSwitchType(node.type)) {
+      setRightPanel('cli');
+    } else if (isEndpointType(node.type)) {
+      setRightPanel('config');
+    }
+  };
+
+  const deviceForPanel = selectedDevice
+    ? instancesRef.current.engine?.networkStack?.getNode(selectedDevice.id) || selectedDevice
+    : null;
 
   return (
     <section className="page page-simulation">
-      <div className="toolbar toolbar-comfort">
-        <div className="toolbar-group">
-          <button onClick={onPauseResume}>{simInfo.paused ? 'Resume' : 'Pause'}</button>
-          <button onClick={onReset}>Reset</button>
-        </div>
-
-        <div className="toolbar-group">
-          <button onClick={onFailure}>Inject Failure</button>
-          <button onClick={onRecover}>Recover All</button>
-        </div>
-
-        <div className="toolbar-group toolbar-zoom">
-          <button onClick={onZoomOut}>−</button>
-          <span className="zoom-pill">{zoom}%</span>
-          <button onClick={onZoomIn}>+</button>
-          <button onClick={onFitView}>Fit</button>
-        </div>
-
-        <div className="toolbar-spacer" />
-
-        <div className="toolbar-group">
-          <button onClick={onEditTopology}>Edit Topology</button>
-          <button onClick={onExportReport}>Export Report</button>
-          <Link to="/analytics" className="btn-secondary">Open Analytics</Link>
-        </div>
-      </div>
+      <SimulationControls
+        mode={mode}
+        onModeChange={handleModeChange}
+        onStep={handleStep}
+        onReset={handleReset}
+        speed={speed}
+        onSpeedChange={handleSpeedChange}
+        onSendPing={() => setShowPingDialog(true)}
+        onEditTopology={handleEditTopology}
+        stepCount={simState.stepCount}
+        eventsQueued={simState.eventsQueued}
+        packetsInFlight={simState.packetsInFlight}
+      />
 
       <div className="simulation-grid">
         <div className="canvas-area">
-          <canvas ref={canvasRef} className="editor-canvas" />
-          <div className="canvas-meta">{simInfo.time} • zoom {zoom}% • {simInfo.running ? 'running' : 'stopped'}</div>
+          <canvas
+            ref={canvasRef}
+            className="editor-canvas"
+            onClick={handleCanvasClick}
+            onDoubleClick={handleCanvasDblClick}
+          />
+          <div className="canvas-meta">
+            {mode} mode | step {simState.stepCount} | {simState.eventsQueued} queued | {simState.packetsInFlight} in flight | zoom {zoom}%
+          </div>
         </div>
 
-        <aside className="panel panel-right">
-          <h3>Controls</h3>
-          <div className="control-group">
-            <label htmlFor="pattern">Traffic Pattern</label>
-            <select id="pattern" value={patternKey} onChange={(e) => setPattern(e.target.value)}>
-              {Object.entries(TRAFFIC_PATTERNS).map(([key, pattern]) => (
-                <option key={key} value={key}>{pattern.label}</option>
-              ))}
-            </select>
+        <aside className="panel panel-right sim-panel-right">
+          <div className="sim-panel-tabs">
+            <button className={rightPanel === 'events' ? 'active' : ''} onClick={() => setRightPanel('events')}>Events</button>
+            <button className={rightPanel === 'info' ? 'active' : ''} onClick={() => setRightPanel('info')} disabled={!selectedDevice}>Info</button>
+            <button className={rightPanel === 'cli' ? 'active' : ''} onClick={() => setRightPanel('cli')} disabled={!selectedDevice}>CLI</button>
+            <button className={rightPanel === 'config' ? 'active' : ''} onClick={() => setRightPanel('config')} disabled={!selectedDevice}>Config</button>
           </div>
 
-          <div className="control-group">
-            <label>Speed</label>
-            <div className="speed-row">
-              {[0.5, 1, 2, 5].map((value) => (
-                <button
-                  key={value}
-                  className={speed === value ? 'active' : ''}
-                  onClick={() => setSimSpeed(value)}
-                >
-                  {value}x
-                </button>
-              ))}
-            </div>
-          </div>
+          <div className="sim-panel-body">
+            {rightPanel === 'events' && (
+              <>
+                <EventList events={events} currentStep={simState.stepCount} />
+                <PacketDetailPanel frame={selectedFrame} />
+              </>
+            )}
 
-          <h3>Simulation Info</h3>
-          <div className="kv-list">
-            <div><span>Status</span><strong>{simInfo.paused ? 'Paused' : 'Running'}</strong></div>
-            <div><span>Frame</span><strong>{simInfo.frame}</strong></div>
-            <div><span>Active flows</span><strong>{simInfo.flows}</strong></div>
-            <div><span>Dropped demand</span><strong>{simInfo.droppedDemandMbps.toFixed(1)} Mbps</strong></div>
-          </div>
+            {rightPanel === 'cli' && deviceForPanel && (
+              <CliTerminal
+                device={deviceForPanel}
+                networkStack={instancesRef.current.engine?.networkStack}
+                simulationEngine={instancesRef.current.engine}
+                onClose={() => setRightPanel('events')}
+              />
+            )}
 
-          <h3>Live Metrics</h3>
-          <div className="kv-list">
-            <div><span>Throughput</span><strong>{metrics.throughput} Mbps</strong></div>
-            <div><span>Latency</span><strong>{metrics.latency} ms</strong></div>
-            <div><span>Packet loss</span><strong>{metrics.packetLoss}%</strong></div>
-            <div><span>Utilization</span><strong>{metrics.utilization}%</strong></div>
-            <div><span>Connections</span><strong>{metrics.activeConnections}</strong></div>
+            {rightPanel === 'config' && deviceForPanel && (
+              <DeviceConfigDialog
+                device={deviceForPanel}
+                networkStack={instancesRef.current.engine?.networkStack}
+                onClose={() => setRightPanel('events')}
+                onApply={() => refreshState()}
+              />
+            )}
+
+            {rightPanel === 'info' && deviceForPanel && (
+              <div className="device-info-panel">
+                <h4>{deviceForPanel.hostname}</h4>
+                <div className="kv-list">
+                  <div><span>Type</span><strong>{deviceForPanel.type}</strong></div>
+                  <div><span>Status</span><strong>{deviceForPanel.status}</strong></div>
+                  {deviceForPanel.defaultGateway && (
+                    <div><span>Gateway</span><strong>{deviceForPanel.defaultGateway}</strong></div>
+                  )}
+                </div>
+                <h4>Interfaces</h4>
+                <div className="device-iface-list">
+                  {deviceForPanel.interfaces?.map(iface => (
+                    <div key={iface.name} className="device-iface-row">
+                      <span className="iface-name-col">{iface.shortName}</span>
+                      <span>{iface.ipAddress || 'unassigned'}</span>
+                      <span className={`iface-status-col ${iface.status}`}>{iface.status}</span>
+                    </div>
+                  ))}
+                </div>
+                {isRouterType(deviceForPanel.type) && (
+                  <>
+                    <h4>Routing Table</h4>
+                    <div className="device-table-list">
+                      {instancesRef.current.engine?.networkStack?.getRoutingTable(deviceForPanel.id)?.getEntries()?.map((r, i) => (
+                        <div key={i} className="device-table-row">
+                          <code>{r.type === 'connected' ? 'C' : 'S'} {r.network}/{r.maskBits} {r.nextHop ? `via ${r.nextHop}` : r.iface}</code>
+                        </div>
+                      )) || <div className="empty-table">No routes</div>}
+                    </div>
+                  </>
+                )}
+                <h4>ARP Table</h4>
+                <div className="device-table-list">
+                  {instancesRef.current.engine?.networkStack?.getArpTable(deviceForPanel.id)?.getEntries()?.map((e, i) => (
+                    <div key={i} className="device-table-row">
+                      <code>{e.ip} {'->'} {e.mac}</code>
+                    </div>
+                  )) || <div className="empty-table">Empty</div>}
+                </div>
+              </div>
+            )}
           </div>
         </aside>
+      </div>
+
+      {showPingDialog && (
+        <div className="dialog-overlay" onClick={() => setShowPingDialog(false)}>
+          <div className="dialog-content" onClick={e => e.stopPropagation()}>
+            <PingDialog
+              nodes={nodes}
+              onPing={handlePing}
+              onClose={() => setShowPingDialog(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="status-row">
+        <span>{mode === 'simulation' ? 'Step-by-step mode' : 'Realtime mode'}</span>
+        <span className="status-pill ok">Step {simState.stepCount}</span>
+        <span className="status-pill info">{simState.eventsQueued} queued</span>
+        <span>{simState.packetsInFlight} packets in flight</span>
+        <span>Click device for info | Double-click router/switch for CLI | Double-click PC for config</span>
       </div>
     </section>
   );

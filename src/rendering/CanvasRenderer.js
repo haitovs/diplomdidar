@@ -1,13 +1,12 @@
 /**
- * Main Canvas Renderer (v2)
- * Orchestrates all rendering subsystems for the network visualization
+ * Main Canvas Renderer (v3)
+ * Orchestrates rendering for the network packet simulator.
  */
 
 import { LINK_CONFIG, LinkRenderer } from './LinkRenderer.js';
 import { DEVICE_CONFIG, NodeRenderer } from './NodeRenderer.js';
-import { ParticleSystem } from './ParticleSystem.js';
+import { PacketRenderer } from './PacketRenderer.js';
 
-// Rendering configuration
 const RENDER_CONFIG = {
   targetFPS: 60,
   backgroundColor: '#0a0f1a',
@@ -16,21 +15,16 @@ const RENDER_CONFIG = {
   showGrid: true,
 };
 
-/**
- * Main Canvas Renderer Class
- */
 export class CanvasRenderer {
   constructor(canvas, options = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.options = { ...RENDER_CONFIG, ...options };
 
-    // Initialize sub-renderers
     this.nodeRenderer = new NodeRenderer(this.ctx, new Map());
     this.linkRenderer = new LinkRenderer(this.ctx);
-    this.particleSystem = new ParticleSystem(this.ctx);
+    this.packetRenderer = new PacketRenderer(this.ctx);
 
-    // State
     this.nodes = [];
     this.links = [];
     this.nodeMap = new Map();
@@ -39,66 +33,53 @@ export class CanvasRenderer {
     this.hoveredNode = null;
     this.selectedLink = null;
 
-    // Animation
     this.frame = 0;
     this.lastFrameTime = 0;
     this.rafId = null;
     this.paused = false;
 
-    // Setup canvas
     this.dpr = window.devicePixelRatio || 1;
     this.handleResize();
 
-    // Event bindings
     this.handleResize = this.handleResize.bind(this);
     this.loop = this.loop.bind(this);
 
     window.addEventListener('resize', this.handleResize);
   }
 
-  /**
-   * Set icon cache for node rendering
-   */
   setIconCache(cache) {
     this.nodeRenderer.iconCache = cache;
   }
 
-  /**
-   * Set network topology
-   */
   setTopology(topology) {
     this.nodes = (topology.nodes || []).map(node => ({
       ...node,
       x: node.position?.x * this.width || this.width / 2,
       y: node.position?.y * this.height || this.height / 2,
-      displayLoad: node.load ?? 0.5,
-      targetLoad: node.load ?? 0.5,
       type: node.type || 'switch',
     }));
 
     this.links = topology.links || [];
     this.nodeMap = new Map(this.nodes.map(n => [n.id, n]));
 
-    // Initialize particle system
-    this.particleSystem.initialize(this.links, this.nodeMap, 1);
-
-    // Initialize link health
     this.links.forEach(link => {
-      this.linkHealthMap.set(link.id, { status: 'up', flow: 1, loss: 0 });
+      this.linkHealthMap.set(link.id, { status: link.status || 'up' });
     });
+
+    this.packetRenderer.setNodeMap(this.nodeMap);
   }
 
-  /**
-   * Update link health status
-   */
   updateLinkHealth(linkId, health) {
     this.linkHealthMap.set(linkId, health);
-    this.particleSystem.updateLink(linkId, { health });
   }
 
   /**
-   * Handle canvas resize
+   * Set active packets for rendering.
    */
+  setActivePackets(packets) {
+    this.packetRenderer.setPackets(packets);
+  }
+
   handleResize() {
     const rect = this.canvas.getBoundingClientRect();
     const oldW = this.width || rect.width;
@@ -109,7 +90,6 @@ export class CanvasRenderer {
     this.canvas.height = rect.height * this.dpr;
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
-    // Scale existing node positions proportionally (only when nodes exist)
     if (this.nodes.length > 0 && oldW > 0 && oldH > 0) {
       const scaleX = this.width / oldW;
       const scaleY = this.height / oldH;
@@ -124,9 +104,6 @@ export class CanvasRenderer {
     }
   }
 
-  /**
-   * Start animation loop
-   */
   start() {
     this.paused = false;
     if (!this.rafId) {
@@ -134,9 +111,6 @@ export class CanvasRenderer {
     }
   }
 
-  /**
-   * Stop animation loop
-   */
   stop() {
     this.paused = true;
     if (this.rafId) {
@@ -145,23 +119,9 @@ export class CanvasRenderer {
     }
   }
 
-  /**
-   * Pause rendering (keeps RAF but stops updates)
-   */
-  pause() {
-    this.paused = true;
-  }
+  pause() { this.paused = true; }
+  resume() { this.paused = false; }
 
-  /**
-   * Resume rendering
-   */
-  resume() {
-    this.paused = false;
-  }
-
-  /**
-   * Main render loop
-   */
   loop(timestamp) {
     const elapsed = timestamp - this.lastFrameTime;
     const targetFrameTime = 1000 / this.options.targetFPS;
@@ -175,8 +135,6 @@ export class CanvasRenderer {
       }
 
       this.render();
-
-      // Update sub-renderers
       this.nodeRenderer.tick();
       this.linkRenderer.tick();
     }
@@ -184,38 +142,20 @@ export class CanvasRenderer {
     this.rafId = requestAnimationFrame(this.loop);
   }
 
-  /**
-   * Update simulation state
-   */
   update() {
-    // Animate node loads
-    this.nodes.forEach(node => {
-      const diff = node.targetLoad - node.displayLoad;
-      node.displayLoad += diff * 0.05;
-    });
-
-    // Update particles
-    this.particleSystem.update(1);
+    this.packetRenderer.update(1);
   }
 
-  /**
-   * Render full scene
-   */
   render() {
-    // Always clear in device-pixel baseline coordinates.
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
-    // Clear canvas
     this.ctx.fillStyle = this.options.backgroundColor;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    // Apply transform
     if (this.applyTransform) {
       this.applyTransform();
     }
 
-
-    // Draw grid
     if (this.options.showGrid) {
       this.drawGrid();
     }
@@ -224,15 +164,15 @@ export class CanvasRenderer {
     this.links.forEach(link => {
       const source = this.nodeMap.get(link.source);
       const target = this.nodeMap.get(link.target);
-      const health = this.linkHealthMap.get(link.id) || { status: 'up', flow: 1 };
+      const health = this.linkHealthMap.get(link.id) || { status: 'up' };
       const control = this.getControlPoint(link, source, target);
       const isSelected = this.selectedLink === link.id;
 
       this.linkRenderer.render(link, source, target, control, health, isSelected);
     });
 
-    // Draw particles
-    this.particleSystem.render();
+    // Draw packets
+    this.packetRenderer.render();
 
     // Draw nodes
     this.nodes.forEach(node => {
@@ -241,21 +181,16 @@ export class CanvasRenderer {
       this.nodeRenderer.render(node, isSelected, isHovered);
     });
 
-    // Reset transform so non-scene overlays and the next frame start cleanly.
     if (this.resetTransform) {
       this.resetTransform();
     }
   }
 
-  /**
-   * Draw background grid
-   */
   drawGrid() {
     const size = this.options.gridSize;
     this.ctx.strokeStyle = this.options.gridColor;
     this.ctx.lineWidth = 1;
 
-    // Calculate visible area accounting for transform
     let startX = 0, startY = 0, endX = this.width, endY = this.height;
     if (this.transform) {
       startX = -this.transform.offsetX / this.transform.scale;
@@ -266,15 +201,12 @@ export class CanvasRenderer {
     startX = Math.floor(startX / size) * size;
     startY = Math.floor(startY / size) * size;
 
-    // Vertical lines
     for (let x = startX; x <= endX; x += size) {
       this.ctx.beginPath();
       this.ctx.moveTo(x, startY);
       this.ctx.lineTo(x, endY);
       this.ctx.stroke();
     }
-
-    // Horizontal lines
     for (let y = startY; y <= endY; y += size) {
       this.ctx.beginPath();
       this.ctx.moveTo(startX, y);
@@ -283,53 +215,32 @@ export class CanvasRenderer {
     }
   }
 
-  /**
-   * Get control point for curved links
-   */
   getControlPoint(link, source, target) {
     if (link.control && link.control.manual) {
-      return {
-        x: link.control.x * this.width,
-        y: link.control.y * this.height,
-      };
+      return { x: link.control.x * this.width, y: link.control.y * this.height };
     }
-
     if (!source || !target) {
       return { x: this.width / 2, y: this.height / 2 };
     }
-
-    // Auto-calculate curve
     const midX = (source.x + target.x) / 2;
     const midY = (source.y + target.y) / 2 - Math.abs(source.x - target.x) * 0.1;
     return { x: midX, y: midY };
   }
 
-  /**
-   * Select a node
-   */
   selectNode(nodeId) {
     this.selectedNode = nodeId;
     this.selectedLink = null;
   }
 
-  /**
-   * Select a link
-   */
   selectLink(linkId) {
     this.selectedLink = linkId;
     this.selectedNode = null;
   }
 
-  /**
-   * Set hovered node
-   */
   setHoveredNode(nodeId) {
     this.hoveredNode = nodeId;
   }
 
-  /**
-   * Find node at coordinates
-   */
   findNodeAt(x, y) {
     const scale = this.transform?.scale || 1;
     const minWorldHitRadius = 14 / Math.max(scale, 0.1);
@@ -344,13 +255,9 @@ export class CanvasRenderer {
         return node;
       }
     }
-
     return null;
   }
 
-  /**
-   * Update node position (for dragging)
-   */
   updateNodePosition(nodeId, x, y) {
     const node = this.nodeMap.get(nodeId);
     if (node) {
@@ -360,50 +267,19 @@ export class CanvasRenderer {
     }
   }
 
-  /**
-   * Update node load target
-   */
-  setNodeLoad(nodeId, load) {
-    const node = this.nodeMap.get(nodeId);
-    if (node) {
-      node.targetLoad = load;
-    }
-  }
-
-  /**
-   * Set all nodes' target loads based on multiplier
-   */
-  setGlobalLoad(multiplier) {
-    this.nodes.forEach(node => {
-      const variance = node.type === 'core' ? 0.1 : 0.2;
-      const base = 0.3 + multiplier * 0.5;
-      node.targetLoad = Math.min(1, Math.max(0, base + (Math.random() - 0.5) * variance));
-    });
-  }
-
-  /**
-   * Cleanup
-   */
   destroy() {
     this.stop();
     window.removeEventListener('resize', this.handleResize);
-    this.particleSystem.clear();
+    this.packetRenderer.clear();
   }
 }
 
-
-// setSpeed method for ParticleSystem
-ParticleSystem.prototype.setSpeed = function (multiplier) {
-  this.speedMultiplier = multiplier || 1;
-};
-
-// setTransform method for CanvasRenderer
+// setTransform method
 CanvasRenderer.prototype.setTransform = function (transform) {
   this.transform = transform || { scale: 1, offsetX: 0, offsetY: 0 };
   this.needsRedraw = true;
 };
 
-// Apply transform in render method
 CanvasRenderer.prototype.applyTransform = function () {
   if (this.transform) {
     this.ctx.setTransform(
@@ -417,7 +293,6 @@ CanvasRenderer.prototype.applyTransform = function () {
   }
 };
 
-// Reset transform after rendering
 CanvasRenderer.prototype.resetTransform = function () {
   this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 };
