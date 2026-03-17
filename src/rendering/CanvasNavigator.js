@@ -35,6 +35,11 @@ export class CanvasNavigator {
     this._spacePressed = false;
     this._cursorBeforePan = '';
 
+    // Touch state
+    this._activeTouches = [];
+    this._lastPinchDist = 0;
+    this._lastPinchCenter = null;
+
     // Bind handlers
     this._onWheel = this._onWheel.bind(this);
     this._onMouseDown = this._onMouseDown.bind(this);
@@ -44,6 +49,9 @@ export class CanvasNavigator {
     this._onKeyDown = this._onKeyDown.bind(this);
     this._onKeyUp = this._onKeyUp.bind(this);
     this._onWindowBlur = this._onWindowBlur.bind(this);
+    this._onTouchStart = this._onTouchStart.bind(this);
+    this._onTouchMove = this._onTouchMove.bind(this);
+    this._onTouchEnd = this._onTouchEnd.bind(this);
 
     // Attach
     canvas.addEventListener('wheel', this._onWheel, { passive: false });
@@ -54,6 +62,10 @@ export class CanvasNavigator {
     window.addEventListener('keydown', this._onKeyDown);
     window.addEventListener('keyup', this._onKeyUp);
     window.addEventListener('blur', this._onWindowBlur);
+    canvas.addEventListener('touchstart', this._onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', this._onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', this._onTouchEnd);
+    canvas.addEventListener('touchcancel', this._onTouchEnd);
   }
 
   /** Get current transform object */
@@ -128,7 +140,7 @@ export class CanvasNavigator {
     const mouseY = e.clientY - rect.top;
 
     // Zoom factor
-    const zoomIntensity = 0.08;
+    const zoomIntensity = 0.05;
     const delta = e.deltaY > 0 ? -1 : 1;
     const factor = 1 + delta * zoomIntensity;
 
@@ -150,6 +162,15 @@ export class CanvasNavigator {
 
     // Middle mouse button OR Ctrl+left click = pan
     if (e.button === 1 || (e.button === 0 && (e.ctrlKey || e.metaKey)) || isSpacePan || isPanToolDrag) {
+      // Don't pan if clicking on a node (let drag handle it)
+      if (this.findNodeAt && e.button === 0 && !isSpacePan && !isPanToolDrag) {
+        const rect = this.canvas.getBoundingClientRect();
+        const vx = e.clientX - rect.left;
+        const vy = e.clientY - rect.top;
+        const wx = (vx - this.offsetX) / this.scale;
+        const wy = (vy - this.offsetY) / this.scale;
+        if (this.findNodeAt(wx, wy)) return;
+      }
       this._startPan(e);
       return;
     }
@@ -203,6 +224,104 @@ export class CanvasNavigator {
     this._stopPan();
   }
 
+  // ── Touch handlers for mobile pan & pinch-zoom ──
+
+  _pinchDist(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
+  }
+
+  _pinchCenter(touches) {
+    const rect = this.canvas.getBoundingClientRect();
+    return {
+      x: (touches[0].clientX + touches[1].clientX) / 2 - rect.left,
+      y: (touches[0].clientY + touches[1].clientY) / 2 - rect.top,
+    };
+  }
+
+  _onTouchStart(e) {
+    this._activeTouches = Array.from(e.touches);
+
+    if (e.touches.length === 2) {
+      // Start pinch-zoom
+      e.preventDefault();
+      this._lastPinchDist = this._pinchDist(e.touches);
+      this._lastPinchCenter = this._pinchCenter(e.touches);
+      this._panStartOffsetX = this.offsetX;
+      this._panStartOffsetY = this.offsetY;
+      this._isPanning = true;
+    } else if (e.touches.length === 1) {
+      // Check if touch is on a node — if so, let TopologyEditor handle it
+      const rect = this.canvas.getBoundingClientRect();
+      const viewX = e.touches[0].clientX - rect.left;
+      const viewY = e.touches[0].clientY - rect.top;
+      const wx = (viewX - this.offsetX) / this.scale;
+      const wy = (viewY - this.offsetY) / this.scale;
+      if (this.findNodeAt && this.findNodeAt(wx, wy)) {
+        // Node touch — don't start pan
+        return;
+      }
+      // Single-finger pan (no node hit)
+      e.preventDefault();
+      this._isPanning = true;
+      this._panStartX = e.touches[0].clientX;
+      this._panStartY = e.touches[0].clientY;
+      this._panStartOffsetX = this.offsetX;
+      this._panStartOffsetY = this.offsetY;
+      this._cursorBeforePan = this.canvas.style.cursor || '';
+    }
+  }
+
+  _onTouchMove(e) {
+    if (!this._isPanning) return;
+
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      // Pinch zoom
+      const newDist = this._pinchDist(e.touches);
+      const center = this._pinchCenter(e.touches);
+
+      if (this._lastPinchDist > 0) {
+        const factor = newDist / this._lastPinchDist;
+        const newScale = Math.min(this.maxScale, Math.max(this.minScale, this.scale * factor));
+        if (newScale !== this.scale) {
+          const scaleRatio = newScale / this.scale;
+          this.offsetX = center.x - (center.x - this.offsetX) * scaleRatio;
+          this.offsetY = center.y - (center.y - this.offsetY) * scaleRatio;
+          this.scale = newScale;
+        }
+      }
+      this._lastPinchDist = newDist;
+      this._lastPinchCenter = center;
+      this._emitChange();
+    } else if (e.touches.length === 1) {
+      e.preventDefault();
+      // Single-finger pan
+      const dx = e.touches[0].clientX - this._panStartX;
+      const dy = e.touches[0].clientY - this._panStartY;
+      this.offsetX = this._panStartOffsetX + dx;
+      this.offsetY = this._panStartOffsetY + dy;
+      this._emitChange();
+    }
+  }
+
+  _onTouchEnd(e) {
+    this._activeTouches = Array.from(e.touches);
+    if (e.touches.length === 0) {
+      this._isPanning = false;
+      this._lastPinchDist = 0;
+      this._lastPinchCenter = null;
+    } else if (e.touches.length === 1) {
+      // Went from pinch to single finger — reset pan start
+      this._panStartX = e.touches[0].clientX;
+      this._panStartY = e.touches[0].clientY;
+      this._panStartOffsetX = this.offsetX;
+      this._panStartOffsetY = this.offsetY;
+      this._lastPinchDist = 0;
+    }
+  }
+
   _startPan(e) {
     e.preventDefault();
     this._isPanning = true;
@@ -241,5 +360,9 @@ export class CanvasNavigator {
     window.removeEventListener('keydown', this._onKeyDown);
     window.removeEventListener('keyup', this._onKeyUp);
     window.removeEventListener('blur', this._onWindowBlur);
+    this.canvas.removeEventListener('touchstart', this._onTouchStart);
+    this.canvas.removeEventListener('touchmove', this._onTouchMove);
+    this.canvas.removeEventListener('touchend', this._onTouchEnd);
+    this.canvas.removeEventListener('touchcancel', this._onTouchEnd);
   }
 }

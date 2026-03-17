@@ -51,4 +51,19 @@ export const defaultIpConfig = {
   ],
 };
 
-export const starterTopology = defaultTopology;
+/**
+ * Starter topology for Playground — simple: 1 switch + 3 PCs.
+ */
+export const starterTopology = {
+  nodes: [
+    { id: 'sw0', label: 'Switch0', hostname: 'Switch0', type: 'switch', position: { x: 0.50, y: 0.30 } },
+    { id: 'pc0', label: 'PC0',     hostname: 'PC0',     type: 'pc',     position: { x: 0.20, y: 0.70 } },
+    { id: 'pc1', label: 'PC1',     hostname: 'PC1',     type: 'pc',     position: { x: 0.50, y: 0.70 } },
+    { id: 'pc2', label: 'PC2',     hostname: 'PC2',     type: 'pc',     position: { x: 0.80, y: 0.70 } },
+  ],
+  links: [
+    { id: 'l1', source: 'pc0', target: 'sw0', type: 'ethernet' },
+    { id: 'l2', source: 'pc1', target: 'sw0', type: 'ethernet' },
+    { id: 'l3', source: 'pc2', target: 'sw0', type: 'ethernet' },
+  ],
+};

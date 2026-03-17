@@ -3,6 +3,10 @@
  * Network connection visualization with interface labels.
  */
 
+function isLightTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'light';
+}
+
 export const LINK_CONFIG = {
   fiber: { width: 4, color: '#8b5cf6', gradient: ['#8b5cf6', '#6366f1'], dash: [], label: 'Fiber' },
   ethernet: { width: 3, color: '#22c55e', gradient: ['#22c55e', '#14b8a6'], dash: [], label: 'Ethernet' },
@@ -209,11 +213,11 @@ export class LinkRenderer {
     this.ctx.font = '10px Inter';
     const textWidth = this.ctx.measureText(text).width;
 
-    this.ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    this.ctx.fillStyle = isLightTheme() ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 23, 42, 0.9)';
     this.roundRect(midX - textWidth / 2 - 6, midY - 8, textWidth + 12, 16, 4);
     this.ctx.fill();
 
-    const textColor = status === 'down' ? '#ef4444' : '#94a3b8';
+    const textColor = status === 'down' ? '#ef4444' : (isLightTheme() ? '#475569' : '#94a3b8');
     this.ctx.fillStyle = textColor;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';

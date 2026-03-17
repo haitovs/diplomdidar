@@ -9,11 +9,19 @@ import { PacketRenderer } from './PacketRenderer.js';
 
 const RENDER_CONFIG = {
   targetFPS: 60,
-  backgroundColor: '#0a0f1a',
-  gridDotColor: 'rgba(255, 255, 255, 0.08)',
   gridSize: 40,
   showGrid: true,
 };
+
+const THEME_COLORS = {
+  dark: { bg: '#0a0f1a', gridDot: 'rgba(255, 255, 255, 0.08)' },
+  light: { bg: '#e9edf5', gridDot: 'rgba(0, 0, 0, 0.1)' },
+};
+
+function getThemeColors() {
+  const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+  return THEME_COLORS[theme] || THEME_COLORS.dark;
+}
 
 export class CanvasRenderer {
   constructor(canvas, options = {}) {
@@ -143,7 +151,8 @@ export class CanvasRenderer {
   render() {
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
-    this.ctx.fillStyle = this.options.backgroundColor;
+    const colors = getThemeColors();
+    this.ctx.fillStyle = colors.bg;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
     if (this.applyTransform) {
@@ -187,7 +196,7 @@ export class CanvasRenderer {
 
   drawGrid() {
     const size = this.options.gridSize;
-    this.ctx.fillStyle = this.options.gridDotColor;
+    this.ctx.fillStyle = getThemeColors().gridDot;
 
     let startX = 0, startY = 0, endX = this.width, endY = this.height;
     if (this.transform) {

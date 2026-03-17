@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { CliParser, CLI_MODES } from '@core/cli/CliParser.js';
 import { CliHistory } from '@core/cli/CliHistory.js';
 import { executeCommand } from '@core/cli/CliCommands.js';
@@ -32,6 +32,30 @@ export default function CliTerminal({ device, networkStack, simulationEngine, on
   const historyRef = useRef(new CliHistory());
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
+  const autoStepRef = useRef(null);
+
+  const autoStepEvents = useCallback(() => {
+    if (!simulationEngine) return;
+    if (autoStepRef.current) clearInterval(autoStepRef.current);
+    let stepsRemaining = 60;
+    const interval = setInterval(() => {
+      const state = simulationEngine.getState();
+      if (state.eventsQueued === 0 || stepsRemaining <= 0) {
+        clearInterval(interval);
+        autoStepRef.current = null;
+        return;
+      }
+      simulationEngine.stepForward();
+      stepsRemaining--;
+    }, 150);
+    autoStepRef.current = interval;
+  }, [simulationEngine]);
+
+  useEffect(() => {
+    return () => {
+      if (autoStepRef.current) clearInterval(autoStepRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!device) return;
@@ -68,6 +92,12 @@ export default function CliTerminal({ device, networkStack, simulationEngine, on
 
     setLines(prev => [...prev, promptLine, ...result.output]);
     setInput('');
+
+    // Auto-step simulation events after ping so packets actually move
+    const trimmed = line.trim().toLowerCase();
+    if (trimmed.startsWith('ping ') && simulationEngine) {
+      autoStepEvents();
+    }
 
     if (result.exit && onClose) {
       onClose();

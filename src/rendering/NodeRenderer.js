@@ -3,6 +3,10 @@
  * Network device visualization with interface ports.
  */
 
+function isLightTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'light';
+}
+
 // Device configuration with icons, colors, and rendering properties
 export const DEVICE_CONFIG = {
   router: {
@@ -186,7 +190,7 @@ export class NodeRenderer {
   }
 
   drawHoverEffect(x, y, radius) {
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    this.ctx.strokeStyle = isLightTheme() ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.3)';
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
     this.ctx.arc(x, y, radius + 5, 0, Math.PI * 2);
@@ -194,7 +198,7 @@ export class NodeRenderer {
   }
 
   drawBase(x, y, radius, color, statusColor) {
-    this.ctx.fillStyle = '#0f172a';
+    this.ctx.fillStyle = isLightTheme() ? '#f1f5f9' : '#0f172a';
     this.ctx.beginPath();
     this.ctx.arc(x, y, radius, 0, Math.PI * 2);
     this.ctx.fill();
@@ -292,8 +296,9 @@ export class NodeRenderer {
     const th = 18;
     const ty = y + radius + 16;
 
-    // Dark pill background
-    this.ctx.fillStyle = 'rgba(10, 15, 30, 0.85)';
+    const light = isLightTheme();
+    // Pill background
+    this.ctx.fillStyle = light ? 'rgba(255, 255, 255, 0.92)' : 'rgba(10, 15, 30, 0.85)';
     this.ctx.beginPath();
     const px = x - tw / 2 - 6;
     const py = ty - th / 2;
@@ -312,12 +317,12 @@ export class NodeRenderer {
     this.ctx.fill();
 
     // Border
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    this.ctx.strokeStyle = light ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)';
     this.ctx.lineWidth = 1;
     this.ctx.stroke();
 
     // Text
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    this.ctx.fillStyle = light ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.85)';
     this.ctx.fillText(text, x, ty);
   }
 

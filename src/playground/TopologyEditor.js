@@ -51,6 +51,10 @@ export class TopologyEditor {
       mousemove: (e) => this.handleMouseMove(e),
       mouseup: (e) => this.handleMouseUp(e),
       mouseleave: (e) => this.handleMouseUp(e),
+      touchstart: (e) => this.handleTouchStart(e),
+      touchmove: (e) => this.handleTouchMove(e),
+      touchend: (e) => this.handleTouchEnd(e),
+      touchcancel: (e) => this.handleTouchEnd(e),
       dragover: (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; },
       drop: (e) => this.handleDrop(e),
       keydown: (e) => this.handleKeydown(e),
@@ -101,6 +105,10 @@ export class TopologyEditor {
     this.canvas.addEventListener('mousemove', this.boundHandlers.mousemove);
     this.canvas.addEventListener('mouseup', this.boundHandlers.mouseup);
     this.canvas.addEventListener('mouseleave', this.boundHandlers.mouseleave);
+    this.canvas.addEventListener('touchstart', this.boundHandlers.touchstart, { passive: false });
+    this.canvas.addEventListener('touchmove', this.boundHandlers.touchmove, { passive: false });
+    this.canvas.addEventListener('touchend', this.boundHandlers.touchend);
+    this.canvas.addEventListener('touchcancel', this.boundHandlers.touchcancel);
     this.canvas.addEventListener('dragover', this.boundHandlers.dragover);
     this.canvas.addEventListener('drop', this.boundHandlers.drop);
     document.addEventListener('keydown', this.boundHandlers.keydown);
@@ -225,6 +233,82 @@ export class TopologyEditor {
       this.suppressNextClick = true;
     }
     this.updateCursor();
+  }
+
+  // ── Touch event handlers for mobile support ──
+
+  _getTouchXY(e) {
+    const touch = e.touches[0] || e.changedTouches[0];
+    if (!touch) return null;
+    const rect = this.canvas.getBoundingClientRect();
+    return { clientX: touch.clientX, clientY: touch.clientY, viewX: touch.clientX - rect.left, viewY: touch.clientY - rect.top };
+  }
+
+  handleTouchStart(e) {
+    if (e.touches.length !== 1) return; // ignore multi-touch (pinch handled by navigator)
+    const t = this._getTouchXY(e);
+    if (!t) return;
+
+    const { x, y } = this.toWorldCoordinates(t.viewX, t.viewY);
+    this._touchStartWorld = { x, y };
+    this._touchStartClient = { x: t.clientX, y: t.clientY };
+
+    if (this.mode === 'select') {
+      if (this.options.isPanning?.()) return;
+      const node = this.renderer.findNodeAt(x, y);
+      if (node) {
+        e.preventDefault(); // prevent scroll when dragging a node
+        this.dragState = { nodeId: node.id, startX: x, startY: y, startViewX: t.viewX, startViewY: t.viewY, lastX: x, lastY: y, lastViewX: t.viewX, lastViewY: t.viewY, moved: false };
+      }
+    }
+  }
+
+  handleTouchMove(e) {
+    if (e.touches.length !== 1) return;
+    const t = this._getTouchXY(e);
+    if (!t) return;
+
+    if (this.dragState) {
+      e.preventDefault(); // prevent scroll while dragging node
+      const { x, y } = this.toWorldCoordinates(t.viewX, t.viewY);
+      const screenDx = t.viewX - this.dragState.startViewX;
+      const screenDy = t.viewY - this.dragState.startViewY;
+      if (!this.dragState.moved && Math.hypot(screenDx, screenDy) < 4) return;
+
+      this.dragState.moved = true;
+      this.dragState.lastX = x;
+      this.dragState.lastY = y;
+      this.updateNodePositionLive(this.dragState.nodeId, x, y);
+    }
+  }
+
+  handleTouchEnd(e) {
+    const wasDragging = this.dragState?.moved;
+
+    // Finish drag if active
+    if (this.dragState) {
+      this.handleMouseUp(); // reuse existing logic
+    }
+
+    // If it was a tap (not a drag), treat as a click for tool interactions
+    if (!wasDragging && this._touchStartClient) {
+      const t = e.changedTouches[0];
+      if (t) {
+        const dist = Math.hypot(t.clientX - this._touchStartClient.x, t.clientY - this._touchStartClient.y);
+        if (dist < 10 && this._touchStartWorld) {
+          const { x, y } = this._touchStartWorld;
+          switch (this.mode) {
+            case 'addNode': if (this.pendingDevice) this.addNode(x, y, this.pendingDevice); break;
+            case 'addLink': this.handleLinkClick(x, y); break;
+            case 'delete': this.handleDeleteClick(x, y); break;
+            case 'select': default: this.handleSelectClick(x, y, false); break;
+          }
+        }
+      }
+    }
+
+    this._touchStartWorld = null;
+    this._touchStartClient = null;
   }
 
   updateNodePositionLive(nodeId, x, y) {
@@ -712,6 +796,10 @@ export class TopologyEditor {
     this.canvas.removeEventListener('mousemove', this.boundHandlers.mousemove);
     this.canvas.removeEventListener('mouseup', this.boundHandlers.mouseup);
     this.canvas.removeEventListener('mouseleave', this.boundHandlers.mouseleave);
+    this.canvas.removeEventListener('touchstart', this.boundHandlers.touchstart);
+    this.canvas.removeEventListener('touchmove', this.boundHandlers.touchmove);
+    this.canvas.removeEventListener('touchend', this.boundHandlers.touchend);
+    this.canvas.removeEventListener('touchcancel', this.boundHandlers.touchcancel);
     this.canvas.removeEventListener('dragover', this.boundHandlers.dragover);
     this.canvas.removeEventListener('drop', this.boundHandlers.drop);
     document.removeEventListener('keydown', this.boundHandlers.keydown);

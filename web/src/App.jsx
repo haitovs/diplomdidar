@@ -1,4 +1,6 @@
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { useTheme } from './lib/useTheme.js';
+import { useLang } from './lib/useLang.js';
 import HomePage from './pages/HomePage.jsx';
 import PlaygroundPage from './pages/PlaygroundPage.jsx';
 import SimulationPage from './pages/SimulationPage.jsx';
@@ -11,6 +13,8 @@ const NAV_ITEMS = [
 
 function AppNav() {
   const location = useLocation();
+  const [theme, toggleTheme] = useTheme();
+  const { label: langLabel, cycleLang } = useLang();
 
   return (
     <header className="app-header">
@@ -27,6 +31,24 @@ function AppNav() {
             </Link>
           ))}
         </nav>
+        <div className="header-actions">
+          <button
+            className="header-action-btn"
+            onClick={cycleLang}
+            title="Change language"
+            aria-label="Change language"
+          >
+            {langLabel}
+          </button>
+          <button
+            className="header-action-btn theme-toggle-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? '\u2600' : '\u263E'}
+          </button>
+        </div>
       </div>
     </header>
   );

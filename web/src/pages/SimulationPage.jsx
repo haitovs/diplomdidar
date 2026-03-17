@@ -54,6 +54,8 @@ export default function SimulationPage() {
   const autoStepRef = useRef(null);
   // Track pointer-down position for click vs drag detection
   const pointerDownRef = useRef(null);
+  // Drag state for device relocation
+  const dragRef = useRef(null);
 
   const refreshState = useCallback(() => {
     const engine = instancesRef.current.engine;
@@ -77,6 +79,7 @@ export default function SimulationPage() {
         renderer.setTransform(transform);
         setZoom(Math.round(transform.scale * 100));
       },
+      findNodeAt: (wx, wy) => renderer.findNodeAt(wx, wy),
     });
     const engine = new PacketSimulationEngine();
 
@@ -326,20 +329,111 @@ export default function SimulationPage() {
     }
   };
 
+  // ── Device drag + click handling (mouse & touch) ──
+
+  const getWorldFromEvent = (e) => {
+    const canvas = canvasRef.current;
+    const renderer = instancesRef.current.renderer;
+    if (!canvas || !renderer) return null;
+    const rect = canvas.getBoundingClientRect();
+    let vx, vy, cx, cy;
+    if (e.touches) {
+      const t = e.touches[0] || e.changedTouches[0];
+      if (!t) return null;
+      vx = t.clientX - rect.left; vy = t.clientY - rect.top;
+      cx = t.clientX; cy = t.clientY;
+    } else {
+      vx = e.clientX - rect.left; vy = e.clientY - rect.top;
+      cx = e.clientX; cy = e.clientY;
+    }
+    const transform = renderer.transform;
+    const wx = transform ? (vx - transform.offsetX) / transform.scale : vx;
+    const wy = transform ? (vy - transform.offsetY) / transform.scale : vy;
+    return { wx, wy, vx, vy, cx, cy, rect };
+  };
+
   const handlePointerDown = (e) => {
-    if (e.button !== 0) return; // only track left button
+    if (e.button !== 0) return;
+    const renderer = instancesRef.current.renderer;
+    if (!renderer) return;
+    const coords = getWorldFromEvent(e);
+    if (!coords) return;
     pointerDownRef.current = { x: e.clientX, y: e.clientY };
+    const node = renderer.findNodeAt(coords.wx, coords.wy);
+    if (node && activeTool === 'select') {
+      dragRef.current = { nodeId: node.id, startWx: coords.wx, startWy: coords.wy, moved: false };
+    }
+  };
+
+  const handlePointerMove = (e) => {
+    handleCanvasMouseMove(e);
+    if (!dragRef.current) return;
+    const renderer = instancesRef.current.renderer;
+    if (!renderer) return;
+    const coords = getWorldFromEvent(e);
+    if (!coords) return;
+    const dx = coords.wx - dragRef.current.startWx;
+    const dy = coords.wy - dragRef.current.startWy;
+    if (!dragRef.current.moved && Math.hypot(dx, dy) < 4) return;
+    dragRef.current.moved = true;
+    renderer.updateNodePosition(dragRef.current.nodeId, coords.wx, coords.wy);
   };
 
   const handlePointerUp = (e) => {
     if (e.button !== 0) return;
+    const wasDrag = dragRef.current?.moved;
+    dragRef.current = null;
     const down = pointerDownRef.current;
     pointerDownRef.current = null;
+    if (wasDrag) return; // was a drag, not a click
     if (!down) return;
-    // Skip if the pointer moved more than 5px (it was a drag/pan, not a click)
     const dist = Math.hypot(e.clientX - down.x, e.clientY - down.y);
     if (dist > 5) return;
     handleCanvasClick(e);
+  };
+
+  // Touch handlers for mobile device dragging
+  const handleTouchStart = (e) => {
+    if (e.touches.length !== 1) return;
+    const renderer = instancesRef.current.renderer;
+    if (!renderer) return;
+    const coords = getWorldFromEvent(e);
+    if (!coords) return;
+    pointerDownRef.current = { x: coords.cx, y: coords.cy };
+    const node = renderer.findNodeAt(coords.wx, coords.wy);
+    if (node && activeTool === 'select') {
+      e.preventDefault(); // prevent scroll when dragging a node
+      dragRef.current = { nodeId: node.id, startWx: coords.wx, startWy: coords.wy, moved: false };
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!dragRef.current || e.touches.length !== 1) return;
+    e.preventDefault();
+    const renderer = instancesRef.current.renderer;
+    if (!renderer) return;
+    const coords = getWorldFromEvent(e);
+    if (!coords) return;
+    const dx = coords.wx - dragRef.current.startWx;
+    const dy = coords.wy - dragRef.current.startWy;
+    if (!dragRef.current.moved && Math.hypot(dx, dy) < 4) return;
+    dragRef.current.moved = true;
+    renderer.updateNodePosition(dragRef.current.nodeId, coords.wx, coords.wy);
+  };
+
+  const handleTouchEnd = (e) => {
+    const wasDrag = dragRef.current?.moved;
+    dragRef.current = null;
+    if (wasDrag) { pointerDownRef.current = null; return; }
+    // Treat as tap/click
+    const down = pointerDownRef.current;
+    pointerDownRef.current = null;
+    if (!down) return;
+    const t = e.changedTouches[0];
+    if (!t) return;
+    const dist = Math.hypot(t.clientX - down.x, t.clientY - down.y);
+    if (dist > 10) return;
+    handleCanvasClick({ clientX: t.clientX, clientY: t.clientY });
   };
 
   const handleCanvasDblClick = (e) => {
@@ -443,10 +537,13 @@ export default function SimulationPage() {
           <canvas
             ref={canvasRef}
             className="editor-canvas"
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
+            onMouseDown={handlePointerDown}
+            onMouseMove={handlePointerMove}
+            onMouseUp={handlePointerUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             onDoubleClick={handleCanvasDblClick}
-            onMouseMove={handleCanvasMouseMove}
           />
           {toolHint && (
             <div className="canvas-tool-hint">{toolHint}</div>
