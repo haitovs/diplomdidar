@@ -1,18 +1,16 @@
-FROM node:22-alpine AS build
-WORKDIR /app
+# Run tests inside a container
+FROM ubuntu:latest
+MAINTAINER GNS3 Team
 
-COPY web/package.json /app/web/package.json
-WORKDIR /app/web
-RUN npm install
+RUN apt-get update
+RUN apt-get install -y --force-yes python3 python3-pyqt5 python3-pip python3-pyqt5.qtsvg python3-pyqt5.qtwebsockets python3-dev xvfb
+RUN apt-get clean
 
-WORKDIR /app
-COPY . .
-WORKDIR /app/web
-RUN npm run build
+ADD dev-requirements.txt /dev-requirements.txt
+ADD requirements.txt /requirements.txt
+RUN python3 -m pip install --break-system-packages --no-cache-dir -r /dev-requirements.txt
 
-FROM nginx:alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/web/dist /usr/share/nginx/html
+ADD . /src
+WORKDIR /src
 
-EXPOSE 4088
-CMD ["nginx", "-g", "daemon off;"]
+CMD xvfb-run python3 -m pytest -vv

@@ -1,0 +1,4 @@
+-rrequirements.txt
+
+pytest==8.4.2  # version 8.4.2 is the last one supporting Python 3.9
+pytest-timeout==2.4.0

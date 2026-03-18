@@ -1,69 +1,62 @@
-# Network Training Simulator Lab
+GNS3-gui
+========
 
-React-based network training simulator for diploma showcase and practical networking labs.
+[![image](https://github.com/GNS3/gns3-gui/workflows/testing/badge.svg)](https://github.com/GNS3/gns3-gui/actions?query=workflow%3Atesting)
 
-## Architecture
+[![image](https://img.shields.io/pypi/v/gns3-gui.svg)](https://pypi.python.org/pypi/gns3-gui)
 
-- Frontend app lives in `web/` (React + Vite).
-- Core simulator logic remains reusable in root `src/` (engine, rendering, analytics, editor modules).
-- Legacy static HTML pages were moved out of root to keep structure clean.
+[![image](https://snyk.io/test/github/GNS3/gns3-gui/badge.svg)](https://snyk.io/test/github/GNS3/gns3-gui)
 
-## Main Workflow
+GNS3 GUI repository.
 
-1. **Build** topology in `/playground`
-2. **Run** simulation in `/simulation`
-3. **Analyze** results in `/analytics`
+Installation
+------------
 
-## Local Development
+Please see <https://docs.gns3.com/>
 
-```bash
-./run.sh
+Software dependencies
+---------------------
+
+PyQt6 which is either part of the Linux distribution or installable from
+PyPi. The other Python dependencies are automatically installed during
+the GNS3 GUI installation and are listed
+[here](https://github.com/GNS3/gns3-gui/blob/master/requirements.txt)
+
+For connecting to nodes using Telnet, a Telnet client is required. On
+Linux that's a terminal emulator like xterm, gnome-terminal, konsole
+plus the telnet program. For connecting to nodes with a GUI, a VNC
+client is required, optionally a SPICE client can be used for Qemu
+nodes.
+
+For using packet captures within GNS3, Wireshark should be installed.
+It's recommended, but if you don't need that functionality you can go
+without it.
+
+Development
+-----------
+
+If you want to update the interface, modify the .ui files using QT
+tools. And:
+
+``` {.bash}
+cd scripts
+python build_pyqt.py
 ```
 
-Default local URL: `http://localhost:4040`
+### Debug
 
-## Docker Deploy (HTTP only)
+If you want to see the full logs in the internal shell you can type:
 
-```bash
-docker compose up -d --build
+``` {.bash}
+debug 2
 ```
 
-Open:
+Or start the app with --debug flag.
 
-- `http://localhost:4040`
-- `http://<server-ip>:4040`
+Due to the fact PyQT intercept you can use a web debugger for inspecting
+stuff: <https://github.com/Kozea/wdb>
 
-Stop:
+Security issues
+---------------
 
-```bash
-docker compose down
-```
-
-## Project Structure
-
-```text
-web/                      # React application (entrypoint)
-  index.html
-  package.json
-  src/
-src/                      # Core simulation/rendering/editor modules
-styles/                   # Shared style tokens and utility styles
-icons/                    # Device SVG icons
-legacy/                   # Previous static HTML pages (archived)
-Dockerfile
-docker-compose.yml
-nginx.conf
-run.sh
-scripts/
-```
-
-## Smoke checks
-
-```bash
-./scripts/run-smoke-checks.sh
-```
-
-## Notes
-
-- HTTP only is intentional for diploma showcase.
-- Deployment is optimized for simple `docker compose up -d --build` flow.
+Please contact us at <security@gns3.net>

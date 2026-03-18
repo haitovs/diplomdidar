@@ -1,84 +1,33 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+# GNS3 - Run Script
+# Starts GNS3 server + GUI in one command
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_DIR="${ROOT_DIR}/web"
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VENV_DIR="$PROJECT_DIR/.venv"
 
-PORT="${PORT:-4040}"
-HOST="${HOST:-0.0.0.0}"
-BASE_URL="http://localhost:${PORT}/"
-
-print_banner() {
-    echo "========================================"
-    echo " Network Training Simulator Lab (React)"
-    echo "========================================"
-    echo ""
-    echo "Starting React dev server on ${HOST}:${PORT}..."
-    echo ""
-    echo "Routes:"
-    echo "- Home:        ${BASE_URL}"
-    echo "- Playground:  ${BASE_URL}playground"
-    echo "- Simulation:  ${BASE_URL}simulation"
-    echo "- Analytics:   ${BASE_URL}analytics"
-    echo ""
-    echo "Press Ctrl+C to stop the server"
-    echo ""
-}
-
-open_browser() {
-    local url="$1"
-
-    if [[ "${NO_OPEN:-0}" == "1" ]]; then
-        echo "Auto-open disabled (NO_OPEN=1)."
-        return 0
-    fi
-
-    if command -v open >/dev/null 2>&1; then
-        (sleep 1; open "$url" >/dev/null 2>&1) &
-        echo "Opening browser: $url"
-        return 0
-    fi
-
-    if command -v xdg-open >/dev/null 2>&1; then
-        (sleep 1; xdg-open "$url" >/dev/null 2>&1) &
-        echo "Opening browser: $url"
-        return 0
-    fi
-
-    echo "Could not auto-open browser. Open manually: $url"
-}
-
-ensure_dependencies() {
-    if [[ "${SKIP_INSTALL:-0}" == "1" ]]; then
-        return 0
-    fi
-
-    if [[ -d node_modules ]]; then
-        return 0
-    fi
-
-    echo "Installing web dependencies..."
-    if [[ -f package-lock.json ]]; then
-        npm ci --no-audit --no-fund
-    else
-        npm install --no-audit --no-fund
-    fi
-}
-
-if ! command -v npm >/dev/null 2>&1; then
-    echo "Error: npm is required to run the React app."
-    exit 1
+# Check if setup has been run
+if [ ! -d "$VENV_DIR" ]; then
+    echo "[!] Virtual environment not found. Running setup first..."
+    bash "$PROJECT_DIR/setup.sh"
 fi
 
-if [[ ! -d "${APP_DIR}" ]]; then
-    echo "Error: web app directory not found: ${APP_DIR}"
-    exit 1
-fi
+# Activate venv
+source "$VENV_DIR/bin/activate"
 
-cd "${APP_DIR}"
+# Start GNS3 server in the background
+echo "Starting GNS3 server..."
+gns3server --local --port 3080 &
+SERVER_PID=$!
 
-print_banner
-open_browser "${BASE_URL}"
-ensure_dependencies
+# Give server a moment to start
+sleep 2
 
-npm run dev -- --host "${HOST}" --port "${PORT}" --strictPort
+# Start GNS3 GUI
+echo "Starting GNS3 GUI..."
+python -m gns3.main "$@"
+
+# When GUI closes, stop the server
+echo "Shutting down GNS3 server..."
+kill $SERVER_PID 2>/dev/null
+wait $SERVER_PID 2>/dev/null
+echo "Done."
