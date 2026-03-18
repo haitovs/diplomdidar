@@ -36,6 +36,7 @@ from .modules import MODULES
 from .modules.module_error import ModuleError
 from .compute_manager import ComputeManager
 from .controller import Controller
+from . import translator
 
 import logging
 log = logging.getLogger(__name__)
@@ -128,17 +129,17 @@ class Topology(QtCore.QObject):
             self._project.project_updated_signal.connect(self._projectUpdatedSlot)
             self._project.project_creation_error_signal.connect(self._projectCreationErrorSlot)
             self._project.project_loaded_signal.connect(self._projectLoadedSlot)
-            self._main_window.setWindowTitle("{name} - Network Simulator".format(name=self._project.name()))
+            self._main_window.setWindowTitle("{name} - {app_name}".format(name=self._project.name(), app_name=translator.tr("Network Simulator")))
             self._main_window.uiGraphicsView.setSceneSize(project.sceneWidth(), project.sceneHeight())
         else:
-            self._main_window.setWindowTitle("Network Simulator")
+            self._main_window.setWindowTitle(translator.tr("Network Simulator"))
 
         self.project_changed_signal.emit()
 
     def _projectUpdatedSlot(self):
         if not self._project or not self._project.filesDir() or not self._project.filename():
             return
-        self._main_window.setWindowTitle("{name} - Network Simulator".format(name=self._project.name()))
+        self._main_window.setWindowTitle("{name} - {app_name}".format(name=self._project.name(), app_name=translator.tr("Network Simulator")))
         project_file = os.path.join(self._project.filesDir(), self._project.filename())
         self._main_window.uiGraphicsView.setSceneSize(self._project.sceneWidth(), self._project.sceneHeight())
         self._main_window.uiGraphicsView.setNodeGridSize(self._project.nodeGridSize())

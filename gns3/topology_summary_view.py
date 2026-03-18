@@ -282,44 +282,44 @@ class TopologySummaryView(QtWidgets.QTreeWidget):
         """
 
         menu = QtWidgets.QMenu()
-        expand_all = QtGui.QAction("Expand all", menu)
+        expand_all = QtGui.QAction(translator.tr("Expand all"), menu)
         expand_all.setIcon(get_icon("plus.svg"))
         expand_all.triggered.connect(self._expandAllSlot)
         menu.addAction(expand_all)
 
-        collapse_all = QtGui.QAction("Collapse all", menu)
+        collapse_all = QtGui.QAction(translator.tr("Collapse all"), menu)
         collapse_all.setIcon(get_icon("minus.svg"))
         collapse_all.triggered.connect(self._collapseAllSlot)
         menu.addAction(collapse_all)
 
         if self.show_only_devices_with_capture is False and self.show_only_devices_with_filters is False:
-            devices_with_capture = QtGui.QAction("Show devices with capture(s)", menu)
+            devices_with_capture = QtGui.QAction(translator.tr("Show devices with capture(s)"), menu)
             devices_with_capture.setIcon(get_icon("inspect.svg"))
             devices_with_capture.triggered.connect(self._devicesWithCaptureSlot)
             menu.addAction(devices_with_capture)
 
-            devices_with_filters = QtGui.QAction("Show devices with packet filter(s)", menu)
+            devices_with_filters = QtGui.QAction(translator.tr("Show devices with packet filter(s)"), menu)
             devices_with_filters.setIcon(get_icon("filter.svg"))
             devices_with_filters.triggered.connect(self._devicesWithFiltersSlot)
             menu.addAction(devices_with_filters)
 
         else:
-            show_all_devices = QtGui.QAction("Show all devices", menu)
+            show_all_devices = QtGui.QAction(translator.tr("Show all devices"), menu)
             # show_all_devices.setIcon(QtGui.QIcon(":/icons/inspect.svg"))
             show_all_devices.triggered.connect(self._showAllDevicesSlot)
             menu.addAction(show_all_devices)
 
-        stop_all_captures = QtGui.QAction("Stop all captures", menu)
+        stop_all_captures = QtGui.QAction(translator.tr("Stop all captures"), menu)
         stop_all_captures.setIcon(get_icon("capture-stop.svg"))
         stop_all_captures.triggered.connect(self._stopAllCapturesSlot)
         menu.addAction(stop_all_captures)
 
-        reset_all_filters = QtGui.QAction("Reset all packet filters", menu)
+        reset_all_filters = QtGui.QAction(translator.tr("Reset all packet filters"), menu)
         reset_all_filters.setIcon(get_icon("filter-reset.svg"))
         reset_all_filters.triggered.connect(self._resetAllFiltersSlot)
         menu.addAction(reset_all_filters)
 
-        resume_suspended_links = QtGui.QAction("Resume all suspended links", menu)
+        resume_suspended_links = QtGui.QAction(translator.tr("Resume all suspended links"), menu)
         resume_suspended_links.setIcon(get_icon("start.svg"))
         resume_suspended_links.triggered.connect(self._resumeAllLinksSlot)
         menu.addAction(resume_suspended_links)

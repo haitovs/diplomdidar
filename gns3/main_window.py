@@ -37,6 +37,7 @@ from .dialogs.project_dialog import ProjectDialog
 from .dialogs.preferences_dialog import PreferencesDialog
 from .dialogs.snapshots_dialog import SnapshotsDialog
 from .dialogs.export_debug_dialog import ExportDebugDialog
+from . import translator
 from .dialogs.doctor_dialog import DoctorDialog
 from .dialogs.edit_project_dialog import EditProjectDialog
 from .dialogs.setup_wizard import SetupWizard
@@ -185,11 +186,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # set the window icon (custom branding)
         import os
-        branding_logo = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "branding", "logo.png")
+        self._branding_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "branding")
+        branding_logo = os.path.join(self._branding_dir, "logo.png")
         if os.path.exists(branding_logo):
-            self.setWindowIcon(QtGui.QIcon(branding_logo))
+            icon = QtGui.QIcon(branding_logo)
+            self.setWindowIcon(icon)
+            QtWidgets.QApplication.instance().setWindowIcon(icon)
         else:
             self.setWindowIcon(QtGui.QIcon(":/images/gns3.ico"))
+
+        # Add language toggle button to the menu bar
+        translator.load_saved_language()
+        self._setupLanguageButton()
 
         # restore the style
         self._setStyle(self._settings.get("style"))
@@ -199,6 +207,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.setWindowTitle("[*] GNS3")
 
+        # Apply saved language
+        translator.apply_translations(self)
+
         # detect if the SVG module is correctly installed
         supported_image_formats = [fmt.data().decode('utf-8') for fmt in QtGui.QImageReader().supportedImageFormats()]
         log.debug("Supported image formats: %s", ", ".join(supported_image_formats))
@@ -207,6 +218,47 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # load initial stuff once the event loop isn't busy
         self.run_later(0, self.startupLoading)
+
+    def _setupLanguageButton(self):
+        """Add a language toggle button to the right side of the menu bar."""
+        # Create a widget to push the button to the right
+        spacer = QtWidgets.QWidget()
+        spacer.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
+
+        # Create the language toggle button
+        self._langButton = QtWidgets.QPushButton()
+        self._langButton.setFlat(True)
+        self._langButton.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
+        self._langButton.setFixedHeight(24)
+        self._langButton.setStyleSheet(
+            "QPushButton { font-weight: bold; font-size: 12px; padding: 2px 10px; "
+            "border: 1px solid #888; border-radius: 4px; background: #2d2d2d; color: #ddd; }"
+            "QPushButton:hover { background: #444; color: #fff; }"
+        )
+        self._updateLangButtonText()
+        self._langButton.clicked.connect(self._toggleLanguage)
+
+        # Add to the general toolbar (right side)
+        lang_toolbar = QtWidgets.QToolBar("Language")
+        lang_toolbar.setMovable(False)
+        lang_toolbar.addWidget(spacer)
+        lang_toolbar.addWidget(self._langButton)
+        self.addToolBar(QtCore.Qt.ToolBarArea.TopToolBarArea, lang_toolbar)
+
+    def _updateLangButtonText(self):
+        lang = translator.current_language()
+        if lang == "en":
+            self._langButton.setText("TK | Türkmen")
+        else:
+            self._langButton.setText("EN | English")
+
+    def _toggleLanguage(self):
+        """Toggle between English and Turkmen."""
+        lang = translator.current_language()
+        new_lang = "tk" if lang == "en" else "en"
+        translator.set_language(new_lang)
+        translator.apply_translations(self)
+        self._updateLangButtonText()
 
     def _connections(self):
         """

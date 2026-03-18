@@ -63,6 +63,7 @@ from .items.line_item import LineItem
 from .items.ellipse_item import EllipseItem
 from .items.image_item import ImageItem
 from .items.logo_item import  LogoItem
+from . import translator
 
 log = logging.getLogger(__name__)
 
@@ -162,7 +163,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         if enabled is False:
             self.reset()
-            item = QtWidgets.QGraphicsTextItem("Please create a project")
+            item = QtWidgets.QGraphicsTextItem(translator.tr("Please create a project"))
             item.setPos(0, 0)
             self.scene().addItem(item)
         super().setEnabled(enabled)
@@ -785,13 +786,13 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         if True in list(map(lambda item: isinstance(item, NodeItem) and hasattr(item.node(), "configPage"), items)):
             # Action: Configure node
-            configure_action = QtGui.QAction("Configure", menu)
+            configure_action = QtGui.QAction(translator.tr("Configure"), menu)
             configure_action.setIcon(get_icon("configuration.svg"))
             configure_action.triggered.connect(self.configureActionSlot)
             menu.addAction(configure_action)
 
         if True in list(map(lambda item: isinstance(item, NodeItem) and item.node().console() is not None, items)):
-            console_action = QtGui.QAction("Console", menu)
+            console_action = QtGui.QAction(translator.tr("Console"), menu)
             console_action.setIcon(get_icon("console.svg"))
             console_action.triggered.connect(self.consoleActionSlot)
             menu.addAction(console_action)
@@ -803,25 +804,25 @@ class GraphicsView(QtWidgets.QGraphicsView):
             menu.addAction(aux_console_action)
 
         if True in list(map(lambda item: isinstance(item, NodeItem) and not item.node().isAlwaysOn(), items)):
-            start_action = QtGui.QAction("Start", menu)
+            start_action = QtGui.QAction(translator.tr("Start"), menu)
             start_action.setIcon(get_icon("start.svg"))
             start_action.triggered.connect(self.startActionSlot)
             menu.addAction(start_action)
 
         if True in list(map(lambda item: isinstance(item, NodeItem) and not item.node().isAlwaysOn(), items)):
-            suspend_action = QtGui.QAction("Suspend", menu)
+            suspend_action = QtGui.QAction(translator.tr("Suspend"), menu)
             suspend_action.setIcon(get_icon("pause.svg"))
             suspend_action.triggered.connect(self.suspendActionSlot)
             menu.addAction(suspend_action)
 
         if True in list(map(lambda item: isinstance(item, NodeItem) and not item.node().isAlwaysOn(), items)):
-            stop_action = QtGui.QAction("Stop", menu)
+            stop_action = QtGui.QAction(translator.tr("Stop"), menu)
             stop_action.setIcon(get_icon("stop.svg"))
             stop_action.triggered.connect(self.stopActionSlot)
             menu.addAction(stop_action)
 
         if True in list(map(lambda item: isinstance(item, NodeItem) and not item.node().isAlwaysOn(), items)):
-            reload_action = QtGui.QAction("Reload", menu)
+            reload_action = QtGui.QAction(translator.tr("Reload"), menu)
             reload_action.setIcon(get_icon("reload.svg"))
             reload_action.triggered.connect(self.reloadActionSlot)
             menu.addAction(reload_action)
@@ -834,20 +835,20 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         if True in list(map(lambda item: isinstance(item, NodeItem), items)):
             # Action: Change hostname
-            change_hostname_action = QtGui.QAction("Change hostname", menu)
+            change_hostname_action = QtGui.QAction(translator.tr("Change hostname"), menu)
             change_hostname_action.setIcon(get_icon("show-hostname.svg"))
             change_hostname_action.triggered.connect(self.changeHostnameActionSlot)
             menu.addAction(change_hostname_action)
 
         if True in list(map(lambda item: isinstance(item, NodeItem), items)):
             # Action: Change symbol
-            change_symbol_action = QtGui.QAction("Change symbol", menu)
+            change_symbol_action = QtGui.QAction(translator.tr("Change symbol"), menu)
             change_symbol_action.setIcon(get_icon("node_conception.svg"))
             change_symbol_action.triggered.connect(self.changeSymbolActionSlot)
             menu.addAction(change_symbol_action)
 
         if True in list(map(lambda item: isinstance(item, DrawingItem) or isinstance(item, NodeItem), items)):
-            duplicate_action = QtGui.QAction("Duplicate", menu)
+            duplicate_action = QtGui.QAction(translator.tr("Duplicate"), menu)
             duplicate_action.setIcon(get_icon("duplicate.svg"))
             duplicate_action.triggered.connect(self.duplicateActionSlot)
             menu.addAction(duplicate_action)
@@ -861,14 +862,14 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         if True in list(map(lambda item: isinstance(item, NodeItem) and hasattr(item.node(), "nodeDir"), items)):
             # Action: Show in file manager
-            show_in_file_manager_action = QtGui.QAction("Show in file manager", menu)
+            show_in_file_manager_action = QtGui.QAction(translator.tr("Show in file manager"), menu)
             show_in_file_manager_action.setIcon(get_icon("open.svg"))
             show_in_file_manager_action.triggered.connect(self.showInFileManagerSlot)
             menu.addAction(show_in_file_manager_action)
 
         if not sys.platform.startswith("darwin") and True in list(map(lambda item: isinstance(item, NodeItem) and hasattr(item.node(), "bringToFront"), items)):
             # Action: bring console or window to front (Windows and Linux only)
-            bring_to_front_action = QtGui.QAction("Bring to front", menu)
+            bring_to_front_action = QtGui.QAction(translator.tr("Bring to front"), menu)
             bring_to_front_action.setIcon(get_icon("front.svg"))
             bring_to_front_action.triggered.connect(self.bringToFrontSlot)
             menu.addAction(bring_to_front_action)
@@ -892,38 +893,38 @@ class GraphicsView(QtWidgets.QGraphicsView):
             menu.addAction(export_config_action)
 
         if True in list(map(lambda item: isinstance(item, NodeItem) and hasattr(item.node(), "idlepc"), items)):
-            idlepc_action = QtGui.QAction("Idle-PC", menu)
+            idlepc_action = QtGui.QAction(translator.tr("Idle-PC"), menu)
             idlepc_action.setIcon(get_icon("calculate.svg"))
             idlepc_action.triggered.connect(self.idlepcActionSlot)
             menu.addAction(idlepc_action)
 
         if True in list(map(lambda item: isinstance(item, NodeItem) and hasattr(item.node(), "idlepc"), items)):
-            auto_idlepc_action = QtGui.QAction("Auto Idle-PC", menu)
+            auto_idlepc_action = QtGui.QAction(translator.tr("Auto Idle-PC"), menu)
             auto_idlepc_action.setIcon(get_icon("calculate.svg"))
             auto_idlepc_action.triggered.connect(self.autoIdlepcActionSlot)
             menu.addAction(auto_idlepc_action)
 
         if True in list(map(lambda item: isinstance(item, LabelItem), items)):
-            text_edit_action = QtGui.QAction("Text edit", menu)
+            text_edit_action = QtGui.QAction(translator.tr("Text edit"), menu)
             text_edit_action.setIcon(get_icon("show-hostname.svg"))
             text_edit_action.triggered.connect(self.textEditActionSlot)
             menu.addAction(text_edit_action)
 
         if True in list(map(lambda item: isinstance(item, TextItem), items)):
-            text_edit_action = QtGui.QAction("Text edit", menu)
+            text_edit_action = QtGui.QAction(translator.tr("Text edit"), menu)
             text_edit_action.setIcon(get_icon("edit.svg"))
             text_edit_action.triggered.connect(self.textEditActionSlot)
             menu.addAction(text_edit_action)
 
         if True in list(map(lambda item: isinstance(item, ShapeItem) or isinstance(item, LineItem), items)):
-            style_action = QtGui.QAction("Style", menu)
+            style_action = QtGui.QAction(translator.tr("Style"), menu)
             style_action.setIcon(get_icon("node_conception.svg"))
             style_action.triggered.connect(self.styleActionSlot)
             menu.addAction(style_action)
 
         if True in list(map(lambda item: isinstance(item, LabelItem), items)) and False in list(map(lambda item: item.parentItem() is None, items)):
             # action only for port labels
-            reset_label_position_action = QtGui.QAction("Reset position", menu)
+            reset_label_position_action = QtGui.QAction(translator.tr("Reset position"), menu)
             reset_label_position_action.setIcon(get_icon("reset.svg"))
             reset_label_position_action.triggered.connect(self.resetLabelPositionActionSlot)
             menu.addAction(reset_label_position_action)
@@ -932,41 +933,41 @@ class GraphicsView(QtWidgets.QGraphicsView):
         if True in list(map(lambda item: item.parentItem() is None, items)):
 
             if len(items) > 1:
-                horizontal_align_action = QtGui.QAction("Align horizontally", menu)
+                horizontal_align_action = QtGui.QAction(translator.tr("Align horizontally"), menu)
                 horizontal_align_action.setIcon(get_icon("horizontally.svg"))
                 horizontal_align_action.triggered.connect(self.horizontalAlignmentSlot)
                 menu.addAction(horizontal_align_action)
 
-                vertical_align_action = QtGui.QAction("Align vertically", menu)
+                vertical_align_action = QtGui.QAction(translator.tr("Align vertically"), menu)
                 vertical_align_action.setIcon(get_icon("vertically.svg"))
                 vertical_align_action.triggered.connect(self.verticalAlignmentSlot)
                 menu.addAction(vertical_align_action)
 
-            raise_layer_action = QtGui.QAction("Raise one layer", menu)
+            raise_layer_action = QtGui.QAction(translator.tr("Raise one layer"), menu)
             raise_layer_action.setIcon(get_icon("raise_z_value.svg"))
             raise_layer_action.triggered.connect(self.raiseLayerActionSlot)
             menu.addAction(raise_layer_action)
 
-            lower_layer_action = QtGui.QAction("Lower one layer", menu)
+            lower_layer_action = QtGui.QAction(translator.tr("Lower one layer"), menu)
             lower_layer_action.setIcon(get_icon("lower_z_value.svg"))
             lower_layer_action.triggered.connect(self.lowerLayerActionSlot)
             menu.addAction(lower_layer_action)
 
             if len(items) > 1:
-                lock_action = QtGui.QAction("Lock or unlock items", menu)
+                lock_action = QtGui.QAction(translator.tr("Lock or unlock items"), menu)
                 lock_action.setIcon(get_icon("lock.svg"))
             else:
                 item = items[0]
                 if item.flags() & QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable:
-                    lock_action = QtGui.QAction("Lock item", menu)
+                    lock_action = QtGui.QAction(translator.tr("Lock item"), menu)
                     lock_action.setIcon(get_icon("lock.svg"))
                 else:
-                    lock_action = QtGui.QAction("Unlock item", menu)
+                    lock_action = QtGui.QAction(translator.tr("Unlock item"), menu)
                     lock_action.setIcon(get_icon("unlock.svg"))
             lock_action.triggered.connect(self.lockActionSlot)
             menu.addAction(lock_action)
 
-            delete_action = QtGui.QAction("Delete", menu)
+            delete_action = QtGui.QAction(translator.tr("Delete"), menu)
             delete_action.setIcon(get_icon("delete.svg"))
             delete_action.triggered.connect(self.deleteActionSlot)
             menu.addAction(delete_action)

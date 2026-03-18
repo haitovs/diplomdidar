@@ -18,6 +18,7 @@
 import logging
 
 from .qt import QtWidgets, QtGui, qslot
+from . import translator
 
 
 class StatusBarHandler(logging.StreamHandler):
@@ -75,13 +76,13 @@ class StatusBar(QtWidgets.QStatusBar):
         self._errors_button.show()
         text = ""
         if self._errors == 1:
-            text += "1 error"
+            text += translator.tr("1 error")
         elif self._errors > 1:
-            text += "{} errors".format(self._errors)
+            text += "{} ".format(self._errors) + translator.tr("errors")
         if self._warnings == 1:
-            text += " 1 warning"
+            text += " " + translator.tr("1 warning")
         elif self._warnings > 1:
-            text += " {} warnings".format(self._warnings)
+            text += " {} ".format(self._warnings) + translator.tr("warnings")
         self._errors_button.setText(text)
 
     @qslot

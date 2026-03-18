@@ -29,6 +29,7 @@ from .console_cmd import ConsoleCmd
 from .pycutext import PyCutExt
 from .modules import MODULES
 from .local_config import LocalConfig
+from . import translator
 
 import logging
 log = logging.getLogger(__name__)
@@ -72,10 +73,11 @@ class ConsoleView(PyCutExt, ConsoleCmd):
         # Set introduction message
         bitness = struct.calcsize("P") * 8
         current_year = datetime.date.today().year
-        self.intro = "Network Simulator console.\nRunning version {} on {} ({}-bit) with Python {} Qt {} and PyQt {}.\n" \
-                     "Based on GNS3. Copyright (c) 2006-{} GNS3 Technologies.\n" \
-                     "Use Help -> GNS3 Doctor to detect common issues." \
-                     "".format(__version__, platform.system(), bitness, platform.python_version(), QtCore.QT_VERSION_STR, QtCore.PYQT_VERSION_STR, current_year)
+        self.intro = translator.tr("Network Simulator console.") + "\n" \
+                     + translator.tr("Running version {} on {} ({}-bit) with Python {} Qt {} and PyQt {}.").format(
+                         __version__, platform.system(), bitness, platform.python_version(), QtCore.QT_VERSION_STR, QtCore.PYQT_VERSION_STR) + "\n" \
+                     + "Based on GNS3. Copyright (c) 2006-{} GNS3 Technologies.".format(current_year) + "\n" \
+                     + translator.tr("Use Help -> GNS3 Doctor to detect common issues.")
 
         # Parent class initialization
         try:
