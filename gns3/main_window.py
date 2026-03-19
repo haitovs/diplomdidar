@@ -38,6 +38,7 @@ from .dialogs.preferences_dialog import PreferencesDialog
 from .dialogs.snapshots_dialog import SnapshotsDialog
 from .dialogs.export_debug_dialog import ExportDebugDialog
 from . import translator
+from .guide_dialog import GuideDialog, should_show_guide, save_guide_preference
 from .dialogs.doctor_dialog import DoctorDialog
 from .dialogs.edit_project_dialog import EditProjectDialog
 from .dialogs.setup_wizard import SetupWizard
@@ -220,16 +221,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.run_later(0, self.startupLoading)
 
     def _setupLanguageButton(self):
-        """Add a language toggle button to the right side of the menu bar."""
-        # Create a widget to push the button to the right
+        """Add logo + language toggle button to the right side of the menu bar."""
+        # Create a widget to push everything to the right
         spacer = QtWidgets.QWidget()
         spacer.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
+
+        # Create the logo label
+        logo_label = QtWidgets.QLabel()
+        branding_logo = os.path.join(self._branding_dir, "logo.png")
+        if os.path.exists(branding_logo):
+            pixmap = QtGui.QPixmap(branding_logo).scaled(28, 28, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
+            logo_label.setPixmap(pixmap)
+            logo_label.setFixedSize(32, 32)
 
         # Create the language toggle button
         self._langButton = QtWidgets.QPushButton()
         self._langButton.setFlat(True)
         self._langButton.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
-        self._langButton.setFixedHeight(24)
+        self._langButton.setFixedHeight(28)
         self._langButton.setStyleSheet(
             "QPushButton { font-weight: bold; font-size: 12px; padding: 2px 10px; "
             "border: 1px solid #888; border-radius: 4px; background: #2d2d2d; color: #ddd; }"
@@ -238,10 +247,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._updateLangButtonText()
         self._langButton.clicked.connect(self._toggleLanguage)
 
-        # Add to the general toolbar (right side)
+        # Add to a toolbar on the right side
         lang_toolbar = QtWidgets.QToolBar("Language")
         lang_toolbar.setMovable(False)
         lang_toolbar.addWidget(spacer)
+        lang_toolbar.addWidget(logo_label)
         lang_toolbar.addWidget(self._langButton)
         self.addToolBar(QtCore.Qt.ToolBarArea.TopToolBarArea, lang_toolbar)
 
@@ -259,6 +269,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         translator.set_language(new_lang)
         translator.apply_translations(self)
         self._updateLangButtonText()
+
+    def _showGuideDialog(self):
+        """Show the startup guide dialog."""
+        dialog = GuideDialog(self)
+        dialog.exec()
+        save_guide_preference(dialog.showOnStartup())
 
     def _connections(self):
         """
@@ -1340,6 +1356,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self._checkForUpdateActionSlot(silent=True)
                 self._settings["last_check_for_update"] = current_epoch
                 self.setSettings(self._settings)
+
+        # Show the startup guide
+        if should_show_guide():
+            self.run_later(500, self._showGuideDialog)
 
     def updateRecentProjectsSettings(self, project_id, project_name, project_path):
         """
