@@ -127,10 +127,12 @@ def make_link(project_id, node1_id, port1, node2_id, port2):
 
 
 def make_text_drawing(text, x, y, font_size=14):
+    import html
+    safe_text = html.escape(text)
     svg = (
         f'<svg width="400" height="50">'
         f'<text font-family="monospace" font-size="{font_size}" '
-        f'font-weight="bold" fill="#4a90d9" fill-opacity="1.0">{text}</text></svg>'
+        f'font-weight="bold" fill="#4a90d9" fill-opacity="1.0">{safe_text}</text></svg>'
     )
     return {
         "drawing_id": uid(),

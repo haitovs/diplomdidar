@@ -1,5 +1,5 @@
 {
-  "project_id": "2b8d0a1f-40c0-4a9a-8f95-0d3cc484aac4",
+  "project_id": "645f92a0-cfa8-47bc-84c4-40113109c6ac",
   "type": "topology",
   "revision": 9,
   "version": "2.2.56.1",
@@ -22,7 +22,7 @@
     "nodes": [
       {
         "compute_id": "local",
-        "node_id": "50602bbd-9961-41c8-adda-0df59ba1035c",
+        "node_id": "4e953518-7fe0-4566-8ceb-8f36518452a4",
         "node_type": "vpcs",
         "name": "PC1",
         "console": 5040,
@@ -50,7 +50,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "00d58ed9-7787-4443-ab82-69fd14d9611a",
+        "node_id": "7048c4df-a0ca-4329-9a19-f85c25592b9c",
         "node_type": "vpcs",
         "name": "PC2",
         "console": 5041,
@@ -78,7 +78,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "bf8b5975-7c42-4955-a498-26e87b2d82e8",
+        "node_id": "99f82387-10f0-492b-872b-881fe1df71b5",
         "node_type": "vpcs",
         "name": "PC3",
         "console": 5042,
@@ -106,7 +106,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "a95c8998-b63a-484d-ab50-80bd3d323ff8",
+        "node_id": "be74e8b7-6de4-42b4-915d-defb77dbc2ae",
         "node_type": "vpcs",
         "name": "PC4",
         "console": 5043,
@@ -134,7 +134,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "6db7d06f-1a3f-42c0-8258-d2da7a0d7d31",
+        "node_id": "c7de60c3-3f7c-4c62-a8f1-b944993ff616",
         "node_type": "vpcs",
         "name": "PC5",
         "console": 5044,
@@ -162,7 +162,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "33774cde-841b-4deb-ad04-726680065593",
+        "node_id": "7c1dfbcc-5914-4a04-be22-ce3d3e2ad696",
         "node_type": "vpcs",
         "name": "PC6",
         "console": 5045,
@@ -190,7 +190,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "b812dd15-c6b7-41aa-84c6-35836aee6d49",
+        "node_id": "1c479a54-7f17-4e30-813d-c1cbc6de7f54",
         "node_type": "ethernet_switch",
         "name": "Central-Switch",
         "console": null,
@@ -276,7 +276,7 @@
     ],
     "links": [
       {
-        "link_id": "e296f6ff-d4ff-43ee-9674-cc33d8c8d048",
+        "link_id": "cd309f72-85bd-442d-bdbc-46c9f135519f",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -287,7 +287,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "50602bbd-9961-41c8-adda-0df59ba1035c",
+            "node_id": "4e953518-7fe0-4566-8ceb-8f36518452a4",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -299,7 +299,7 @@
             }
           },
           {
-            "node_id": "b812dd15-c6b7-41aa-84c6-35836aee6d49",
+            "node_id": "1c479a54-7f17-4e30-813d-c1cbc6de7f54",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -313,7 +313,7 @@
         ]
       },
       {
-        "link_id": "04a5755b-37ca-4f3d-b81f-aaf11af01e7c",
+        "link_id": "33b2f530-3b56-449c-9bed-50c857bc8612",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -324,7 +324,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "00d58ed9-7787-4443-ab82-69fd14d9611a",
+            "node_id": "7048c4df-a0ca-4329-9a19-f85c25592b9c",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -336,7 +336,7 @@
             }
           },
           {
-            "node_id": "b812dd15-c6b7-41aa-84c6-35836aee6d49",
+            "node_id": "1c479a54-7f17-4e30-813d-c1cbc6de7f54",
             "adapter_number": 0,
             "port_number": 1,
             "label": {
@@ -350,7 +350,7 @@
         ]
       },
       {
-        "link_id": "0e0ccdff-4346-4f54-9209-e0637acd41aa",
+        "link_id": "9eb859c9-37fb-44f9-9de6-41a8b05d59d9",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -361,7 +361,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "bf8b5975-7c42-4955-a498-26e87b2d82e8",
+            "node_id": "99f82387-10f0-492b-872b-881fe1df71b5",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -373,7 +373,7 @@
             }
           },
           {
-            "node_id": "b812dd15-c6b7-41aa-84c6-35836aee6d49",
+            "node_id": "1c479a54-7f17-4e30-813d-c1cbc6de7f54",
             "adapter_number": 0,
             "port_number": 2,
             "label": {
@@ -387,7 +387,7 @@
         ]
       },
       {
-        "link_id": "b8a81e40-f0cd-469e-afd6-9855d743f11d",
+        "link_id": "e77950c8-6a5a-47f7-888d-363aaf33896a",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -398,7 +398,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "a95c8998-b63a-484d-ab50-80bd3d323ff8",
+            "node_id": "be74e8b7-6de4-42b4-915d-defb77dbc2ae",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -410,7 +410,7 @@
             }
           },
           {
-            "node_id": "b812dd15-c6b7-41aa-84c6-35836aee6d49",
+            "node_id": "1c479a54-7f17-4e30-813d-c1cbc6de7f54",
             "adapter_number": 0,
             "port_number": 3,
             "label": {
@@ -424,7 +424,7 @@
         ]
       },
       {
-        "link_id": "887186ab-a3b5-4d0b-8846-17f8d6a607f6",
+        "link_id": "8a6b6091-0fa0-4a1a-96bb-4ae506aab10f",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -435,7 +435,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "6db7d06f-1a3f-42c0-8258-d2da7a0d7d31",
+            "node_id": "c7de60c3-3f7c-4c62-a8f1-b944993ff616",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -447,7 +447,7 @@
             }
           },
           {
-            "node_id": "b812dd15-c6b7-41aa-84c6-35836aee6d49",
+            "node_id": "1c479a54-7f17-4e30-813d-c1cbc6de7f54",
             "adapter_number": 0,
             "port_number": 4,
             "label": {
@@ -461,7 +461,7 @@
         ]
       },
       {
-        "link_id": "aa6314a6-8d16-4e86-9265-2e27385ff033",
+        "link_id": "7c0a40b2-4d5b-4e55-8905-3b1f22a38d64",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -472,7 +472,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "33774cde-841b-4deb-ad04-726680065593",
+            "node_id": "7c1dfbcc-5914-4a04-be22-ce3d3e2ad696",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -484,7 +484,7 @@
             }
           },
           {
-            "node_id": "b812dd15-c6b7-41aa-84c6-35836aee6d49",
+            "node_id": "1c479a54-7f17-4e30-813d-c1cbc6de7f54",
             "adapter_number": 0,
             "port_number": 5,
             "label": {
@@ -500,7 +500,7 @@
     ],
     "drawings": [
       {
-        "drawing_id": "ec6770ba-7a20-4ecb-8bce-17f8b53c7d5a",
+        "drawing_id": "f8c170a7-0fbb-48fd-9c51-602a87a0d70e",
         "x": -200,
         "y": -350,
         "z": 2,
@@ -509,7 +509,7 @@
         "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"14\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Case 5: Star Topology (6 PCs)</text></svg>"
       },
       {
-        "drawing_id": "e2d6193f-ae9d-4661-970f-cce8b920f6ae",
+        "drawing_id": "55f2fa3f-da13-4eab-b17c-931dc70d75bf",
         "x": -280,
         "y": -320,
         "z": 2,
@@ -518,7 +518,7 @@
         "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">All PCs on 10.0.0.x/24 connected to central switch</text></svg>"
       },
       {
-        "drawing_id": "542b7c5b-3ae7-40aa-a0d6-714713178225",
+        "drawing_id": "4099f13a-507d-4d7a-922e-fc4bd0d0717c",
         "x": -300,
         "y": 330,
         "z": 2,

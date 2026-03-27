@@ -22,7 +22,12 @@ class Ui_ProfileSelectDialog(object):
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.uiLogoLabel = QtWidgets.QLabel(parent=ProfileSelectDialog)
         self.uiLogoLabel.setText("")
-        self.uiLogoLabel.setPixmap(QtGui.QPixmap(":/images/gns3_logo.png"))
+        import os
+        _logo = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "branding", "logo.png")
+        if os.path.exists(_logo):
+            self.uiLogoLabel.setPixmap(QtGui.QPixmap(_logo).scaled(200, 200, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation))
+        else:
+            self.uiLogoLabel.setPixmap(QtGui.QPixmap(":/images/gns3_logo.png"))
         self.uiLogoLabel.setObjectName("uiLogoLabel")
         self.horizontalLayout_3.addWidget(self.uiLogoLabel)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)

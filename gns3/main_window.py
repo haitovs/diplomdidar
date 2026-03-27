@@ -206,7 +206,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if self._settings.get("hide_new_template_button"):
             self.uiNewTemplatePushButton.hide()
 
-        self.setWindowTitle("[*] GNS3")
+        self.setWindowTitle("Network Simulator")
 
         # Apply saved language
         translator.apply_translations(self)

@@ -1,5 +1,5 @@
 {
-  "project_id": "9edadfad-5347-4c7c-ab0a-a10d5bee4485",
+  "project_id": "b3d2d5a9-1573-42bf-8f7e-c6aa9ce6b00d",
   "type": "topology",
   "revision": 9,
   "version": "2.2.56.1",
@@ -22,7 +22,7 @@
     "nodes": [
       {
         "compute_id": "local",
-        "node_id": "0d94b14a-8488-4c6a-ab38-84f65ebe6492",
+        "node_id": "034e4df0-c731-412f-9161-a08a2d79d748",
         "node_type": "vpcs",
         "name": "PC1-SubnetA",
         "console": 5010,
@@ -50,7 +50,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "37895cad-ce57-413f-b484-87388dc1815f",
+        "node_id": "7173ad0b-4b1d-4062-a288-358f78a55aa2",
         "node_type": "vpcs",
         "name": "PC2-SubnetA",
         "console": 5011,
@@ -78,7 +78,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "4e996e7f-6bc4-4b71-a3d6-da4650f5d295",
+        "node_id": "cfc4a8bb-f25a-450d-88ff-7ef3bc1b2b91",
         "node_type": "vpcs",
         "name": "PC3-SubnetB",
         "console": 5012,
@@ -106,7 +106,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "fc1db898-0906-42d6-b3e7-b201578bed5c",
+        "node_id": "3d8e66cf-b781-439b-8c35-ffc457e6e32a",
         "node_type": "ethernet_switch",
         "name": "Switch1",
         "console": null,
@@ -192,7 +192,7 @@
     ],
     "links": [
       {
-        "link_id": "a1df3e2c-1246-4033-9603-ea44b702a7aa",
+        "link_id": "a583b17f-b9b3-48f7-b3ff-1b7b9a6a8a06",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -203,7 +203,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "0d94b14a-8488-4c6a-ab38-84f65ebe6492",
+            "node_id": "034e4df0-c731-412f-9161-a08a2d79d748",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -215,7 +215,7 @@
             }
           },
           {
-            "node_id": "fc1db898-0906-42d6-b3e7-b201578bed5c",
+            "node_id": "3d8e66cf-b781-439b-8c35-ffc457e6e32a",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -229,7 +229,7 @@
         ]
       },
       {
-        "link_id": "d5eaf1a1-7744-4b09-95d9-9157b45b4e0a",
+        "link_id": "672017fd-accc-422f-9e06-4664da73fc8d",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -240,7 +240,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "37895cad-ce57-413f-b484-87388dc1815f",
+            "node_id": "7173ad0b-4b1d-4062-a288-358f78a55aa2",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -252,7 +252,7 @@
             }
           },
           {
-            "node_id": "fc1db898-0906-42d6-b3e7-b201578bed5c",
+            "node_id": "3d8e66cf-b781-439b-8c35-ffc457e6e32a",
             "adapter_number": 0,
             "port_number": 1,
             "label": {
@@ -266,7 +266,7 @@
         ]
       },
       {
-        "link_id": "7da71c14-e222-454e-9c12-d54e00152e00",
+        "link_id": "a9ce5f4a-1738-4150-a025-54543ecbf182",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -277,7 +277,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "4e996e7f-6bc4-4b71-a3d6-da4650f5d295",
+            "node_id": "cfc4a8bb-f25a-450d-88ff-7ef3bc1b2b91",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -289,7 +289,7 @@
             }
           },
           {
-            "node_id": "fc1db898-0906-42d6-b3e7-b201578bed5c",
+            "node_id": "3d8e66cf-b781-439b-8c35-ffc457e6e32a",
             "adapter_number": 0,
             "port_number": 2,
             "label": {
@@ -305,7 +305,7 @@
     ],
     "drawings": [
       {
-        "drawing_id": "110df0b3-5b5f-4947-99f4-5fabaf6b03d0",
+        "drawing_id": "13268704-0ada-43bf-af45-06bd6cd512bc",
         "x": -200,
         "y": -150,
         "z": 2,
@@ -314,16 +314,16 @@
         "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"14\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Case 2: Subnet Isolation</text></svg>"
       },
       {
-        "drawing_id": "3a4c478d-34e8-41c1-af2b-93dc205df112",
+        "drawing_id": "9914ee7c-f5b3-4e80-a78b-d49144003498",
         "x": -280,
         "y": -120,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">PC1 & PC2 on 192.168.1.0/24 | PC3 on 192.168.2.0/24</text></svg>"
+        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">PC1 &amp; PC2 on 192.168.1.0/24 | PC3 on 192.168.2.0/24</text></svg>"
       },
       {
-        "drawing_id": "b2402701-afd9-4a7c-b367-6c01ac9c59cd",
+        "drawing_id": "e989d61e-2023-4c75-b466-25e15c983277",
         "x": -350,
         "y": 220,
         "z": 2,

@@ -1,5 +1,5 @@
 {
-  "project_id": "0a478f05-4770-4b18-b128-90a070de4d68",
+  "project_id": "85c526d9-4c2e-4cb5-8f35-209bf74819c2",
   "type": "topology",
   "revision": 9,
   "version": "2.2.56.1",
@@ -22,7 +22,7 @@
     "nodes": [
       {
         "compute_id": "local",
-        "node_id": "987252a4-cb9c-40a6-955a-48de41c1ca0f",
+        "node_id": "d638f597-158d-4d99-83f6-ce6aad3b6be0",
         "node_type": "vpcs",
         "name": "PC1",
         "console": 5050,
@@ -50,7 +50,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "c19ecc39-9041-4482-9f84-3a3498a0417e",
+        "node_id": "67cbcc8d-75af-40fc-9821-966cd06d87e6",
         "node_type": "vpcs",
         "name": "PC2",
         "console": 5051,
@@ -78,7 +78,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "3d62bdca-c0ee-480a-bb59-84332f4620c3",
+        "node_id": "fe0f99ab-6556-4b78-87d8-367f40821018",
         "node_type": "vpcs",
         "name": "PC3",
         "console": 5052,
@@ -106,7 +106,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "9f06008f-2b3b-47f2-82c1-06962fe8970a",
+        "node_id": "eb4f7154-7df1-4cd4-9cf7-27d9106e9b9b",
         "node_type": "vpcs",
         "name": "PC4",
         "console": 5053,
@@ -134,7 +134,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "b489c857-3708-411b-91c1-a190ea3881e7",
+        "node_id": "1201da73-e00f-434d-8de5-da876dd9ceb9",
         "node_type": "ethernet_switch",
         "name": "Switch1",
         "console": null,
@@ -219,7 +219,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "f2184978-997a-4cf0-bec3-37d3a3cdc04b",
+        "node_id": "9ab6a84e-5073-443d-bc50-62a366d739b3",
         "node_type": "ethernet_switch",
         "name": "Switch2",
         "console": null,
@@ -305,7 +305,7 @@
     ],
     "links": [
       {
-        "link_id": "b62e36de-3734-4191-ac51-4a9e2f4b764a",
+        "link_id": "ae80c85a-948a-47e3-9fa3-e09fa3be2349",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -316,7 +316,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "987252a4-cb9c-40a6-955a-48de41c1ca0f",
+            "node_id": "d638f597-158d-4d99-83f6-ce6aad3b6be0",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -328,7 +328,7 @@
             }
           },
           {
-            "node_id": "b489c857-3708-411b-91c1-a190ea3881e7",
+            "node_id": "1201da73-e00f-434d-8de5-da876dd9ceb9",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -342,7 +342,7 @@
         ]
       },
       {
-        "link_id": "7f371bde-e48b-40da-b309-9f89566eb049",
+        "link_id": "84234d29-c18e-4d21-87dd-7c3e3c1982dd",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -353,7 +353,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "c19ecc39-9041-4482-9f84-3a3498a0417e",
+            "node_id": "67cbcc8d-75af-40fc-9821-966cd06d87e6",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -365,7 +365,7 @@
             }
           },
           {
-            "node_id": "b489c857-3708-411b-91c1-a190ea3881e7",
+            "node_id": "1201da73-e00f-434d-8de5-da876dd9ceb9",
             "adapter_number": 0,
             "port_number": 1,
             "label": {
@@ -379,7 +379,7 @@
         ]
       },
       {
-        "link_id": "a7773471-c05a-4e61-9a82-af17c4472c50",
+        "link_id": "5d98c342-fe5e-4562-9545-efa0b72329eb",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -390,7 +390,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "3d62bdca-c0ee-480a-bb59-84332f4620c3",
+            "node_id": "fe0f99ab-6556-4b78-87d8-367f40821018",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -402,7 +402,7 @@
             }
           },
           {
-            "node_id": "f2184978-997a-4cf0-bec3-37d3a3cdc04b",
+            "node_id": "9ab6a84e-5073-443d-bc50-62a366d739b3",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -416,7 +416,7 @@
         ]
       },
       {
-        "link_id": "748816f1-03ec-49d8-8490-1bc635b1ea53",
+        "link_id": "c53511c1-e201-4216-800b-4222c9a88e3d",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -427,7 +427,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "9f06008f-2b3b-47f2-82c1-06962fe8970a",
+            "node_id": "eb4f7154-7df1-4cd4-9cf7-27d9106e9b9b",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -439,7 +439,7 @@
             }
           },
           {
-            "node_id": "f2184978-997a-4cf0-bec3-37d3a3cdc04b",
+            "node_id": "9ab6a84e-5073-443d-bc50-62a366d739b3",
             "adapter_number": 0,
             "port_number": 1,
             "label": {
@@ -453,7 +453,7 @@
         ]
       },
       {
-        "link_id": "d8976315-ac94-48d1-94d7-bb55d7c67250",
+        "link_id": "8e7d268e-7cff-42c1-88ac-24350dd4d9a8",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -464,7 +464,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "b489c857-3708-411b-91c1-a190ea3881e7",
+            "node_id": "1201da73-e00f-434d-8de5-da876dd9ceb9",
             "adapter_number": 0,
             "port_number": 7,
             "label": {
@@ -476,7 +476,7 @@
             }
           },
           {
-            "node_id": "f2184978-997a-4cf0-bec3-37d3a3cdc04b",
+            "node_id": "9ab6a84e-5073-443d-bc50-62a366d739b3",
             "adapter_number": 0,
             "port_number": 7,
             "label": {
@@ -492,7 +492,7 @@
     ],
     "drawings": [
       {
-        "drawing_id": "bd496563-d5b1-48a1-92cd-261b3f7029f5",
+        "drawing_id": "a0707df6-c8ba-4c64-9935-85e8f6f98eb3",
         "x": -250,
         "y": -180,
         "z": 2,
@@ -501,7 +501,7 @@
         "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"14\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Case 6: Multi-Switch (Daisy Chain)</text></svg>"
       },
       {
-        "drawing_id": "171d0d89-3380-4e07-9fcb-edb158cbf9f9",
+        "drawing_id": "16423afe-6eb6-438c-b0c2-c8ca48f9d2d6",
         "x": -350,
         "y": -150,
         "z": 2,
@@ -510,7 +510,7 @@
         "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Switch1: PC1+PC2 | Switch2: PC3+PC4 | Uplink between switches</text></svg>"
       },
       {
-        "drawing_id": "d2d1e22f-7308-4876-b2a1-292c75e47362",
+        "drawing_id": "f2155b14-f9f5-47e2-8fb9-1170e85977f7",
         "x": -350,
         "y": 220,
         "z": 2,

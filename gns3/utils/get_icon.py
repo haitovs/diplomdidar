@@ -15,10 +15,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 from ..qt import QtCore, QtGui
+
+# Path to icons on disk (these take priority over embedded resources)
+_ICONS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "resources", "icons")
 
 
 def get_icon(filename):
+
+    # Prefer icon files on disk so we can customize without rebuilding resources
+    disk_path = os.path.join(_ICONS_DIR, filename)
+    if os.path.exists(disk_path):
+        return QtGui.QIcon(disk_path)
 
     from gns3.main_window import MainWindow
     style_name = MainWindow.instance().settings().get("style")

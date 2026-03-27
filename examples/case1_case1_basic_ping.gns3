@@ -1,5 +1,5 @@
 {
-  "project_id": "2eb47d34-e862-4af7-b00c-1b3929ed4b0f",
+  "project_id": "c378c96f-00d3-43b2-9281-591808bfdf37",
   "type": "topology",
   "revision": 9,
   "version": "2.2.56.1",
@@ -22,7 +22,7 @@
     "nodes": [
       {
         "compute_id": "local",
-        "node_id": "2a2d40ac-19f7-4b28-9f0d-147815992988",
+        "node_id": "3c2520c9-598c-4f39-a8cf-1609ebd521ae",
         "node_type": "vpcs",
         "name": "PC1",
         "console": 5000,
@@ -50,7 +50,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "45f6afeb-86ba-4346-ba59-9a0f6ca3f5eb",
+        "node_id": "9f116946-8179-4f20-8954-16b17c798fa0",
         "node_type": "vpcs",
         "name": "PC2",
         "console": 5001,
@@ -78,7 +78,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "0001d8e7-cf0e-47d1-8a72-13f9757b8141",
+        "node_id": "686b787c-fd86-4cc3-a94b-892adc2b1b3b",
         "node_type": "ethernet_switch",
         "name": "Switch1",
         "console": null,
@@ -164,7 +164,7 @@
     ],
     "links": [
       {
-        "link_id": "d90af841-a92b-4a76-a693-dcef5a0e6c32",
+        "link_id": "2803522d-daf0-45ab-a29c-67fe7445e7ee",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -175,7 +175,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "2a2d40ac-19f7-4b28-9f0d-147815992988",
+            "node_id": "3c2520c9-598c-4f39-a8cf-1609ebd521ae",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -187,7 +187,7 @@
             }
           },
           {
-            "node_id": "0001d8e7-cf0e-47d1-8a72-13f9757b8141",
+            "node_id": "686b787c-fd86-4cc3-a94b-892adc2b1b3b",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -201,7 +201,7 @@
         ]
       },
       {
-        "link_id": "44f35da3-c612-4859-b781-3a7905a00ae2",
+        "link_id": "c610e2e8-2997-4fd4-99f2-52e1a1018dc0",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -212,7 +212,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "45f6afeb-86ba-4346-ba59-9a0f6ca3f5eb",
+            "node_id": "9f116946-8179-4f20-8954-16b17c798fa0",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -224,7 +224,7 @@
             }
           },
           {
-            "node_id": "0001d8e7-cf0e-47d1-8a72-13f9757b8141",
+            "node_id": "686b787c-fd86-4cc3-a94b-892adc2b1b3b",
             "adapter_number": 0,
             "port_number": 1,
             "label": {
@@ -240,7 +240,7 @@
     ],
     "drawings": [
       {
-        "drawing_id": "f602cde1-7418-4178-8a76-2d40f10a4f37",
+        "drawing_id": "947e0f03-8398-4f85-aa90-0b4c027fd95b",
         "x": -200,
         "y": -150,
         "z": 2,
@@ -249,16 +249,16 @@
         "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"14\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Case 1: Basic Ping Test</text></svg>"
       },
       {
-        "drawing_id": "66b0c32b-e0aa-4b41-af70-5d65d66dbff6",
+        "drawing_id": "799186e9-2be7-4a60-8e1b-2b7e614c1070",
         "x": -250,
         "y": -120,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">PC1 (192.168.1.1) <-> Switch <-> PC2 (192.168.1.2)</text></svg>"
+        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">PC1 (192.168.1.1) &lt;-&gt; Switch &lt;-&gt; PC2 (192.168.1.2)</text></svg>"
       },
       {
-        "drawing_id": "53eadf9a-978a-4029-bbbc-394dd46713ac",
+        "drawing_id": "7cf4a8a1-5a1c-4353-ac02-99c0df170b93",
         "x": -300,
         "y": 220,
         "z": 2,
