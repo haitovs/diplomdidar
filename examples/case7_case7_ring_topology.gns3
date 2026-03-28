@@ -1,9 +1,9 @@
 {
-  "project_id": "9d99abfd-97bd-4950-abd9-b8096a6e40a2",
+  "project_id": "3b40116e-8e3b-4f5b-9e7c-5eb4bb684db1",
   "type": "topology",
   "revision": 9,
   "version": "2.2.56.1",
-  "name": "Case6-Multi-Switch",
+  "name": "Case7-Ring-Topology",
   "auto_start": false,
   "auto_open": false,
   "auto_close": true,
@@ -22,15 +22,15 @@
     "nodes": [
       {
         "compute_id": "local",
-        "node_id": "fdce0a59-2af6-416b-98ea-7f9cd4693aa5",
+        "node_id": "2cc1cfd1-17d7-42ca-a872-f2ced36925e9",
         "node_type": "vpcs",
         "name": "PC1",
-        "console": 5050,
+        "console": 5060,
         "console_host": "127.0.0.1",
         "console_type": "telnet",
         "console_auto_start": false,
         "x": -300,
-        "y": 100,
+        "y": -200,
         "z": 1,
         "locked": false,
         "symbol": ":/symbols/vpcs_guest.svg",
@@ -42,7 +42,7 @@
           "style": "font-size: 10;"
         },
         "properties": {
-          "startup_script": "set pcname PC1\nip 172.16.0.1/24\n"
+          "startup_script": "set pcname PC1\nip 10.1.0.1/24\n"
         },
         "port_name_format": "Ethernet{0}",
         "port_segment_size": 0,
@@ -50,15 +50,15 @@
       },
       {
         "compute_id": "local",
-        "node_id": "694d1314-3651-48e4-bad0-5eb0e1598d86",
+        "node_id": "aad36fa5-1bba-490b-b76d-58c0b22fb79b",
         "node_type": "vpcs",
         "name": "PC2",
-        "console": 5051,
+        "console": 5061,
         "console_host": "127.0.0.1",
         "console_type": "telnet",
         "console_auto_start": false,
-        "x": -100,
-        "y": 100,
+        "x": 300,
+        "y": -200,
         "z": 1,
         "locked": false,
         "symbol": ":/symbols/vpcs_guest.svg",
@@ -70,7 +70,7 @@
           "style": "font-size: 10;"
         },
         "properties": {
-          "startup_script": "set pcname PC2\nip 172.16.0.2/24\n"
+          "startup_script": "set pcname PC2\nip 10.1.0.2/24\n"
         },
         "port_name_format": "Ethernet{0}",
         "port_segment_size": 0,
@@ -78,15 +78,15 @@
       },
       {
         "compute_id": "local",
-        "node_id": "48456bb3-c0ce-4203-a116-c02d883c270f",
+        "node_id": "5f2effe0-3781-4e24-acf6-af2e58391eb4",
         "node_type": "vpcs",
         "name": "PC3",
-        "console": 5052,
+        "console": 5062,
         "console_host": "127.0.0.1",
         "console_type": "telnet",
         "console_auto_start": false,
-        "x": 100,
-        "y": 100,
+        "x": 300,
+        "y": 200,
         "z": 1,
         "locked": false,
         "symbol": ":/symbols/vpcs_guest.svg",
@@ -98,7 +98,7 @@
           "style": "font-size: 10;"
         },
         "properties": {
-          "startup_script": "set pcname PC3\nip 172.16.0.3/24\n"
+          "startup_script": "set pcname PC3\nip 10.1.0.3/24\n"
         },
         "port_name_format": "Ethernet{0}",
         "port_segment_size": 0,
@@ -106,15 +106,15 @@
       },
       {
         "compute_id": "local",
-        "node_id": "0a28b76e-813a-4718-893e-9479795bf458",
+        "node_id": "a44a79e6-ec32-46a7-b580-6bfbd69bf5f7",
         "node_type": "vpcs",
         "name": "PC4",
-        "console": 5053,
+        "console": 5063,
         "console_host": "127.0.0.1",
         "console_type": "telnet",
         "console_auto_start": false,
-        "x": 300,
-        "y": 100,
+        "x": -300,
+        "y": 200,
         "z": 1,
         "locked": false,
         "symbol": ":/symbols/vpcs_guest.svg",
@@ -126,7 +126,7 @@
           "style": "font-size: 10;"
         },
         "properties": {
-          "startup_script": "set pcname PC4\nip 172.16.0.4/24\n"
+          "startup_script": "set pcname PC4\nip 10.1.0.4/24\n"
         },
         "port_name_format": "Ethernet{0}",
         "port_segment_size": 0,
@@ -134,15 +134,15 @@
       },
       {
         "compute_id": "local",
-        "node_id": "7277f2d1-c7ca-4e05-9f07-fbec8398cf3a",
+        "node_id": "cffaafee-dc63-40d4-9fdb-1cca1d92efb6",
         "node_type": "ethernet_switch",
         "name": "Switch1",
         "console": null,
         "console_host": "127.0.0.1",
         "console_type": "none",
         "console_auto_start": false,
-        "x": -200,
-        "y": -50,
+        "x": -150,
+        "y": -100,
         "z": 1,
         "locked": false,
         "symbol": ":/symbols/ethernet_switch.svg",
@@ -219,15 +219,15 @@
       },
       {
         "compute_id": "local",
-        "node_id": "7fb5f0d7-c720-4a7a-b83a-f96460caf71b",
+        "node_id": "8a019bbc-c67a-45ef-a7c2-23e0a2a01cf7",
         "node_type": "ethernet_switch",
         "name": "Switch2",
         "console": null,
         "console_host": "127.0.0.1",
         "console_type": "none",
         "console_auto_start": false,
-        "x": 200,
-        "y": -50,
+        "x": 150,
+        "y": -100,
         "z": 1,
         "locked": false,
         "symbol": ":/symbols/ethernet_switch.svg",
@@ -301,11 +301,181 @@
         "port_name_format": "Ethernet{0}",
         "port_segment_size": 0,
         "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "9d3d38f3-c072-460f-9b5c-01bdd5d5b80f",
+        "node_type": "ethernet_switch",
+        "name": "Switch3",
+        "console": null,
+        "console_host": "127.0.0.1",
+        "console_type": "none",
+        "console_auto_start": false,
+        "x": 150,
+        "y": 100,
+        "z": 1,
+        "locked": false,
+        "symbol": ":/symbols/ethernet_switch.svg",
+        "label": {
+          "text": "Switch3",
+          "x": 10,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "ports_mapping": [
+            {
+              "name": "0",
+              "port_number": 0,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "1",
+              "port_number": 1,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "2",
+              "port_number": 2,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "3",
+              "port_number": 3,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "4",
+              "port_number": 4,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "5",
+              "port_number": 5,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "6",
+              "port_number": 6,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "7",
+              "port_number": 7,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            }
+          ]
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "c1e65463-1973-42d3-b0f6-18fafb0e2222",
+        "node_type": "ethernet_switch",
+        "name": "Switch4",
+        "console": null,
+        "console_host": "127.0.0.1",
+        "console_type": "none",
+        "console_auto_start": false,
+        "x": -150,
+        "y": 100,
+        "z": 1,
+        "locked": false,
+        "symbol": ":/symbols/ethernet_switch.svg",
+        "label": {
+          "text": "Switch4",
+          "x": 10,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "ports_mapping": [
+            {
+              "name": "0",
+              "port_number": 0,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "1",
+              "port_number": 1,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "2",
+              "port_number": 2,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "3",
+              "port_number": 3,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "4",
+              "port_number": 4,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "5",
+              "port_number": 5,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "6",
+              "port_number": 6,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "7",
+              "port_number": 7,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            }
+          ]
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
       }
     ],
     "links": [
       {
-        "link_id": "603ad1dd-9dc4-4239-9297-407d96e45af9",
+        "link_id": "56d602a9-5585-4282-845a-bc80a00fb708",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -316,7 +486,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "fdce0a59-2af6-416b-98ea-7f9cd4693aa5",
+            "node_id": "2cc1cfd1-17d7-42ca-a872-f2ced36925e9",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -328,7 +498,7 @@
             }
           },
           {
-            "node_id": "7277f2d1-c7ca-4e05-9f07-fbec8398cf3a",
+            "node_id": "cffaafee-dc63-40d4-9fdb-1cca1d92efb6",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -342,7 +512,7 @@
         ]
       },
       {
-        "link_id": "7a6e2950-29b7-4ecd-9fb8-d416bc3863da",
+        "link_id": "5a62ea11-3466-4e84-809a-77645fa11c79",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -353,7 +523,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "694d1314-3651-48e4-bad0-5eb0e1598d86",
+            "node_id": "aad36fa5-1bba-490b-b76d-58c0b22fb79b",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -365,44 +535,7 @@
             }
           },
           {
-            "node_id": "7277f2d1-c7ca-4e05-9f07-fbec8398cf3a",
-            "adapter_number": 0,
-            "port_number": 1,
-            "label": {
-              "text": "",
-              "x": 0,
-              "y": 0,
-              "rotation": 0,
-              "style": ""
-            }
-          }
-        ]
-      },
-      {
-        "link_id": "b630ca02-4de1-4ae8-b7ec-72fbf0a5a4f7",
-        "link_type": "ethernet",
-        "suspend": false,
-        "filters": {},
-        "capturing": false,
-        "capture_file_name": null,
-        "capture_file_path": null,
-        "capture_compute_id": null,
-        "link_style": {},
-        "nodes": [
-          {
-            "node_id": "48456bb3-c0ce-4203-a116-c02d883c270f",
-            "adapter_number": 0,
-            "port_number": 0,
-            "label": {
-              "text": "",
-              "x": 0,
-              "y": 0,
-              "rotation": 0,
-              "style": ""
-            }
-          },
-          {
-            "node_id": "7fb5f0d7-c720-4a7a-b83a-f96460caf71b",
+            "node_id": "8a019bbc-c67a-45ef-a7c2-23e0a2a01cf7",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -416,7 +549,7 @@
         ]
       },
       {
-        "link_id": "9f5148b6-0790-45fa-8824-720224a4754c",
+        "link_id": "44905621-a0d6-4d29-b44d-357ed92f80ee",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -427,7 +560,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "0a28b76e-813a-4718-893e-9479795bf458",
+            "node_id": "5f2effe0-3781-4e24-acf6-af2e58391eb4",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -439,9 +572,9 @@
             }
           },
           {
-            "node_id": "7fb5f0d7-c720-4a7a-b83a-f96460caf71b",
+            "node_id": "9d3d38f3-c072-460f-9b5c-01bdd5d5b80f",
             "adapter_number": 0,
-            "port_number": 1,
+            "port_number": 0,
             "label": {
               "text": "",
               "x": 0,
@@ -453,7 +586,7 @@
         ]
       },
       {
-        "link_id": "1137649d-7830-4ae6-95f1-bd7631fa73e2",
+        "link_id": "f47be01e-1846-4e59-ab3f-7c460adcc7b5",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -464,7 +597,56 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "7277f2d1-c7ca-4e05-9f07-fbec8398cf3a",
+            "node_id": "a44a79e6-ec32-46a7-b580-6bfbd69bf5f7",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "c1e65463-1973-42d3-b0f6-18fafb0e2222",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "df0caf1c-226d-469b-9617-0986e6ba0042",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "cffaafee-dc63-40d4-9fdb-1cca1d92efb6",
+            "adapter_number": 0,
+            "port_number": 6,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "8a019bbc-c67a-45ef-a7c2-23e0a2a01cf7",
             "adapter_number": 0,
             "port_number": 7,
             "label": {
@@ -474,9 +656,108 @@
               "rotation": 0,
               "style": ""
             }
+          }
+        ]
+      },
+      {
+        "link_id": "52195082-09c5-4b91-8109-3efdb7b2efc4",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "8a019bbc-c67a-45ef-a7c2-23e0a2a01cf7",
+            "adapter_number": 0,
+            "port_number": 6,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
           },
           {
-            "node_id": "7fb5f0d7-c720-4a7a-b83a-f96460caf71b",
+            "node_id": "9d3d38f3-c072-460f-9b5c-01bdd5d5b80f",
+            "adapter_number": 0,
+            "port_number": 7,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "f20bdd05-6a4f-4fa3-8642-2d6df00d6cbc",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "9d3d38f3-c072-460f-9b5c-01bdd5d5b80f",
+            "adapter_number": 0,
+            "port_number": 6,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "c1e65463-1973-42d3-b0f6-18fafb0e2222",
+            "adapter_number": 0,
+            "port_number": 7,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "e30c76a7-9503-4bb1-90e8-77e39ec2706f",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "c1e65463-1973-42d3-b0f6-18fafb0e2222",
+            "adapter_number": 0,
+            "port_number": 6,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "cffaafee-dc63-40d4-9fdb-1cca1d92efb6",
             "adapter_number": 0,
             "port_number": 7,
             "label": {
@@ -492,31 +773,31 @@
     ],
     "drawings": [
       {
-        "drawing_id": "fed4513e-062e-4aa8-b9b0-b2aa75809cbc",
-        "x": -250,
-        "y": -180,
+        "drawing_id": "2f38f716-5109-4989-b1bd-24a021eda9f8",
+        "x": -200,
+        "y": -350,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"14\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Case 6: Multi-Switch (Daisy Chain)</text></svg>"
+        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"14\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Case 7: Ring Topology</text></svg>"
       },
       {
-        "drawing_id": "d35961f6-9a2f-4000-bf9f-efcde470cb9d",
-        "x": -350,
-        "y": -150,
+        "drawing_id": "a951eeff-2d19-43e3-9dce-b90e61b50390",
+        "x": -300,
+        "y": -320,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Switch1: PC1+PC2 | Switch2: PC3+PC4 | Uplink between switches</text></svg>"
+        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">4 Switches in a ring, 1 PC per switch, all 10.1.0.x/24</text></svg>"
       },
       {
-        "drawing_id": "bd325c92-af2e-4800-87cb-2e1f97214b59",
-        "x": -350,
-        "y": 220,
+        "drawing_id": "1819ba7c-d4e0-4bb0-8906-f6fa16bb0e62",
+        "x": -300,
+        "y": 300,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"10\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Test: PC1 ping PC4 = OK (frames forwarded across switches)</text></svg>"
+        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"10\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Test: All PCs can ping each other via the ring path</text></svg>"
       }
     ],
     "computes": [

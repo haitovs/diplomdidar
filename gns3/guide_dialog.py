@@ -142,7 +142,120 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
 <tr><td>Case 4</td><td>Hab we Kommutator</td><td>Hemmesi işleýär, hab hemme ýere iberýär</td></tr>
 <tr><td>Case 5</td><td>Ýyldyz topologiýasy</td><td>6 PC 1 kommutator arkaly habarlaşýar</td></tr>
 <tr><td>Case 6</td><td>Birnäçe kommutator</td><td>Hemme PC uplink arkaly habarlaşýar</td></tr>
+<tr><td>Case 7</td><td>Halka topologiýasy</td><td>4 kommutator halka görnüşinde birikdirilen</td></tr>
+<tr><td>Case 8</td><td>VLAN Trunk</td><td>2 kommutator arasynda trunk baglanyşyk</td></tr>
+<tr><td>Case 9</td><td>Agaç topologiýasy</td><td>Ierarhiýa: merkez > bölüm > PC</td></tr>
+<tr><td>Case 10</td><td>Broadcast domeni</td><td>Hab zynjyry — hemme enjamlar hemme zady görýär</td></tr>
+<tr><td>Case 11</td><td>Tor segmentasiýasy</td><td>Bölümler izolirlenip, bir-birini görmeýär</td></tr>
+<tr><td>Case 12</td><td>Doly mesh topologiýasy</td><td>Her kommutator beýlekisine birikdirilen</td></tr>
 </table>
+
+<hr>
+
+<h2>Case 7: Halka topologiýasy (Ring Topology)</h2>
+<p><b>Taslamadaky enjamlar:</b> 4 kompýuter + 4 kommutator (halka görnüşinde birikdirilen)</p>
+<p><b>Näme barlaýarys:</b> Halka topologiýasynyň işleýşini — enjamlar tegelekleýin birikdirilýär.</p>
+<p><b>Halka topologiýasy näme?</b> Her kommutator iki goňşusy bilen birikdirilýär, halkany (ring) emele getirýär. Maglumatlar halka boýunça geçýär.</p>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>PC1: <code>10.1.0.1/24</code> → Switch1</li>
+  <li>PC2: <code>10.1.0.2/24</code> → Switch2</li>
+  <li>PC3: <code>10.1.0.3/24</code> → Switch3</li>
+  <li>PC4: <code>10.1.0.4/24</code> → Switch4</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case7-Ring-Topology</b> açyň, <b>Play</b> basyň</li>
+  <li>PC1 konsolynda: <code>ping 10.1.0.3</code> → <b>işleýär</b></li>
+  <li>PC2 konsolynda: <code>ping 10.1.0.4</code> → <b>işleýär</b></li>
+</ol>
+<p><b>Netije:</b> Hemme kompýuterler halka arkaly habarlaşyp bilýär.</p>
+
+<hr>
+
+<h2>Case 8: VLAN Trunk</h2>
+<p><b>Taslamadaky enjamlar:</b> 4 kompýuter + 2 kommutator (trunk baglanyşykly)</p>
+<p><b>Näme barlaýarys:</b> Trunk portunyň birnäçe VLAN-y iki kommutator arasynda geçirip bilýändigini.</p>
+<p><b>Trunk näme?</b> Trunk — bir kabel arkaly birnäçe VLAN-yň maglumatlaryny geçirýän baglanyşyk. Kadrlar (frames) VLAN belgileri bilen iberilýär.</p>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>PC1: <code>10.10.0.1/24</code> — VLAN 10, Switch1</li>
+  <li>PC2: <code>10.20.0.1/24</code> — VLAN 20, Switch1</li>
+  <li>PC3: <code>10.10.0.2/24</code> — VLAN 10, Switch2</li>
+  <li>PC4: <code>10.20.0.2/24</code> — VLAN 20, Switch2</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case8-VLAN-Trunk</b> açyň, <b>Play</b> basyň</li>
+  <li>PC1 → PC3: <code>ping 10.10.0.2</code> → <b>işleýär</b> (ikisi-de VLAN 10)</li>
+  <li>PC1 → PC2: <code>ping 10.20.0.1</code> → <b>işlemeýär</b> (dürli VLAN)</li>
+  <li>PC2 → PC4: <code>ping 10.20.0.2</code> → <b>işleýär</b> (ikisi-de VLAN 20)</li>
+</ol>
+<p><b>Netije:</b> Trunk bir kabel arkaly birnäçe VLAN-y geçirýär. VLAN izolýasiýasy saklanýar.</p>
+
+<hr>
+
+<h2>Case 9: Agaç topologiýasy (Tree / Hierarchical)</h2>
+<p><b>Taslamadaky enjamlar:</b> 4 kompýuter + 3 kommutator (3 derejeli ierarhiýa)</p>
+<p><b>Näme barlaýarys:</b> Agaç (ierarhik) topologiýasynyň işleýşini — uly torlaryň adaty gurluşy.</p>
+<p><b>Agaç topologiýasy näme?</b> Enjamlar derejeler boýunça birikdirilýär: merkezi (core) kommutator → bölüm (distribution) kommutatorlary → kompýuterler. Bu uly korporatiw torlarda köp ulanylýar.</p>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>Core-Switch (merkez) → Dist-Switch1, Dist-Switch2</li>
+  <li>PC1, PC2: <code>192.168.10.1-2/24</code> → Dist-Switch1</li>
+  <li>PC3, PC4: <code>192.168.10.3-4/24</code> → Dist-Switch2</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case9-Tree-Topology</b> açyň, <b>Play</b> basyň</li>
+  <li>PC1 → PC2: <code>ping 192.168.10.2</code> → <b>işleýär</b></li>
+  <li>PC1 → PC4: <code>ping 192.168.10.4</code> → <b>işleýär</b> (merkez arkaly)</li>
+</ol>
+<p><b>Netije:</b> Hemme kompýuterler ierarhiýa arkaly habarlaşyp bilýär.</p>
+
+<hr>
+
+<h2>Case 10: Broadcast domeni (Hub Chain)</h2>
+<p><b>Taslamadaky enjamlar:</b> 6 kompýuter + 2 hab (zynjyr görnüşinde)</p>
+<p><b>Näme barlaýarys:</b> Hablaryň zynjyrda birleşdirilende bir uly broadcast domenini döredýändigini.</p>
+<p><b>Broadcast domeni näme?</b> Broadcast domeni — bir enjamyň iberen maglumaty HEMME beýleki enjamlara ýetýän ýer. Hab hemme maglumaty hemme ýere iberýär — şonuň üçin uly torlar üçin ýaramly däl.</p>
+<p><b>Tor sazlamalary:</b> PC1–PC6: <code>10.5.0.1</code> — <code>10.5.0.6</code> (hemmesi <code>/24</code>)</p>
+<p><b>Synag:</b> Hemme PC biri-birini pingläp bilýär. Islendik trafik hemme enjamlara ýetýär.</p>
+
+<hr>
+
+<h2>Case 11: Tor segmentasiýasy (Network Segmentation)</h2>
+<p><b>Taslamadaky enjamlar:</b> 6 kompýuter + 3 kommutator (3 bölüm)</p>
+<p><b>Näme barlaýarys:</b> Dürli bölümleriň aýry podsetler bilen izolirlenýändigini.</p>
+<p><b>Segmentasiýa näme?</b> Tor segmentasiýasy — uly tory kiçi böleklere bölmek. Her bölüm (meselem, inžener, satyş, HR) öz podsetinde işleýär. Bu howpsuzlygy ýokarlandyrýar.</p>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>Inžener bölümi: <code>10.1.1.1-2/24</code> → SW-Engineering</li>
+  <li>Satyş bölümi: <code>10.2.1.1-2/24</code> → SW-Sales</li>
+  <li>HR bölümi: <code>10.3.1.1-2/24</code> → SW-HR</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case11-Network-Segmentation</b> açyň, <b>Play</b> basyň</li>
+  <li>Eng-PC1 → Eng-PC2: <code>ping 10.1.1.2</code> → <b>işleýär</b> (bir bölüm)</li>
+  <li>Eng-PC1 → Sales-PC1: <code>ping 10.2.1.1</code> → <b>işlemeýär</b> (dürli podset)</li>
+</ol>
+<p><b>Netije:</b> Bir bölümiň içinde baglanyşyk bar. Bölümler arasyndaky baglanyşyk petiklenen — howpsuzlyk üpjün edilýär.</p>
+
+<hr>
+
+<h2>Case 12: Doly mesh topologiýasy (Full Mesh)</h2>
+<p><b>Taslamadaky enjamlar:</b> 4 kompýuter + 4 kommutator (her biri beýleki 3-e birikdirilen)</p>
+<p><b>Näme barlaýarys:</b> Doly mesh topologiýasynyň artykmaçlygyny — her noduň beýleki hemme nodlara göni baglanyşygy bar.</p>
+<p><b>Full Mesh näme?</b> Full mesh-de her kommutator beýleki hemme kommutatorlara birikdirilen. Bu iň ygtybarly topologiýa — bir baglanyşyk üzülse, beýleki ýollar arkaly maglumat geçýär.</p>
+<p><b>Tor sazlamalary:</b> PC1–PC4: <code>172.20.0.1</code> — <code>172.20.0.4</code> (hemmesi <code>/24</code>)</p>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case12-Full-Mesh</b> açyň, <b>Play</b> basyň</li>
+  <li>PC1 → PC3: <code>ping 172.20.0.3</code> → <b>işleýär</b></li>
+  <li>PC2 → PC4: <code>ping 172.20.0.4</code> → <b>işleýär</b></li>
+</ol>
+<p><b>Netije:</b> Hemme kompýuterler habarlaşyp bilýär. Birnäçe ýol = ýokary ygtybarlylyk.</p>
 """
 
 

@@ -387,6 +387,262 @@ def case6_multi_switch():
     return make_project("Case6-Multi-Switch", [pc1, pc2, pc3, pc4, sw1, sw2], links, drawings)
 
 
+def case7_ring_topology():
+    """Case 7: Ring Topology - 4 Switches in a ring with PCs"""
+    pid = uid()
+    pc1 = make_vpcs("PC1", -300, -200, pid, 5060,
+                     "set pcname PC1\nip 10.1.0.1/24\n")
+    pc2 = make_vpcs("PC2", 300, -200, pid, 5061,
+                     "set pcname PC2\nip 10.1.0.2/24\n")
+    pc3 = make_vpcs("PC3", 300, 200, pid, 5062,
+                     "set pcname PC3\nip 10.1.0.3/24\n")
+    pc4 = make_vpcs("PC4", -300, 200, pid, 5063,
+                     "set pcname PC4\nip 10.1.0.4/24\n")
+
+    sw1 = make_switch("Switch1", -150, -100, pid)
+    sw2 = make_switch("Switch2", 150, -100, pid)
+    sw3 = make_switch("Switch3", 150, 100, pid)
+    sw4 = make_switch("Switch4", -150, 100, pid)
+
+    links = [
+        # PCs to switches
+        make_link(pid, pc1["node_id"], 0, sw1["node_id"], 0),
+        make_link(pid, pc2["node_id"], 0, sw2["node_id"], 0),
+        make_link(pid, pc3["node_id"], 0, sw3["node_id"], 0),
+        make_link(pid, pc4["node_id"], 0, sw4["node_id"], 0),
+        # Ring: SW1-SW2-SW3-SW4-SW1
+        make_link(pid, sw1["node_id"], 6, sw2["node_id"], 7),
+        make_link(pid, sw2["node_id"], 6, sw3["node_id"], 7),
+        make_link(pid, sw3["node_id"], 6, sw4["node_id"], 7),
+        make_link(pid, sw4["node_id"], 6, sw1["node_id"], 7),
+    ]
+
+    drawings = [
+        make_text_drawing("Case 7: Ring Topology", -200, -350),
+        make_text_drawing("4 Switches in a ring, 1 PC per switch, all 10.1.0.x/24", -300, -320, 11),
+        make_text_drawing("Test: All PCs can ping each other via the ring path", -300, 300, 10),
+    ]
+
+    return make_project("Case7-Ring-Topology", [pc1, pc2, pc3, pc4, sw1, sw2, sw3, sw4], links, drawings)
+
+
+def case8_vlan_trunk():
+    """Case 8: VLAN Trunk - 2 Switches with trunk link carrying multiple VLANs"""
+    pid = uid()
+    pc1 = make_vpcs("PC1-VLAN10", -300, 100, pid, 5070,
+                     "set pcname PC1\nip 10.10.0.1/24\n")
+    pc2 = make_vpcs("PC2-VLAN20", -300, 200, pid, 5071,
+                     "set pcname PC2\nip 10.20.0.1/24\n")
+    pc3 = make_vpcs("PC3-VLAN10", 300, 100, pid, 5072,
+                     "set pcname PC3\nip 10.10.0.2/24\n")
+    pc4 = make_vpcs("PC4-VLAN20", 300, 200, pid, 5073,
+                     "set pcname PC4\nip 10.20.0.2/24\n")
+
+    # Switch1: port 0=VLAN10, port 1=VLAN20, port 7=trunk (all VLANs)
+    vlan_map1 = {0: 10, 1: 20, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1}
+    sw1 = make_switch("Switch1", -100, 150, pid, vlan_map=vlan_map1)
+    # Set port 7 as trunk
+    sw1["properties"]["ports_mapping"][7] = {
+        "name": "7", "port_number": 7, "type": "dot1q", "vlan": 1, "ethertype": ""
+    }
+
+    vlan_map2 = {0: 10, 1: 20, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1}
+    sw2 = make_switch("Switch2", 100, 150, pid, vlan_map=vlan_map2)
+    sw2["properties"]["ports_mapping"][7] = {
+        "name": "7", "port_number": 7, "type": "dot1q", "vlan": 1, "ethertype": ""
+    }
+
+    links = [
+        make_link(pid, pc1["node_id"], 0, sw1["node_id"], 0),
+        make_link(pid, pc2["node_id"], 0, sw1["node_id"], 1),
+        make_link(pid, pc3["node_id"], 0, sw2["node_id"], 0),
+        make_link(pid, pc4["node_id"], 0, sw2["node_id"], 1),
+        # Trunk link between switches
+        make_link(pid, sw1["node_id"], 7, sw2["node_id"], 7),
+    ]
+
+    drawings = [
+        make_text_drawing("Case 8: VLAN Trunk", -200, -20),
+        make_text_drawing("PC1+PC3 = VLAN10 | PC2+PC4 = VLAN20 | Trunk between switches", -350, 10, 11),
+        make_text_drawing("Test: PC1 ping PC3 = OK | PC1 ping PC2 = FAIL | PC2 ping PC4 = OK", -400, 320, 10),
+    ]
+
+    return make_project("Case8-VLAN-Trunk", [pc1, pc2, pc3, pc4, sw1, sw2], links, drawings)
+
+
+def case9_tree_topology():
+    """Case 9: Tree/Hierarchical Topology - Core > Distribution > Access"""
+    pid = uid()
+
+    # Core switch at the top
+    core = make_switch("Core-Switch", 0, -150, pid)
+
+    # Distribution switches
+    dist1 = make_switch("Dist-Switch1", -200, 0, pid)
+    dist2 = make_switch("Dist-Switch2", 200, 0, pid)
+
+    # PCs under dist1
+    pc1 = make_vpcs("PC1", -300, 150, pid, 5080,
+                     "set pcname PC1\nip 192.168.10.1/24\n")
+    pc2 = make_vpcs("PC2", -100, 150, pid, 5081,
+                     "set pcname PC2\nip 192.168.10.2/24\n")
+
+    # PCs under dist2
+    pc3 = make_vpcs("PC3", 100, 150, pid, 5082,
+                     "set pcname PC3\nip 192.168.10.3/24\n")
+    pc4 = make_vpcs("PC4", 300, 150, pid, 5083,
+                     "set pcname PC4\nip 192.168.10.4/24\n")
+
+    links = [
+        # Core to distribution
+        make_link(pid, core["node_id"], 0, dist1["node_id"], 7),
+        make_link(pid, core["node_id"], 1, dist2["node_id"], 7),
+        # Distribution to PCs
+        make_link(pid, dist1["node_id"], 0, pc1["node_id"], 0),
+        make_link(pid, dist1["node_id"], 1, pc2["node_id"], 0),
+        make_link(pid, dist2["node_id"], 0, pc3["node_id"], 0),
+        make_link(pid, dist2["node_id"], 1, pc4["node_id"], 0),
+    ]
+
+    drawings = [
+        make_text_drawing("Case 9: Tree (Hierarchical) Topology", -250, -300),
+        make_text_drawing("Core Switch > 2 Distribution Switches > 4 PCs (192.168.10.x/24)", -350, -270, 11),
+        make_text_drawing("Test: All PCs communicate through the hierarchy", -300, 270, 10),
+    ]
+
+    return make_project("Case9-Tree-Topology",
+                        [core, dist1, dist2, pc1, pc2, pc3, pc4], links, drawings)
+
+
+def case10_broadcast_domain():
+    """Case 10: Broadcast Domain - Hub chain shows single broadcast domain"""
+    pid = uid()
+
+    hub1 = make_hub("Hub1", -150, -50, pid)
+    hub2 = make_hub("Hub2", 150, -50, pid)
+
+    pc1 = make_vpcs("PC1", -300, 100, pid, 5090,
+                     "set pcname PC1\nip 10.5.0.1/24\n")
+    pc2 = make_vpcs("PC2", -100, 100, pid, 5091,
+                     "set pcname PC2\nip 10.5.0.2/24\n")
+    pc3 = make_vpcs("PC3", 100, 100, pid, 5092,
+                     "set pcname PC3\nip 10.5.0.3/24\n")
+    pc4 = make_vpcs("PC4", 300, 100, pid, 5093,
+                     "set pcname PC4\nip 10.5.0.4/24\n")
+    pc5 = make_vpcs("PC5", -200, -200, pid, 5094,
+                     "set pcname PC5\nip 10.5.0.5/24\n")
+    pc6 = make_vpcs("PC6", 200, -200, pid, 5095,
+                     "set pcname PC6\nip 10.5.0.6/24\n")
+
+    links = [
+        make_link(pid, pc1["node_id"], 0, hub1["node_id"], 0),
+        make_link(pid, pc2["node_id"], 0, hub1["node_id"], 1),
+        make_link(pid, pc5["node_id"], 0, hub1["node_id"], 2),
+        make_link(pid, pc3["node_id"], 0, hub2["node_id"], 0),
+        make_link(pid, pc4["node_id"], 0, hub2["node_id"], 1),
+        make_link(pid, pc6["node_id"], 0, hub2["node_id"], 2),
+        # Connect hubs together
+        make_link(pid, hub1["node_id"], 7, hub2["node_id"], 7),
+    ]
+
+    drawings = [
+        make_text_drawing("Case 10: Broadcast Domain (Hub Chain)", -250, -330),
+        make_text_drawing("6 PCs + 2 Hubs chained = one big broadcast domain (10.5.0.x/24)", -350, -300, 11),
+        make_text_drawing("Test: All PCs can ping each other. Any traffic is seen by ALL devices.", -400, 220, 10),
+    ]
+
+    return make_project("Case10-Broadcast-Domain",
+                        [pc1, pc2, pc3, pc4, pc5, pc6, hub1, hub2], links, drawings)
+
+
+def case11_network_segmentation():
+    """Case 11: Network Segmentation - 3 departments on separate switches/subnets"""
+    pid = uid()
+
+    # Department A - Engineering
+    sw_a = make_switch("SW-Engineering", -300, 0, pid)
+    pc_a1 = make_vpcs("Eng-PC1", -400, 150, pid, 5100,
+                       "set pcname Eng-PC1\nip 10.1.1.1/24\n")
+    pc_a2 = make_vpcs("Eng-PC2", -200, 150, pid, 5101,
+                       "set pcname Eng-PC2\nip 10.1.1.2/24\n")
+
+    # Department B - Sales
+    sw_b = make_switch("SW-Sales", 0, 0, pid)
+    pc_b1 = make_vpcs("Sales-PC1", -100, 150, pid, 5102,
+                       "set pcname Sales-PC1\nip 10.2.1.1/24\n")
+    pc_b2 = make_vpcs("Sales-PC2", 100, 150, pid, 5103,
+                       "set pcname Sales-PC2\nip 10.2.1.2/24\n")
+
+    # Department C - HR
+    sw_c = make_switch("SW-HR", 300, 0, pid)
+    pc_c1 = make_vpcs("HR-PC1", 200, 150, pid, 5104,
+                       "set pcname HR-PC1\nip 10.3.1.1/24\n")
+    pc_c2 = make_vpcs("HR-PC2", 400, 150, pid, 5105,
+                       "set pcname HR-PC2\nip 10.3.1.2/24\n")
+
+    links = [
+        make_link(pid, pc_a1["node_id"], 0, sw_a["node_id"], 0),
+        make_link(pid, pc_a2["node_id"], 0, sw_a["node_id"], 1),
+        make_link(pid, pc_b1["node_id"], 0, sw_b["node_id"], 0),
+        make_link(pid, pc_b2["node_id"], 0, sw_b["node_id"], 1),
+        make_link(pid, pc_c1["node_id"], 0, sw_c["node_id"], 0),
+        make_link(pid, pc_c2["node_id"], 0, sw_c["node_id"], 1),
+    ]
+
+    drawings = [
+        make_text_drawing("Case 11: Network Segmentation (Departments)", -300, -150),
+        make_text_drawing("Engineering: 10.1.1.x | Sales: 10.2.1.x | HR: 10.3.1.x", -350, -120, 11),
+        make_text_drawing("Test: Ping within dept = OK | Ping across dept = FAIL (different subnets)", -400, 270, 10),
+    ]
+
+    return make_project("Case11-Network-Segmentation",
+                        [sw_a, sw_b, sw_c, pc_a1, pc_a2, pc_b1, pc_b2, pc_c1, pc_c2], links, drawings)
+
+
+def case12_full_mesh():
+    """Case 12: Full Mesh Topology - 4 switches, each connected to every other"""
+    pid = uid()
+    import math
+
+    sw1 = make_switch("Switch1", -150, -100, pid)
+    sw2 = make_switch("Switch2", 150, -100, pid)
+    sw3 = make_switch("Switch3", 150, 100, pid)
+    sw4 = make_switch("Switch4", -150, 100, pid)
+
+    pc1 = make_vpcs("PC1", -350, -100, pid, 5110,
+                     "set pcname PC1\nip 172.20.0.1/24\n")
+    pc2 = make_vpcs("PC2", 350, -100, pid, 5111,
+                     "set pcname PC2\nip 172.20.0.2/24\n")
+    pc3 = make_vpcs("PC3", 350, 100, pid, 5112,
+                     "set pcname PC3\nip 172.20.0.3/24\n")
+    pc4 = make_vpcs("PC4", -350, 100, pid, 5113,
+                     "set pcname PC4\nip 172.20.0.4/24\n")
+
+    links = [
+        # PCs to their switches
+        make_link(pid, pc1["node_id"], 0, sw1["node_id"], 0),
+        make_link(pid, pc2["node_id"], 0, sw2["node_id"], 0),
+        make_link(pid, pc3["node_id"], 0, sw3["node_id"], 0),
+        make_link(pid, pc4["node_id"], 0, sw4["node_id"], 0),
+        # Full mesh between switches (6 links for 4 switches)
+        make_link(pid, sw1["node_id"], 4, sw2["node_id"], 5),
+        make_link(pid, sw1["node_id"], 5, sw3["node_id"], 4),
+        make_link(pid, sw1["node_id"], 6, sw4["node_id"], 4),
+        make_link(pid, sw2["node_id"], 4, sw3["node_id"], 5),
+        make_link(pid, sw2["node_id"], 6, sw4["node_id"], 5),
+        make_link(pid, sw3["node_id"], 6, sw4["node_id"], 6),
+    ]
+
+    drawings = [
+        make_text_drawing("Case 12: Full Mesh Topology", -200, -280),
+        make_text_drawing("4 Switches, each connected to every other (172.20.0.x/24)", -300, -250, 11),
+        make_text_drawing("Test: All PCs can ping each other. Multiple paths = redundancy.", -350, 250, 10),
+    ]
+
+    return make_project("Case12-Full-Mesh",
+                        [pc1, pc2, pc3, pc4, sw1, sw2, sw3, sw4], links, drawings)
+
+
 if __name__ == "__main__":
     print("Generating example projects...\n")
 
@@ -397,6 +653,12 @@ if __name__ == "__main__":
         case4_hub_vs_switch,
         case5_star_topology,
         case6_multi_switch,
+        case7_ring_topology,
+        case8_vlan_trunk,
+        case9_tree_topology,
+        case10_broadcast_domain,
+        case11_network_segmentation,
+        case12_full_mesh,
     ]
 
     for i, case_fn in enumerate(cases, 1):
