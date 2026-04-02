@@ -226,13 +226,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         spacer = QtWidgets.QWidget()
         spacer.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
 
-        # Create the logo label
+        # Create the logo label with white circular background
         logo_label = QtWidgets.QLabel()
         branding_logo = os.path.join(self._branding_dir, "logo.png")
         if os.path.exists(branding_logo):
-            pixmap = QtGui.QPixmap(branding_logo).scaled(28, 28, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
+            pixmap = QtGui.QPixmap(branding_logo).scaled(24, 24, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
             logo_label.setPixmap(pixmap)
             logo_label.setFixedSize(32, 32)
+            logo_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            logo_label.setStyleSheet(
+                "QLabel { background: #ffffff; border: 2px solid #003366; "
+                "border-radius: 16px; padding: 2px; }"
+            )
+
+        # Oguz Han University dark blue color
+        _dk = "#003366"  # dark blue
+        _dk_hover = "#004080"
+        _dk_pressed = "#002244"
 
         # Create the language toggle button
         self._langButton = QtWidgets.QPushButton()
@@ -240,18 +250,32 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._langButton.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
         self._langButton.setFixedHeight(28)
         self._langButton.setStyleSheet(
-            "QPushButton { font-weight: bold; font-size: 12px; padding: 2px 10px; "
-            "border: 1px solid #888; border-radius: 4px; background: #2d2d2d; color: #ddd; }"
-            "QPushButton:hover { background: #444; color: #fff; }"
+            f"QPushButton {{ font-weight: bold; font-size: 12px; padding: 2px 10px; "
+            f"border: 1px solid {_dk}; border-radius: 4px; background: #2d2d2d; color: #ddd; }}"
+            f"QPushButton:hover {{ background: {_dk}; color: #fff; border-color: {_dk}; }}"
         )
         self._updateLangButtonText()
         self._langButton.clicked.connect(self._toggleLanguage)
+
+        # Create the guide button
+        self._guideButton = QtWidgets.QPushButton("\U0001F4D6 Gollanma")
+        self._guideButton.setFlat(True)
+        self._guideButton.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
+        self._guideButton.setFixedHeight(28)
+        self._guideButton.setStyleSheet(
+            f"QPushButton {{ font-weight: bold; font-size: 12px; padding: 2px 12px; "
+            f"border: 1px solid {_dk}; border-radius: 4px; background: {_dk}; color: #fff; }}"
+            f"QPushButton:hover {{ background: {_dk_hover}; border-color: {_dk_hover}; }}"
+            f"QPushButton:pressed {{ background: {_dk_pressed}; border-color: {_dk_pressed}; }}"
+        )
+        self._guideButton.clicked.connect(self._showGuideDialog)
 
         # Add to a toolbar on the right side
         lang_toolbar = QtWidgets.QToolBar("Language")
         lang_toolbar.setMovable(False)
         lang_toolbar.addWidget(spacer)
         lang_toolbar.addWidget(logo_label)
+        lang_toolbar.addWidget(self._guideButton)
         lang_toolbar.addWidget(self._langButton)
         self.addToolBar(QtCore.Qt.ToolBarArea.TopToolBarArea, lang_toolbar)
 

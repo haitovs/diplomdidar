@@ -6,7 +6,7 @@ import os
 from .qt import QtCore, QtGui, QtWidgets
 
 GUIDE_TEXT = """
-<h1 style="color: #1e6ec8;">Tor Simulýatory — Synag Gollanmasy</h1>
+<h1 style="color: #003366;">Tor Simulýatory — Synag Gollanmasy</h1>
 
 <h2>Nädip başlamaly</h2>
 <p><b>File &gt; Open Project</b> basyň — gerekli Case-i saýlaň.<br>
@@ -16,7 +16,7 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
 
 <h3>Peýdaly buýruklar (VPCS konsoly)</h3>
 <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-<tr style="background: #1e6ec8; color: white;">
+<tr style="background: #003366; color: white;">
   <th>Buýruk</th><th>Näme edýär</th>
 </tr>
 <tr><td><code>show ip</code></td><td>Häzirki IP-adresi görkez</td></tr>
@@ -133,7 +133,7 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
 
 <h2>Jemleýji tablisa</h2>
 <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-<tr style="background: #1e6ec8; color: white;">
+<tr style="background: #003366; color: white;">
   <th>Synag</th><th>Näme barlaýarys</th><th>Netije</th>
 </tr>
 <tr><td>Case 1</td><td>Kommutator arkaly esasy ping</td><td>PC1 ↔ PC2: işleýär</td></tr>
@@ -265,8 +265,8 @@ class GuideDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Tor Simulýatory — Synag Gollanmasy")
-        self.setMinimumSize(750, 600)
-        self.resize(850, 700)
+        self.setMinimumSize(950, 650)
+        self.resize(1080, 750)
 
         # Set window icon from branding
         branding_logo = os.path.join(
@@ -279,6 +279,11 @@ class GuideDialog(QtWidgets.QDialog):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
+        # Main content area: text on left, logo on right
+        content_splitter = QtWidgets.QHBoxLayout()
+        content_splitter.setContentsMargins(0, 0, 0, 0)
+        content_splitter.setSpacing(0)
+
         # Scrollable HTML content
         text_browser = QtWidgets.QTextBrowser()
         text_browser.setOpenExternalLinks(True)
@@ -288,7 +293,66 @@ class GuideDialog(QtWidgets.QDialog):
             + GUIDE_TEXT +
             '</div>'
         )
-        layout.addWidget(text_browser)
+        content_splitter.addWidget(text_browser, stretch=3)
+
+        # Right-side logo panel
+        logo_panel = QtWidgets.QWidget()
+        logo_panel.setFixedWidth(220)
+        logo_panel.setStyleSheet(
+            "QWidget { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+            "stop:0 #003366, stop:1 #001a33); }"
+        )
+        logo_layout = QtWidgets.QVBoxLayout(logo_panel)
+        logo_layout.setContentsMargins(15, 30, 15, 30)
+        logo_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
+        # Logo image
+        logo_img = QtWidgets.QLabel()
+        if os.path.exists(branding_logo):
+            pixmap = QtGui.QPixmap(branding_logo).scaled(
+                160, 160,
+                QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                QtCore.Qt.TransformationMode.SmoothTransformation
+            )
+            logo_img.setPixmap(pixmap)
+        logo_img.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        logo_img.setStyleSheet(
+            "QLabel { background: #ffffff; border: 3px solid #ffffff; "
+            "border-radius: 85px; padding: 8px; }"
+        )
+        logo_img.setFixedSize(170, 170)
+        logo_layout.addWidget(logo_img, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+
+        logo_layout.addSpacing(15)
+
+        # University name text
+        uni_label = QtWidgets.QLabel("Oguz Han\nadyndaky\nInžener-tehnologiýalar\nuniversiteti")
+        uni_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        uni_label.setWordWrap(True)
+        uni_label.setStyleSheet(
+            "QLabel { color: #ffffff; font-size: 13px; font-weight: bold; "
+            "background: transparent; border: none; }"
+        )
+        logo_layout.addWidget(uni_label)
+
+        logo_layout.addSpacing(10)
+
+        # Subtitle
+        sub_label = QtWidgets.QLabel("Tor Simulýatory")
+        sub_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        sub_label.setStyleSheet(
+            "QLabel { color: #88bbee; font-size: 12px; font-style: italic; "
+            "background: transparent; border: none; }"
+        )
+        logo_layout.addWidget(sub_label)
+
+        logo_layout.addStretch()
+
+        content_splitter.addWidget(logo_panel)
+
+        content_widget = QtWidgets.QWidget()
+        content_widget.setLayout(content_splitter)
+        layout.addWidget(content_widget)
 
         # Bottom bar with checkbox + close button
         bottom = QtWidgets.QHBoxLayout()
