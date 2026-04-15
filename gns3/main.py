@@ -276,15 +276,7 @@ def main():
     # update the exception file path to have it in the same directory as the settings file.
     exception_file_path = os.path.join(LocalConfig.instance().configDirectory(), exception_file_path)
 
-    # We disallow to run GNS3 from outside the /Applications folder to avoid
-    # issue when people run GNS3 from the .dmg
-    if sys.platform.startswith("darwin") and hasattr(sys, "frozen"):
-        if not os.path.realpath(sys.executable).startswith("/Applications"):
-            error_message = "GNS3.app must be moved to the '/Applications' folder before it can be used"
-            QtWidgets.QMessageBox.critical(False, "Loading error", error_message)
-            QtCore.QTimer.singleShot(0, app.quit)
-            app.exec()
-            sys.exit(1)
+    # /Applications folder check removed — allow running from any location
 
     global mainwindow
     startup_file = app.open_file_at_startup
