@@ -7,9 +7,32 @@ No external installation needed.
 
 import sys
 import os
+
+# Fix for Windows --noconsole: sys.stdout/stderr can be None.
+# Redirect to a log file so faulthandler and logging don't crash.
+if sys.stdout is None or sys.stderr is None:
+    try:
+        if getattr(sys, 'frozen', False):
+            log_dir = os.path.join(os.path.expanduser('~'), 'NetworkSimulator_Logs')
+        else:
+            log_dir = os.path.dirname(os.path.abspath(__file__))
+        os.makedirs(log_dir, exist_ok=True)
+        log_path = os.path.join(log_dir, 'launcher.log')
+        log_file = open(log_path, 'a', encoding='utf-8', buffering=1)
+        if sys.stdout is None:
+            sys.stdout = log_file
+        if sys.stderr is None:
+            sys.stderr = log_file
+    except Exception:
+        # Last-resort fallback: devnull
+        devnull = open(os.devnull, 'w')
+        if sys.stdout is None:
+            sys.stdout = devnull
+        if sys.stderr is None:
+            sys.stderr = devnull
+
 import threading
 import time
-import atexit
 
 
 def get_resource_path(relative_path):
@@ -28,25 +51,19 @@ def setup_vpcs_path():
     else:
         base = os.path.dirname(os.path.abspath(__file__))
 
-    # Add bundled binaries to PATH so gns3server finds vpcs
     bin_dir = os.path.join(base, 'bin')
     if os.path.isdir(bin_dir):
         os.environ['PATH'] = bin_dir + os.pathsep + os.environ.get('PATH', '')
 
-    # Also check the app directory itself
     exe_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else base
     os.environ['PATH'] = exe_dir + os.pathsep + os.environ.get('PATH', '')
 
 
 def start_server_thread():
     """Start GNS3 server in a background thread."""
-    server_thread = None
-
     def run_server():
         try:
-            import asyncio
             from gns3server.main import main as server_main
-            # Override sys.argv for the server
             original_argv = sys.argv[:]
             sys.argv = ['gns3server', '--local', '--port', '3080']
             try:
@@ -56,24 +73,84 @@ def start_server_thread():
             finally:
                 sys.argv = original_argv
         except Exception as e:
-            print(f"Server error: {e}", file=sys.stderr)
+            try:
+                print(f"Server error: {e}", file=sys.stderr)
+            except Exception:
+                pass
 
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
     return server_thread
 
 
+def write_gui_config():
+    """Pre-configure GUI to use our embedded server instead of looking for gns3server.exe."""
+    try:
+        import json
+        if sys.platform == 'win32':
+            config_dir = os.path.join(os.environ.get('APPDATA', ''), 'GNS3', '2.2')
+            config_file = os.path.join(config_dir, 'gns3_gui.ini')
+        elif sys.platform == 'darwin':
+            config_dir = os.path.join(os.path.expanduser('~'), '.config', 'GNS3', '2.2')
+            config_file = os.path.join(config_dir, 'gns3_gui.conf')
+        else:
+            config_dir = os.path.join(os.path.expanduser('~'), '.config', 'GNS3', '2.2')
+            config_file = os.path.join(config_dir, 'gns3_gui.conf')
+
+        os.makedirs(config_dir, exist_ok=True)
+
+        # Load existing config if present, merge our settings
+        config = {}
+        if os.path.exists(config_file):
+            try:
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+            except Exception:
+                config = {}
+
+        config.setdefault('version', '2.2.0')
+        config.setdefault('type', 'settings')
+        config.setdefault('MainWindow', {})
+        config['MainWindow']['hide_setup_wizard'] = True
+
+        config.setdefault('LocalServer', {})
+        config['LocalServer']['auto_start'] = False
+        config['LocalServer']['host'] = 'localhost'
+        config['LocalServer']['port'] = 3080
+        config['LocalServer']['path'] = ''
+        config['LocalServer']['ubridge_path'] = ''
+        config['LocalServer']['auth'] = False
+        config['LocalServer']['user'] = ''
+        config['LocalServer']['password'] = ''
+
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=4)
+    except Exception as e:
+        try:
+            print(f"Config write error: {e}", file=sys.stderr)
+        except Exception:
+            pass
+
+
+def wait_for_server(host='localhost', port=3080, timeout=15):
+    """Wait until server is accepting connections."""
+    import socket
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return True
+        except OSError:
+            time.sleep(0.3)
+    return False
+
+
 def main():
-    # Setup paths for bundled binaries
     setup_vpcs_path()
+    write_gui_config()
+    start_server_thread()
+    wait_for_server()
 
-    # Start the GNS3 server in background
-    server_thread = start_server_thread()
-
-    # Give server time to start
-    time.sleep(2)
-
-    # Start GUI (blocks until window closes)
     from gns3.main import main as gns3_main
     gns3_main()
 
