@@ -113,6 +113,24 @@ def write_gui_config():
         config.setdefault('MainWindow', {})
         config['MainWindow']['hide_setup_wizard'] = True
 
+        # Configure console command to use bundled PuTTY on Windows
+        if sys.platform == 'win32':
+            if getattr(sys, 'frozen', False):
+                exe_dir = os.path.dirname(sys.executable)
+                putty_path = os.path.join(exe_dir, '_internal', 'bin', 'putty.exe')
+                if not os.path.exists(putty_path):
+                    putty_path = os.path.join(exe_dir, 'bin', 'putty.exe')
+                if os.path.exists(putty_path):
+                    config['MainWindow']['telnet_console_command'] = (
+                        f'"{putty_path}" -telnet {{host}} {{port}} -title "{{name}}"'
+                    )
+        elif sys.platform == 'darwin':
+            # macOS: simple, reliable Terminal.app telnet (force IPv4 — VPCS doesn't listen on ::1)
+            config['MainWindow']['telnet_console_command'] = (
+                'osascript -e \'tell application "Terminal" to do script "telnet 127.0.0.1 {port}"\' '
+                '-e \'tell application "Terminal" to activate\''
+            )
+
         config.setdefault('LocalServer', {})
         config['LocalServer']['auto_start'] = False
         config['LocalServer']['host'] = 'localhost'

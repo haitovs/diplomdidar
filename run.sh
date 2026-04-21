@@ -14,6 +14,31 @@ fi
 # Activate venv
 source "$VENV_DIR/bin/activate"
 
+# Ensure the telnet console command works (Mac default is fragile)
+python3 - <<'PYEOF'
+import json, os, sys
+if sys.platform != 'darwin':
+    raise SystemExit(0)
+config_file = os.path.expanduser('~/.config/GNS3/2.2/gns3_gui.conf')
+os.makedirs(os.path.dirname(config_file), exist_ok=True)
+config = {}
+if os.path.exists(config_file):
+    try:
+        with open(config_file) as f:
+            config = json.load(f)
+    except Exception:
+        config = {}
+config.setdefault('version', '2.2.0')
+config.setdefault('type', 'settings')
+config.setdefault('MainWindow', {})
+config['MainWindow']['telnet_console_command'] = (
+    'osascript -e \'tell application "Terminal" to do script "telnet 127.0.0.1 {port}"\' '
+    '-e \'tell application "Terminal" to activate\''
+)
+with open(config_file, 'w') as f:
+    json.dump(config, f, indent=4)
+PYEOF
+
 # Start GNS3 server in the background
 echo "Starting GNS3 server..."
 gns3server --local --port 3080 &

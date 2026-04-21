@@ -47,6 +47,7 @@ echo [OK] Using bundled VPCS (included in package)
 if not exist "build_bin" mkdir build_bin
 copy "bundled_bin\windows\vpcs.exe" "build_bin\vpcs.exe" >nul
 copy "bundled_bin\windows\cygwin1.dll" "build_bin\cygwin1.dll" >nul
+copy "bundled_bin\windows\putty.exe" "build_bin\putty.exe" >nul
 
 REM --- Build ---
 echo.
@@ -63,6 +64,7 @@ pyinstaller ^
     --add-data "examples;examples" ^
     --add-binary "build_bin\vpcs.exe;bin" ^
     --add-binary "build_bin\cygwin1.dll;bin" ^
+    --add-binary "build_bin\putty.exe;bin" ^
     --hidden-import gns3 ^
     --hidden-import gns3.main_window ^
     --hidden-import gns3.guide_dialog ^
