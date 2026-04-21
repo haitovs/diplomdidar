@@ -163,7 +163,34 @@ def wait_for_server(host='localhost', port=3080, timeout=15):
     return False
 
 
+def kill_orphan_simulator_processes():
+    """Kill leftover vpcs/dynamips/ubridge processes holding UDP ports from previous runs."""
+    try:
+        import signal
+        names = ('vpcs', 'dynamips', 'ubridge')
+        if sys.platform == 'win32':
+            import subprocess
+            for name in names:
+                subprocess.run(
+                    ['taskkill', '/F', '/IM', f'{name}.exe'],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
+                )
+        else:
+            import psutil
+            for proc in psutil.process_iter(['pid', 'name']):
+                try:
+                    pname = (proc.info.get('name') or '').lower()
+                    if any(n in pname for n in names):
+                        proc.send_signal(signal.SIGKILL)
+                except Exception:
+                    continue
+    except Exception:
+        pass
+
+
 def main():
+    kill_orphan_simulator_processes()
     setup_vpcs_path()
     write_gui_config()
     start_server_thread()

@@ -19,10 +19,59 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
 <tr style="background: #003366; color: white;">
   <th>Buýruk</th><th>Näme edýär</th>
 </tr>
-<tr><td><code>show ip</code></td><td>Häzirki IP-adresi görkez</td></tr>
+<tr><td><code>show</code></td><td>PC-niň IP, MAC, gateway maglumatlaryny görkez</td></tr>
+<tr><td><code>show ip</code></td><td>Diňe IP sazlamalaryny görkez</td></tr>
 <tr><td><code>ping 192.168.1.2</code></td><td>Beýleki kompýuter bilen baglanyşygy barla</td></tr>
 <tr><td><code>ip 10.0.0.1/24</code></td><td>IP-adresi el bilen belläp goý</td></tr>
+<tr><td><code>ip 10.0.0.1/24 10.0.0.254</code></td><td>IP + gateway bellemek</td></tr>
+<tr><td><code>arp</code></td><td>ARP tablisasyny görkez (öwrenilen MAC-adresler)</td></tr>
+<tr><td><code>trace 10.0.0.5</code></td><td>Paketiň geçýän ýolyny görkez</td></tr>
+<tr><td><code>clear ip</code></td><td>IP sazlamalaryny arassala</td></tr>
+<tr><td><code>save</code></td><td>Häzirki sazlamalary ýatda sakla</td></tr>
+<tr><td><code>?</code></td><td>Buýruk kömegini görkez</td></tr>
 </table>
+
+<h3>Umumy tehnikalar (ähli Case-ler üçin)</h3>
+
+<p><b>1. Enjama <i>sag basmak</i> menýusy:</b></p>
+<ul>
+  <li><b>Start / Stop</b> — enjamy aýry işlet ýa-da duruz</li>
+  <li><b>Console</b> — konsoly aç (PC üçin)</li>
+  <li><b>Configure</b> — sazlamalary üýtget (VLAN, portlar we ş.m.)</li>
+  <li><b>Change symbol</b> — enjamyň şekilini üýtget</li>
+  <li><b>Change hostname</b> — ady üýtget</li>
+</ul>
+
+<p><b>2. Kabel/baglanyşyk üstünde <i>sag basmak</i>:</b></p>
+<ul>
+  <li><b>Start capture</b> — Wireshark bilen paketleri basyp al</li>
+  <li><b>Stop capture</b> — basyp almagy duruz</li>
+  <li><b>Delete</b> — kabeli aýyr</li>
+</ul>
+
+<p><b>3. Kommutatorda VLAN sazlamak:</b></p>
+<ol>
+  <li>Kommutatora sag basyň → <b>Configure</b></li>
+  <li><b>VLAN</b> goýmasyna geçiň</li>
+  <li>Porty saýlaň, <b>Type</b> we <b>VLAN</b> belgilerini üýtgediň:
+    <ul>
+      <li><b>access</b> — kompýuter üçin (diňe bir VLAN)</li>
+      <li><b>dot1q</b> — trunk üçin (hemme VLAN-lar)</li>
+      <li><b>qinq</b> — VLAN içinde VLAN (öwrençde ulanylmaýar)</li>
+    </ul>
+  </li>
+  <li><b>Apply</b> → <b>OK</b></li>
+</ol>
+
+<p><b>4. Paket basyp almak (Packet capture):</b></p>
+<ol>
+  <li>Kabele sag basyň → <b>Start capture</b></li>
+  <li>Interfeýsi saýlaň (adatça birinjisi) → <b>OK</b></li>
+  <li>Wireshark awtomatiki açylar (eger gurnalan bolsa)</li>
+  <li>PC-den ping ediň — paketler Wireshark-da görüner</li>
+  <li>Kabele ýaşyl nokat peýda bolar (capture aktiw)</li>
+  <li>Gutaran soň: sag basyň → <b>Stop capture</b></li>
+</ol>
 
 <hr>
 
@@ -77,6 +126,22 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
   <li>PC3: <code>10.0.10.3/24</code> — VLAN 20</li>
 </ul>
 <p><i>Üns beriň: hemme IP-adresler bir podsetde! Ýöne VLAN baglanyşygy petikleýär.</i></p>
+
+<p><b>VLAN-y nädip sazlamaly (kommutatorda):</b></p>
+<ol>
+  <li>Kommutatora <b>sag basyň</b> → <b>Configure</b> saýlaň</li>
+  <li>Täze penjirede <b>VLAN</b> goýmasyna geçiň</li>
+  <li>Her porty saýlap, VLAN belgisini bellemeli:
+    <ul>
+      <li><code>Ethernet0</code> (PC1) → VLAN <b>10</b>, Type: <b>access</b></li>
+      <li><code>Ethernet1</code> (PC2) → VLAN <b>10</b>, Type: <b>access</b></li>
+      <li><code>Ethernet2</code> (PC3) → VLAN <b>20</b>, Type: <b>access</b></li>
+    </ul>
+  </li>
+  <li><b>Apply</b> we <b>OK</b> basyň</li>
+  <li><i>Bellik: Bu taslamada VLAN eýýäm öňünden sazlanan — göni synaga geçip bilersiňiz.</i></li>
+</ol>
+
 <p><b>Synag ädimleri:</b></p>
 <ol>
   <li><b>Case3-VLAN-Isolation</b> açyň, <b>Play</b> basyň</li>
@@ -98,6 +163,18 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
   <li>PC3, PC4 — kommutator arkaly</li>
   <li>Hemmesi: <code>10.0.0.x/24</code></li>
 </ul>
+
+<p><b>Paket basyp almak (packet capture) nädip edilýär:</b></p>
+<p>Hab bilen kommutatoryň tapawudyny görmek üçin trafigi basyp almak gerek.</p>
+<ol>
+  <li>Habyň we PC2-niň arasyndaky <b>kabele sag basyň</b></li>
+  <li><b>Start capture</b> saýlaň</li>
+  <li>Interfeýsi saýlaň we <b>OK</b> basyň (Wireshark açylar)</li>
+  <li>PC1 konsolyndan PC3-e ping ediň: <code>ping 10.0.0.3</code></li>
+  <li>Wireshark-da PC2 habyň üstünden geçýän ähli paketleri görýär — hab her zady hemme ýere iberýär!</li>
+  <li>Şol synagy kommutatordaky kabelde geçirip görüň: PC4 PC3-iň trafigini <b>görmeýär</b></li>
+</ol>
+
 <p><b>Synag:</b> Hemme kompýuterler biri-birini pingläp bilýär. Hab hemme portlara iberýär, kommutator diňe gerekli porta.</p>
 
 <hr>
@@ -176,7 +253,7 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
 <h2>Case 8: VLAN Trunk</h2>
 <p><b>Taslamadaky enjamlar:</b> 4 kompýuter + 2 kommutator (trunk baglanyşykly)</p>
 <p><b>Näme barlaýarys:</b> Trunk portunyň birnäçe VLAN-y iki kommutator arasynda geçirip bilýändigini.</p>
-<p><b>Trunk näme?</b> Trunk — bir kabel arkaly birnäçe VLAN-yň maglumatlaryny geçirýän baglanyşyk. Kadrlar (frames) VLAN belgileri bilen iberilýär.</p>
+<p><b>Trunk näme?</b> Trunk — bir kabel arkaly birnäçe VLAN-yň maglumatlaryny geçirýän baglanyşyk. Kadrlar (frames) VLAN belgileri bilen iberilýär (802.1Q standardy).</p>
 <p><b>Tor sazlamalary:</b></p>
 <ul>
   <li>PC1: <code>10.10.0.1/24</code> — VLAN 10, Switch1</li>
@@ -184,12 +261,38 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
   <li>PC3: <code>10.10.0.2/24</code> — VLAN 10, Switch2</li>
   <li>PC4: <code>10.20.0.2/24</code> — VLAN 20, Switch2</li>
 </ul>
+
+<p><b>Trunk portuny nädip sazlamaly:</b></p>
+<ol>
+  <li>Kommutatora <b>sag basyň</b> → <b>Configure</b> → <b>VLAN</b> goýmasy</li>
+  <li>Kompýuter birikdirilen portlar üçin:
+    <ul>
+      <li>Type: <b>access</b></li>
+      <li>VLAN: degişli VLAN belgisi (10 ýa-da 20)</li>
+    </ul>
+  </li>
+  <li>Trunk porty üçin (iki kommutatoryň arasyndaky kabel):
+    <ul>
+      <li>Type: <b>dot1q</b> (802.1Q — VLAN tag bilen ibermek)</li>
+      <li>VLAN: <b>1</b> (native VLAN, ýöne ähli VLAN geçer)</li>
+    </ul>
+  </li>
+  <li><b>Apply</b> we <b>OK</b> basyň</li>
+  <li><i>Bellik: Bu taslamada trunk eýýäm sazlanan — Switch1 port 7 we Switch2 port 7 <b>dot1q</b> görnüşinde.</i></li>
+</ol>
+
+<p><b>Access we Trunk tapawudy:</b></p>
+<ul>
+  <li><b>Access port</b> — diňe bir VLAN-yň trafigini geçirýär (kompýuter birikmek üçin)</li>
+  <li><b>Trunk port (dot1q)</b> — ähli VLAN-laryň trafigini bellik (tag) bilen geçirýär (kommutatorlar arasy)</li>
+</ul>
+
 <p><b>Synag ädimleri:</b></p>
 <ol>
   <li><b>Case8-VLAN-Trunk</b> açyň, <b>Play</b> basyň</li>
-  <li>PC1 → PC3: <code>ping 10.10.0.2</code> → <b>işleýär</b> (ikisi-de VLAN 10)</li>
+  <li>PC1 → PC3: <code>ping 10.10.0.2</code> → <b>işleýär</b> (ikisi-de VLAN 10, trunk arkaly)</li>
   <li>PC1 → PC2: <code>ping 10.20.0.1</code> → <b>işlemeýär</b> (dürli VLAN)</li>
-  <li>PC2 → PC4: <code>ping 10.20.0.2</code> → <b>işleýär</b> (ikisi-de VLAN 20)</li>
+  <li>PC2 → PC4: <code>ping 10.20.0.2</code> → <b>işleýär</b> (ikisi-de VLAN 20, trunk arkaly)</li>
 </ol>
 <p><b>Netije:</b> Trunk bir kabel arkaly birnäçe VLAN-y geçirýär. VLAN izolýasiýasy saklanýar.</p>
 
@@ -220,7 +323,18 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
 <p><b>Näme barlaýarys:</b> Hablaryň zynjyrda birleşdirilende bir uly broadcast domenini döredýändigini.</p>
 <p><b>Broadcast domeni näme?</b> Broadcast domeni — bir enjamyň iberen maglumaty HEMME beýleki enjamlara ýetýän ýer. Hab hemme maglumaty hemme ýere iberýär — şonuň üçin uly torlar üçin ýaramly däl.</p>
 <p><b>Tor sazlamalary:</b> PC1–PC6: <code>10.5.0.1</code> — <code>10.5.0.6</code> (hemmesi <code>/24</code>)</p>
+
+<p><b>Broadcast-y görmek üçin paket basyp almak:</b></p>
+<ol>
+  <li>Başga bir haba birikdirilen <b>kabele sag basyň</b> (meselem, PC5-iň kabeline)</li>
+  <li><b>Start capture</b> saýlaň → interfeýsi tassyklaň → Wireshark açylar</li>
+  <li>PC1-den PC3-e ping ediň: <code>ping 10.5.0.3</code></li>
+  <li>Wireshark-da görersiňiz — PC5-iň kabelinden-de PC1↔PC3 paketleri geçip dur!</li>
+  <li>Sebäbi hab zynjyrynda — hemme enjamlar bir broadcast domeninde</li>
+</ol>
+
 <p><b>Synag:</b> Hemme PC biri-birini pingläp bilýär. Islendik trafik hemme enjamlara ýetýär.</p>
+<p><b>Näme üçin möhüm:</b> Uly torlarda bu nätogry — trafik artýar, howpsuzlyk peselýär. Şonuň üçin hablar ornuna kommutatorlar ulanylýar.</p>
 
 <hr>
 

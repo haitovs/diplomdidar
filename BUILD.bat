@@ -89,6 +89,10 @@ pip install -e . --quiet 2>nul
 
 echo  [OK] Dependencies installed
 
+REM --- Patch gns3server schema (allows startup_script in VPCS updates) ---
+echo  [..] Patching gns3server...
+python patch_gns3server.py 2>nul
+
 REM --- Prepare bundled binaries ---
 if not exist "build_bin" mkdir build_bin
 copy "bundled_bin\windows\vpcs.exe" "build_bin\vpcs.exe" >nul

@@ -11,8 +11,17 @@ if [ ! -d "$VENV_DIR" ]; then
     bash "$PROJECT_DIR/setup.sh"
 fi
 
+# Kill any orphan simulator processes holding UDP ports (prevents "UDP ports still in use" errors)
+pkill -9 -f "vpcs -p" 2>/dev/null
+pkill -9 -f "dynamips" 2>/dev/null
+pkill -9 -f "ubridge" 2>/dev/null
+sleep 1
+
 # Activate venv
 source "$VENV_DIR/bin/activate"
+
+# Apply gns3server schema patch (allows startup_script in VPCS updates)
+python3 "$PROJECT_DIR/patch_gns3server.py" 2>/dev/null || true
 
 # Ensure the telnet console command works (Mac default is fragile)
 python3 - <<'PYEOF'
