@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="65" height="54" viewBox="0 0 65 54">
+  <defs>
+    <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a5568"/>
+      <stop offset="100%" stop-color="#2d3748"/>
+    </linearGradient>
+    <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3182ce"/>
+      <stop offset="100%" stop-color="#2b6cb0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Chassis body -->
+  <rect x="1" y="1" width="63" height="52" rx="3" fill="url(#cg)" stroke="#1a202c" stroke-width="1.5"/>
+
+  <!-- Unit 1 -->
+  <rect x="3" y="3" width="59" height="15" rx="2" fill="url(#pg)" stroke="#2b6cb0" stroke-width="0.5"/>
+  <!-- Drive bays -->
+  <rect x="6"  y="6" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>
+  <rect x="15" y="6" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>
+  <rect x="24" y="6" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>
+  <rect x="33" y="6" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>
+  <!-- LEDs -->
+  <circle cx="49" cy="8" r="2.2" fill="#48bb78" stroke="#276749" stroke-width="0.5"/>
+  <circle cx="55" cy="8" r="2.2" fill="#f6e05e" stroke="#b7791f" stroke-width="0.5"/>
+  <circle cx="61" cy="8" r="2.2" fill="#fc8181" stroke="#c53030" stroke-width="0.5"/>
+  <!-- Power btn -->
+  <rect x="43" y="11" width="19" height="5" rx="1" fill="#1a202c" stroke="#4a5568" stroke-width="0.3"/>
+  <circle cx="52" cy="13.5" r="2" fill="#2d3748" stroke="#4a90d9" stroke-width="0.8"/>
+
+  <!-- Unit 2 -->
+  <rect x="3" y="20" width="59" height="15" rx="2" fill="url(#pg)" stroke="#2b6cb0" stroke-width="0.5"/>
+  <!-- Drive bays -->
+  <rect x="6"  y="23" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>
+  <rect x="15" y="23" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>
+  <rect x="24" y="23" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>
+  <rect x="33" y="23" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>
+  <!-- LEDs -->
+  <circle cx="49" cy="25" r="2.2" fill="#48bb78" stroke="#276749" stroke-width="0.5"/>
+  <circle cx="55" cy="25" r="2.2" fill="#48bb78" stroke="#276749" stroke-width="0.5"/>
+  <!-- Ethernet ports -->
+  <rect x="43" y="28" width="7" height="5" rx="0.5" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>
+  <rect x="52" y="28" width="7" height="5" rx="0.5" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>
+
+  <!-- Bottom PSU panel -->
+  <rect x="3" y="37" width="59" height="14" rx="2" fill="#2d3748" stroke="#4a5568" stroke-width="0.5"/>
+  <!-- Vent slots -->
+  <rect x="6"  y="40" width="22" height="1.5" rx="0.5" fill="#1a202c"/>
+  <rect x="6"  y="43" width="22" height="1.5" rx="0.5" fill="#1a202c"/>
+  <rect x="6"  y="46" width="22" height="1.5" rx="0.5" fill="#1a202c"/>
+  <rect x="6"  y="49" width="22" height="1.5" rx="0.5" fill="#1a202c"/>
+  <!-- PSU block -->
+  <rect x="34" y="39" width="26" height="11" rx="1" fill="#1a202c" stroke="#4a5568" stroke-width="0.5"/>
+  <rect x="36" y="41" width="10" height="7" rx="0.5" fill="#2d3748" stroke="#4a90d9" stroke-width="0.4"/>
+  <rect x="48" y="41" width="10" height="7" rx="0.5" fill="#2d3748" stroke="#4a90d9" stroke-width="0.4"/>
+</svg>

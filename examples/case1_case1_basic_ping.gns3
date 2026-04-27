@@ -1,5 +1,5 @@
 {
-  "project_id": "c5e95880-b8a5-4254-a23b-484df6111714",
+  "project_id": "42e707b0-2eaa-46b6-84d6-3e238ab9ec1e",
   "type": "topology",
   "revision": 9,
   "version": "2.2.56.1",
@@ -22,7 +22,7 @@
     "nodes": [
       {
         "compute_id": "local",
-        "node_id": "ed13b300-45f7-4f0c-a650-84ffa996c309",
+        "node_id": "e026bf5c-b281-420d-b6eb-4751d9b91be2",
         "node_type": "vpcs",
         "name": "PC1",
         "console": 5000,
@@ -50,7 +50,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "080ad850-f311-4048-8a0c-a7b69ef8de2f",
+        "node_id": "007ec031-5505-40dc-8adf-507d30fa8ad4",
         "node_type": "vpcs",
         "name": "PC2",
         "console": 5001,
@@ -78,7 +78,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "114e4f5c-c246-4d6e-b594-c01977547659",
+        "node_id": "59ebb69f-163f-42d5-ad5f-71addbced434",
         "node_type": "ethernet_switch",
         "name": "Switch1",
         "console": null,
@@ -164,7 +164,7 @@
     ],
     "links": [
       {
-        "link_id": "9f820749-583d-42c7-b721-35ab522ecf5b",
+        "link_id": "2f54f9bf-d831-4c7f-a125-f7c5b09f4b01",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -175,7 +175,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "ed13b300-45f7-4f0c-a650-84ffa996c309",
+            "node_id": "e026bf5c-b281-420d-b6eb-4751d9b91be2",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -187,7 +187,7 @@
             }
           },
           {
-            "node_id": "114e4f5c-c246-4d6e-b594-c01977547659",
+            "node_id": "59ebb69f-163f-42d5-ad5f-71addbced434",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -201,7 +201,7 @@
         ]
       },
       {
-        "link_id": "95b904d3-59a5-40b4-9d0a-90618b77cb1c",
+        "link_id": "bbdc3fd3-3983-4cb6-8ae2-8c849f7420f6",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -212,7 +212,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "080ad850-f311-4048-8a0c-a7b69ef8de2f",
+            "node_id": "007ec031-5505-40dc-8adf-507d30fa8ad4",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -224,7 +224,7 @@
             }
           },
           {
-            "node_id": "114e4f5c-c246-4d6e-b594-c01977547659",
+            "node_id": "59ebb69f-163f-42d5-ad5f-71addbced434",
             "adapter_number": 0,
             "port_number": 1,
             "label": {
@@ -240,31 +240,49 @@
     ],
     "drawings": [
       {
-        "drawing_id": "f5cd7f91-0e5e-4a6d-83a9-f51d7fb997d7",
+        "drawing_id": "a3beff76-7faa-4b9f-a6c5-2c701e96e0c2",
         "x": -200,
-        "y": -150,
+        "y": -350,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"14\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Case 1: Basic Ping Test</text></svg>"
+        "svg": "<svg width=\"500\" height=\"25\"><text x=\"2\" y=\"15\" font-family=\"sans-serif\" font-size=\"15\" font-weight=\"bold\" fill=\"#4a90d9\">Mesele 1: Esasy Ping Synagy</text></svg>"
       },
       {
-        "drawing_id": "709fc610-a5d4-4648-99fd-231e5de2da5e",
-        "x": -250,
-        "y": -120,
+        "drawing_id": "61e00b32-c43c-4479-901f-3e29116a9c39",
+        "x": -350,
+        "y": -315,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">PC1 (192.168.1.1) &lt;-&gt; Switch &lt;-&gt; PC2 (192.168.1.2)</text></svg>"
+        "svg": "<svg width=\"655\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\">Enjamlar: PC1 (192.168.1.1) we PC2 (192.168.1.2) \u2014 bir kommutator arkaly birikdirilen</text></svg>"
       },
       {
-        "drawing_id": "57a1ea2c-5764-4744-b5a0-9cabd5bd043d",
-        "x": -300,
-        "y": 220,
+        "drawing_id": "eff79cfb-0cf2-4cdd-88e1-b9a20405bd00",
+        "x": -350,
+        "y": -285,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"10\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Test: Start all nodes, open PC1 console, run: ping 192.168.1.2</text></svg>"
+        "svg": "<svg width=\"506\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#27ae60\">\u00d6wred\u00fd\u00e4r: Bir podsetd\u00e4ki enjamlar biri-biri bilen g\u00fcrle\u015fip bil\u00fd\u00e4r</text></svg>"
+      },
+      {
+        "drawing_id": "6737104b-287a-4576-9d32-0716ac324da2",
+        "x": -350,
+        "y": 230,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"521\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba BA\u015eLAMAK: \u00dda\u015fyl \u25ba PLAY d\u00fcwmesine basy\u0148 \u2192 \u00e4hli enjamlar i\u015fe ba\u015flar</text></svg>"
+      },
+      {
+        "drawing_id": "4cc27dd5-b057-436f-af6e-aebff1cebd89",
+        "x": -350,
+        "y": 260,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"655\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba SYNAG: PC1-e iki gezek basy\u0148 \u2192 konsol a\u00e7yl\u00fdar \u2192 ping 192.168.1.2 \u00fdazy\u0148 \u2192 OK bolmaly</text></svg>"
       }
     ],
     "computes": [

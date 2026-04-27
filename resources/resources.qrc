@@ -3,6 +3,7 @@
         <file>symbols/router.svg</file>
         <file>symbols/firewall.svg</file>
         <file>symbols/computer.svg</file>
+        <file>symbols/server.svg</file>
         <file>symbols/qemu_guest.svg</file>
         <file>symbols/vbox_guest.svg</file>
         <file>symbols/vpcs_guest.svg</file>

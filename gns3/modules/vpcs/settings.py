@@ -25,6 +25,24 @@ VPCS_SETTINGS = {
     "vpcs_path": "",
 }
 
+DEVICE_TYPES = ["PC", "Server", "Router"]
+
+SERVER_ROLES = [
+    "General Server",
+    "DHCP Server",
+    "DNS Server",
+    "Web Server",
+    "File Server",
+    "Mail Server",
+]
+
+ROUTER_ROLES = [
+    "Gateway Router",
+    "Core Router",
+    "Edge Router",
+    "Branch Router",
+]
+
 VPCS_NODES_SETTINGS = {
     "name": "",
     "default_name_format": "PC{0}",
@@ -33,5 +51,13 @@ VPCS_NODES_SETTINGS = {
     "console_auto_start": False,
     "symbol": ":/symbols/vpcs_guest.svg",
     "category": Node.end_devices,
-    "node_type": "vpcs"
+    "node_type": "vpcs",
+    # Device identity
+    "device_type": "PC",
+    "server_role": "General Server",
+    # IP configuration
+    "use_dhcp": False,
+    "ip_address": "",
+    "subnet_mask": "255.255.255.0",
+    "gateway": "",
 }

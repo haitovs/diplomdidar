@@ -225,6 +225,16 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
 <tr><td>Case 10</td><td>Broadcast domeni</td><td>Hab zynjyry — hemme enjamlar hemme zady görýär</td></tr>
 <tr><td>Case 11</td><td>Tor segmentasiýasy</td><td>Bölümler izolirlenip, bir-birini görmeýär</td></tr>
 <tr><td>Case 12</td><td>Doly mesh topologiýasy</td><td>Her kommutator beýlekisine birikdirilen</td></tr>
+<tr><td>Case 13</td><td>DHCP awtomatik IP bellemek</td><td>DHCP Server pool-dan 4 PC-ä IP berýär</td></tr>
+<tr><td>Case 14</td><td>Cisco kommutator modelleri</td><td>L2 we L3 kommutatorlaryň şekil tapawudy</td></tr>
+<tr><td>Case 15</td><td>Serwer fermasy</td><td>Web/File/DNS/DHCP serwerler + 3 müşderi</td></tr>
+<tr><td>Case 16</td><td>Goşa kommutator redundansiýasy</td><td>2× Cat2960 + STP bilen redundant baglanyşyk</td></tr>
+<tr><td>Case 17</td><td>Köp podsetli DHCP</td><td>2 sany aýry podset, her birinde DHCP</td></tr>
+<tr><td>Case 18</td><td>3 gatly korporatiw tor</td><td>Core/Distribution/Access + 8 PC</td></tr>
+<tr><td>Case 19</td><td>Mini maglumat merkezi</td><td>Serwer zolagy + müşderi zolagy Cat4500 arkaly</td></tr>
+<tr><td>Case 20</td><td>Doly korporatiw tor</td><td>HR/IT/Maliýe + Serwer fermasy + 9 PC</td></tr>
+<tr><td>Case 21</td><td>Router şlýuzy</td><td>Merkezi Router + 2 podset + 6 PC</td></tr>
+<tr><td>Case 22</td><td>Köp routerli tor</td><td>HQ Router + 3 şaham Router + 6 PC + HQ Serwer</td></tr>
 </table>
 
 <hr>
@@ -370,6 +380,228 @@ Konsolda <code>ping</code> buýrugy bilen arabaglanyşygy barlaň.</p>
   <li>PC2 → PC4: <code>ping 172.20.0.4</code> → <b>işleýär</b></li>
 </ol>
 <p><b>Netije:</b> Hemme kompýuterler habarlaşyp bilýär. Birnäçe ýol = ýokary ygtybarlylyk.</p>
+
+<hr>
+
+<h2>Case 13: DHCP Awtomatik IP Bellemek (DHCP Auto-Assignment)</h2>
+<p><b>Taslamadaky enjamlar:</b> 1 DHCP Serwer + 4 PC + Cisco 2960 kommutator</p>
+<p><b>Näme barlaýarys:</b> DHCP serweriň PC-lere awtomatik IP-adres berýändigini.</p>
+<p><b>DHCP näme?</b> DHCP (Dynamic Host Configuration Protocol) — kompýuterlere awtomatik IP-adres, gateway we DNS berýän hyzmat. Her kompýuter tora birikende serwere sorag ugradýar, serwer bolsa pool-dan IP berýär.</p>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>DHCP-Server: <code>192.168.1.1/24</code> — serwisin esasy IP-si</li>
+  <li>PC1–PC4: Pool-dan <code>192.168.1.100–103/24</code> awtomatik bellenildi</li>
+  <li>Kommutator: Cisco Catalyst 2960 (L2), DHCP pool: <code>.100–.200</code></li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case13-DHCP-Auto-Assignment</b> açyň, <b>Play</b> basyň</li>
+  <li>PC1 konsolynda: <code>show</code> — IP-si <code>192.168.1.100</code> bolmaly</li>
+  <li>PC1-den DHCP-Serwere ping: <code>ping 192.168.1.1</code> → <b>işleýär</b></li>
+  <li>PC1-den PC4-e: <code>ping 192.168.1.103</code> → <b>işleýär</b></li>
+</ol>
+<p><b>Netije:</b> DHCP-Server el bilen sazlamak zerurlygyny aradan aýyrýar — PC-ler awtomatik IP alýar.</p>
+
+<hr>
+
+<h2>Case 14: Cisco Kommutator Modelleri (L2 we L3)</h2>
+<p><b>Taslamadaky enjamlar:</b> 1× Cat6500 (L3) + 2× Cat3750/3560 (L3) + 2× Cat2960 (L2) + 4 PC</p>
+<p><b>Näme barlaýarys:</b> L2 we L3 Cisco kommutatorlarynyň şekil tapawudyny we ierarhiýasyny.</p>
+<p><b>L2 we L3 tapawudy:</b></p>
+<ul>
+  <li><b>L2 kommutator (Cat2960)</b> — MAC-adres boýunça iberýär, diňe bir podset içinde işleýär. Şekli: adaty kommutator ikony.</li>
+  <li><b>L3 kommutator (Cat3750, Cat3560, Cat4500, Cat6500)</b> — IP-adres boýunça hem iberip bilýär (routing). Şekli: köp gatly kommutator ikony.</li>
+</ul>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>Core-Cat6500 (L3) → 2 sany Distribution kommutatory</li>
+  <li>Dist-Cat3750 → Access-Cat2960-A → PC1 (<code>10.14.1.1/24</code>), PC2 (<code>10.14.1.2/24</code>)</li>
+  <li>Dist-Cat3560 → Access-Cat2960-B → PC3 (<code>10.14.2.1/24</code>), PC4 (<code>10.14.2.2/24</code>)</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case14-Cisco-Switch-Models</b> açyň — L3 kommutatoryň başga şekilini görüň</li>
+  <li><b>Play</b> basyň</li>
+  <li>PC1 → PC2: <code>ping 10.14.1.2</code> → <b>işleýär</b> (bir Access kommutatory)</li>
+  <li>PC1 → PC3: <code>ping 10.14.2.1</code> → <b>işleýär</b> (Distribution + Core arkaly)</li>
+</ol>
+<p><b>Netije:</b> L3 kommutatorlar "köp gatly" (multilayer) şekilinde görünýär. Ierarhiýa: Core > Distribution > Access > PC.</p>
+
+<hr>
+
+<h2>Case 15: Serwer Fermasy (Server Farm)</h2>
+<p><b>Taslamadaky enjamlar:</b> 4 Serwer (Web/File/DNS/DHCP) + 3 müşderi PC + Cisco 3750</p>
+<p><b>Näme barlaýarys:</b> Bölünişdirilen serwerleriň birleşip hyzmat edip bilýändigini.</p>
+<p><b>Serwer fermasy näme?</b> Serwer fermasy — birnäçe hünärleşdirilen serwerleriň bir kommutatora birikdirilmegi. Her serwer öz hyzmatyny berýär: web sahypalary, faýllar, DNS, DHCP.</p>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>Web-Server: <code>10.15.0.10/24</code></li>
+  <li>File-Server: <code>10.15.0.11/24</code></li>
+  <li>DNS-Server: <code>10.15.0.12/24</code></li>
+  <li>DHCP-Server: <code>10.15.0.13/24</code></li>
+  <li>Client1–3: <code>10.15.1.1–3/24</code> (başga podset)</li>
+  <li>Farm-Cat3750 (L3): hemme enjamlary birleşdirýär</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case15-Server-Farm</b> açyň, <b>Play</b> basyň</li>
+  <li>Client1 konsolynda: <code>ping 10.15.0.10</code> → Web-Server bilen baglanyşyk</li>
+  <li>Client1 konsolynda: <code>ping 10.15.0.12</code> → DNS-Server bilen baglanyşyk</li>
+  <li>Serwerden müşderä: Web-Server konsolyndan <code>ping 10.15.1.1</code></li>
+</ol>
+<p><b>Netije:</b> Müşderiler Cat3750 (L3) arkaly ähli serwerlere ýetip bilýär, hatda dürli podsetde bolsa-da.</p>
+
+<hr>
+
+<h2>Case 16: Goşa Kommutator Redundansiýasy (Dual-Switch Redundancy)</h2>
+<p><b>Taslamadaky enjamlar:</b> 2× Cat2960 + 4 PC + 1 Core Serwer + inter-switch baglanyşyk</p>
+<p><b>Näme barlaýarys:</b> Iki kommutatoryň birbirini ätiýaçlaýandygyny — biri öçse beýlekisi işlemegini dowam edýär.</p>
+<p><b>Redundansiýa näme?</b> Redundansiýa — bir enjam öçse, işi başga enjamyň alyp gitmegi. Iki kommutator arasyndaky "cross-link" ikinji ýol döredýär. STP (Spanning Tree Protocol) tegelek ýoly bloklap, gerek wagty açýar.</p>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>Primary-2960 → PC1 (<code>192.168.16.1</code>), PC2 (<code>192.168.16.2</code>)</li>
+  <li>Secondary-2960 → PC3 (<code>192.168.16.3</code>), PC4 (<code>192.168.16.4</code>)</li>
+  <li>Core-Server: <code>192.168.16.254/24</code> → Primary-2960</li>
+  <li>Inter-switch link: Primary port 23 ↔ Secondary port 23</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case16-Dual-Switch-Redundancy</b> açyň, <b>Play</b> basyň</li>
+  <li>PC1 → PC4: <code>ping 192.168.16.4</code> → <b>işleýär</b> (inter-switch link arkaly)</li>
+  <li>PC1 → Core-Server: <code>ping 192.168.16.254</code> → <b>işleýär</b></li>
+</ol>
+<p><b>Netije:</b> Iki kommutator birikdirilen — PC-ler dürli kommutatorda bolsa-da habarlaşyp bilýär. Redundansiýa ýokary elýeterliligi üpjün edýär.</p>
+
+<hr>
+
+<h2>Case 17: Köp Podsetli DHCP (Multi-Subnet DHCP)</h2>
+<p><b>Taslamadaky enjamlar:</b> L3 Core Cat3750 + 2× Cat2960 + 2 DHCP Serwer + 4 PC</p>
+<p><b>Näme barlaýarys:</b> Iki aýry podsetiň, her birinde öz DHCP-si bilen, L3 kommutator arkaly arabaglanyşyp bilýändigini.</p>
+<p><b>Inter-VLAN routing näme?</b> L3 kommutator dürli podsetler arasyndaky trafigi ugradyp bilýär — marşrutizatoryň wezipesini ýerine ýetirýär.</p>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>SW-SubnetA (Cat2960) + DHCP-A: Podset <code>192.168.1.0/24</code>, pool: <code>.100–.150</code></li>
+  <li>SW-SubnetB (Cat2960) + DHCP-B: Podset <code>192.168.2.0/24</code>, pool: <code>.100–.150</code></li>
+  <li>PC-A1: <code>192.168.1.100</code>, PC-A2: <code>192.168.1.101</code></li>
+  <li>PC-B1: <code>192.168.2.100</code>, PC-B2: <code>192.168.2.101</code></li>
+  <li>Core-Cat3750 (L3): iki podseti birleşdirýär</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case17-Multi-Subnet-DHCP</b> açyň, <b>Play</b> basyň</li>
+  <li>PC-A1 → PC-A2: <code>ping 192.168.1.101</code> → <b>işleýär</b> (bir podset)</li>
+  <li>PC-A1 → PC-B1: <code>ping 192.168.2.100</code> → <b>işleýär</b> (L3 routing bilen)</li>
+  <li>DHCP-A konsolynda: <code>show</code> — öz IP-sini görüň</li>
+</ol>
+<p><b>Netije:</b> Her podset öz DHCP-sinden IP alýar. L3 Core kommutator podsetler arasyndaky routing üpjün edýär.</p>
+
+<hr>
+
+<h2>Case 18: 3 Gatly Korporatiw Tor (3-Tier Enterprise)</h2>
+<p><b>Taslamadaky enjamlar:</b> Cat6500 (Core) + 2× Cat3750 (Distribution) + 4× Cat2960 (Access) + 8 PC + Core Serwer</p>
+<p><b>Näme barlaýarys:</b> Uly korporatiw toruň 3 gatlak (tier) arhitekturasyny.</p>
+<p><b>3 Gatlak arhitekturasy:</b></p>
+<ul>
+  <li><b>Core Layer (merkez):</b> Cat6500 — ähli tory birleşdirýär, ýokary tizlikde ibermek</li>
+  <li><b>Distribution Layer (bölüm):</b> Cat3750 × 2 — bölüm derejeli routing we aggregation</li>
+  <li><b>Access Layer (giriş):</b> Cat2960 × 4 — ulanyjylary tora birleşdirýär</li>
+</ul>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>Core-Server: <code>10.18.0.1/24</code></li>
+  <li>PC1–PC2: <code>10.18.1.x/24</code> (Acc1), PC3–PC4: <code>10.18.2.x/24</code> (Acc2)</li>
+  <li>PC5–PC6: <code>10.18.3.x/24</code> (Acc3), PC7–PC8: <code>10.18.4.x/24</code> (Acc4)</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case18-3Tier-Enterprise</b> açyň, <b>Play</b> basyň</li>
+  <li>PC1 → PC8: <code>ping 10.18.4.2</code> → <b>işleýär</b> (5 hop: Acc1→Dist1→Core→Dist2→Acc4)</li>
+  <li>PC1 → Core-Server: <code>ping 10.18.0.1</code> → <b>işleýär</b></li>
+  <li>Yzarlamak üçin: <code>trace 10.18.4.2</code> — her geçilen nokady görüň</li>
+</ol>
+<p><b>Netije:</b> Korporatiw toruň klassiki 3-gatlak gurluşy: çeýe, giňeldilip bilýän we dolandyrylýan arhitektura.</p>
+
+<hr>
+
+<h2>Case 19: Mini Maglumat Merkezi (Mini Data Center)</h2>
+<p><b>Taslamadaky enjamlar:</b> Cat4500 (Aggregation) + Server-Zone-2960 + Client-Zone-2960 + 4 Serwer + 4 Müşderi PC</p>
+<p><b>Näme barlaýarys:</b> Serwer zolagy bilen müşderi zolagyny Cat4500 arkaly birleşdirmegi.</p>
+<p><b>Maglumat merkezi arhitekturasy:</b> Serwer zolagynyň müşderi zolагyndan aýry saklanmagy howpsuzlygy we dolandyrmagy aňsatlaşdyrýar. Aggregation kommutatory iki zolagy birleşdirip routing edýär.</p>
+<p><b>Tor sazlamalary:</b></p>
+<ul>
+  <li>Serwer zolagy (Server-Zone-2960): Web-Server-1/2 (<code>10.19.1.10-11</code>), File-Server (<code>10.19.1.12</code>), Mail-Server (<code>10.19.1.13</code>)</li>
+  <li>Müşderi zolagy (Client-Zone-2960, DHCP): Client1–4 (<code>10.19.2.100–103</code>)</li>
+  <li>Aggregation-Cat4500 (L3): iki zolagy birleşdirýär</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case19-Mini-Data-Center</b> açyň, <b>Play</b> basyň</li>
+  <li>Client1 → Web-Server-1: <code>ping 10.19.1.10</code> → <b>işleýär</b></li>
+  <li>Client1 → Mail-Server: <code>ping 10.19.1.13</code> → <b>işleýär</b></li>
+  <li>Web-Server-1 → Web-Server-2: <code>ping 10.19.1.11</code> → <b>işleýär</b> (serwer içi)</li>
+</ol>
+<p><b>Netije:</b> Müşderiler Cat4500 aggregation arkaly serwerler bilen habarlaşýar. Iki zolak logiki taýdan bölünen, fiziki taýdan birleşen.</p>
+
+<hr>
+
+<h2>Case 20: Doly Korporatiw Tor (Full Enterprise Network)</h2>
+<p><b>Taslamadaky enjamlar:</b> Core Cat6500 + Server Farm (Cat3560 + 4 Serwer) + HR/IT/Maliýe (her biri Cat3750 + Cat2960 + 3 PC)</p>
+<p><b>Näme barlaýarys:</b> Hakyky korporasiýanyň doly tor gurluşyny — bölümler, serwerler, we routing.</p>
+<p><b>Tor gurluşy:</b></p>
+<ul>
+  <li><b>Core:</b> Cat6500 — ähli bölümleriň we serwer fermasyny birleşdirýär</li>
+  <li><b>Serwer fermasy:</b> Cat3560 (L3) + Web (<code>10.20.0.10</code>), File (<code>10.20.0.11</code>), DNS (<code>10.20.0.12</code>), Mail (<code>10.20.0.13</code>)</li>
+  <li><b>HR bölümi:</b> Dist-HR-3750 + Access-HR-2960 + HR-PC1/2/3 (<code>10.20.1.50–52</code>)</li>
+  <li><b>IT bölümi:</b> Dist-IT-3750 + Access-IT-2960 + IT-PC1/2/3 (<code>10.20.2.50–52</code>)</li>
+  <li><b>Maliýe bölümi:</b> Dist-Finance-3750 + Access-Fin-2960 + Fin-PC1/2/3 (<code>10.20.3.50–52</code>)</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case20-Enterprise-Network</b> açyň, <b>Play</b> basyň</li>
+  <li>HR-PC1 → IT-PC1: <code>ping 10.20.2.50</code> → <b>işleýär</b> (bölümler arasy L3 routing)</li>
+  <li>Fin-PC1 → Web-Server: <code>ping 10.20.0.10</code> → <b>işleýär</b> (serwer fermasyna giriş)</li>
+  <li>HR-PC1 → Fin-PC3: <code>ping 10.20.3.52</code> → <b>işleýär</b> (Core arkaly)</li>
+  <li>IT-PC2 konsolynda: <code>trace 10.20.0.11</code> — serwere barýan ýoly görüň</li>
+</ol>
+<p><b>Netije:</b> Doly korporatiw tor — her bölüm öz podsetinde işleýär, Core Cat6500 ähli bölümleri we serwer fermasyny birleşdirýär. Bu hakyky iş gurşawyny simuleýär.</p>
+
+<h2>Case 21: Router Şlýuzy (Router as Gateway)</h2>
+<p><b>Taslamadaky enjamlar:</b> 1 Router + 2 kommutator + 6 PC</p>
+<p><b>Näme barlaýarys:</b> Routeriň iki aýry podset arasynda şlýuz hökmünde işleýşini.</p>
+<p><b>Tor gurluşy:</b></p>
+<ul>
+  <li><b>GW-Router:</b> <code>192.168.1.1/24</code> — iki podseti birleşdirýär</li>
+  <li><b>Podset A (Switch-A):</b> PC-A1/A2/A3 — <code>192.168.1.10–12</code>, şlýuz <code>192.168.1.1</code></li>
+  <li><b>Podset B (Switch-B):</b> PC-B1/B2/B3 — <code>192.168.2.10–12</code>, şlýuz <code>192.168.2.1</code></li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case21-Router-Gateway</b> açyň, <b>Play</b> basyň</li>
+  <li>PC-A1 → PC-A2: <code>ping 192.168.1.11</code> → <b>işleýär</b> (bir podsetde)</li>
+  <li>PC-A1 → GW-Router: <code>ping 192.168.1.1</code> → <b>işleýär</b> (şlýuza ping)</li>
+  <li>GW-Router we Switch-B arasyna el bilen kabel goşuň → PC-A1 → PC-B1 ping synanyň</li>
+</ol>
+<p><b>Netije:</b> Router enjamy tor diagrammada görkezilýär. Routerler aýry podsetleri birleşdirýär — bu routing düşünjesini öwretmek üçin esasy mysaldyr.</p>
+
+<h2>Case 22: Köp Routerli Tor (Multi-Router Network)</h2>
+<p><b>Taslamadaky enjamlar:</b> HQ Router + 3 şaham Router + 3 kommutator + HQ Serwer + 6 PC</p>
+<p><b>Näme barlaýarys:</b> Merkezi HQ we 3 şaham ofisini birleşdirýän köp routerli tory.</p>
+<p><b>Tor gurluşy:</b></p>
+<ul>
+  <li><b>HQ-Router:</b> <code>10.0.0.1/8</code> — merkezi ýol, HQ Serweri bar</li>
+  <li><b>Branch1-R:</b> <code>10.1.0.1/24</code> — B1-PC1/B1-PC2 (<code>10.1.0.10–11</code>)</li>
+  <li><b>Branch2-R:</b> <code>10.2.0.1/24</code> — B2-PC1/B2-PC2 (<code>10.2.0.10–11</code>)</li>
+  <li><b>Branch3-R:</b> <code>10.3.0.1/24</code> — B3-PC1/B3-PC2 (<code>10.3.0.10–11</code>)</li>
+  <li><b>HQ-Server:</b> <code>10.0.0.10/8</code> — merkezi serwer</li>
+</ul>
+<p><b>Synag ädimleri:</b></p>
+<ol>
+  <li><b>Case22-Multi-Router</b> açyň, <b>Play</b> basyň</li>
+  <li>B1-PC1 → HQ-Server: <code>ping 10.0.0.10</code> → <b>işleýär</b> (branch → HQ)</li>
+  <li>B2-PC1 → Branch2 Router: <code>ping 10.2.0.1</code> → <b>işleýär</b> (lokal şlýuz)</li>
+  <li>Tor diagrammasynda router ikonlaryna serediň — VPCS, Serwer we Routerden tapawudy görüň</li>
+</ol>
+<p><b>Netije:</b> Köp routerli tor gurluşy — her şaham öz routerinde işleýär, HQ routeri ähli şahamlary birleşdirýär. Hakyky WAN/branch gurluşyny görkezýär.</p>
 """
 
 

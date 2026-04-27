@@ -1,5 +1,5 @@
 {
-  "project_id": "27769145-0a01-4f60-9814-83770d5db619",
+  "project_id": "510cd6be-f9f3-4c86-b661-289c6683b682",
   "type": "topology",
   "revision": 9,
   "version": "2.2.56.1",
@@ -22,7 +22,7 @@
     "nodes": [
       {
         "compute_id": "local",
-        "node_id": "1a22d188-1412-414e-ad72-baa89b31304c",
+        "node_id": "92a46005-ba5e-48c4-b7eb-233077a5c39f",
         "node_type": "vpcs",
         "name": "PC1-VLAN10",
         "console": 5020,
@@ -50,7 +50,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "620203ba-cc3f-4192-8b7a-12e32e190ab3",
+        "node_id": "6eecf771-8cde-4186-a1b3-27a9f25b0ace",
         "node_type": "vpcs",
         "name": "PC2-VLAN10",
         "console": 5021,
@@ -78,7 +78,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "28fdc58b-c718-41aa-b34c-3855083d1156",
+        "node_id": "3573e9d2-fb2f-439d-aed8-4be961dd9e2c",
         "node_type": "vpcs",
         "name": "PC3-VLAN20",
         "console": 5022,
@@ -106,7 +106,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "0c1a7233-6c3e-40cf-977d-3b58331e71f8",
+        "node_id": "c68af16a-561f-4295-9802-f3b6af057a83",
         "node_type": "ethernet_switch",
         "name": "VLAN-Switch",
         "console": null,
@@ -192,7 +192,7 @@
     ],
     "links": [
       {
-        "link_id": "c3a73ed3-d7b4-48b8-b8f5-cd42267034a6",
+        "link_id": "4b202b35-eed6-4981-bd0f-88261e68151f",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -203,7 +203,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "1a22d188-1412-414e-ad72-baa89b31304c",
+            "node_id": "92a46005-ba5e-48c4-b7eb-233077a5c39f",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -215,7 +215,7 @@
             }
           },
           {
-            "node_id": "0c1a7233-6c3e-40cf-977d-3b58331e71f8",
+            "node_id": "c68af16a-561f-4295-9802-f3b6af057a83",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -229,7 +229,7 @@
         ]
       },
       {
-        "link_id": "b2748ece-bce1-4de7-9e8c-5d1bb33e4565",
+        "link_id": "fc80fe51-74ac-4b97-ae10-c4d93892f612",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -240,7 +240,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "620203ba-cc3f-4192-8b7a-12e32e190ab3",
+            "node_id": "6eecf771-8cde-4186-a1b3-27a9f25b0ace",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -252,7 +252,7 @@
             }
           },
           {
-            "node_id": "0c1a7233-6c3e-40cf-977d-3b58331e71f8",
+            "node_id": "c68af16a-561f-4295-9802-f3b6af057a83",
             "adapter_number": 0,
             "port_number": 1,
             "label": {
@@ -266,7 +266,7 @@
         ]
       },
       {
-        "link_id": "e7e99f59-5683-448f-8fd3-895d0f05ac50",
+        "link_id": "aaf156a4-0688-4860-9474-c6feba5f8225",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -277,7 +277,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "28fdc58b-c718-41aa-b34c-3855083d1156",
+            "node_id": "3573e9d2-fb2f-439d-aed8-4be961dd9e2c",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -289,7 +289,7 @@
             }
           },
           {
-            "node_id": "0c1a7233-6c3e-40cf-977d-3b58331e71f8",
+            "node_id": "c68af16a-561f-4295-9802-f3b6af057a83",
             "adapter_number": 0,
             "port_number": 2,
             "label": {
@@ -305,31 +305,58 @@
     ],
     "drawings": [
       {
-        "drawing_id": "5b7e3abd-2ba2-48f5-ae2c-54f1739e7998",
+        "drawing_id": "c734d168-2d75-41a8-a687-644c46a1cd17",
         "x": -200,
-        "y": -150,
+        "y": -350,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"14\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Case 3: VLAN Isolation</text></svg>"
+        "svg": "<svg width=\"500\" height=\"25\"><text x=\"2\" y=\"15\" font-family=\"sans-serif\" font-size=\"15\" font-weight=\"bold\" fill=\"#4a90d9\">Mesele 3: VLAN Izol\u00fdasi\u00fdasy</text></svg>"
       },
       {
-        "drawing_id": "e133e3ab-ce2f-4b4b-9ac3-fb4c4e0a1890",
-        "x": -300,
-        "y": -120,
+        "drawing_id": "b8b933a1-dd0d-4933-92dc-52965a3f119c",
+        "x": -400,
+        "y": -315,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">PC1 &amp; PC2 on VLAN 10 | PC3 on VLAN 20 (same IP range!)</text></svg>"
+        "svg": "<svg width=\"745\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\">VLAN10: PC1 (192.168.10.1), PC2 (192.168.10.2)  |  VLAN20: PC3 (192.168.20.1), PC4 (192.168.20.2)</text></svg>"
       },
       {
-        "drawing_id": "17226e3d-da36-4266-a9ec-63eb9e7c4947",
-        "x": -350,
-        "y": 220,
+        "drawing_id": "a5ae9857-43d2-401e-a9c7-2ee62201ea16",
+        "x": -400,
+        "y": -285,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"10\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Test: PC1 ping PC2 = OK | PC1 ping PC3 = FAIL (VLAN isolated)</text></svg>"
+        "svg": "<svg width=\"618\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#27ae60\">\u00d6wred\u00fd\u00e4r: VLAN \u2014 bir fiziki kommutatorda birn\u00e4\u00e7e a\u00fdry wirtual tor d\u00f6retmek usuly</text></svg>"
+      },
+      {
+        "drawing_id": "49216cee-dec3-47d9-bfc3-0be86859d99e",
+        "x": -400,
+        "y": 230,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"521\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba BA\u015eLAMAK: \u00dda\u015fyl \u25ba PLAY d\u00fcwmesine basy\u0148 \u2192 \u00e4hli enjamlar i\u015fe ba\u015flar</text></svg>"
+      },
+      {
+        "drawing_id": "b8822565-455a-4c69-b277-76e5411533e6",
+        "x": -400,
+        "y": 260,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"513\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba SYNAG 1: PC1-e 2\u00d7 basy\u0148 \u2192 ping 192.168.10.2 \u2192 OK (bir VLAN10-da)</text></svg>"
+      },
+      {
+        "drawing_id": "6a057491-baf9-4aae-9552-c4aeae2c3887",
+        "x": -400,
+        "y": 290,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"558\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#c0392b\">\u25ba SYNAG 2: PC1-de \u2192 ping 192.168.20.1 \u2192 \u00ddAL\u0147Y\u015e (ba\u015fga VLAN \u2014 izol\u00fdasi\u00fda)</text></svg>"
       }
     ],
     "computes": [

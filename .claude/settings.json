@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(osascript -e ' *)",
+      "Bash(screencapture -x /tmp/gns3_big.png)",
+      "Bash(screencapture -x /tmp/gns3_recent.png)",
+      "Bash(screencapture -x /tmp/gns3_open.png)",
+      "Bash(screencapture -x /tmp/gns3_file.png)",
+      "Bash(screencapture -x /tmp/gns3_case15.png)",
+      "Bash(screencapture -x /tmp/gns3_fit.png)",
+      "Bash(screencapture -x /tmp/gns3_filemenu.png)",
+      "Bash(kill -0 28915)",
+      "Bash(.build_venv/bin/python3 launcher.py)",
+      "Read(//Users/goldcomputers/.config/GNS3/**)",
+      "Bash(.build_venv/bin/python3 -c ' *)"
+    ]
+  }
+}

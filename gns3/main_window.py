@@ -61,6 +61,49 @@ from .appliance_manager import ApplianceManager
 
 log = logging.getLogger(__name__)
 
+# Fallback inline SVG for the rack-server icon (used when file is not on disk)
+_SERVER_RACK_SVG = (
+    '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
+    '<svg xmlns="http://www.w3.org/2000/svg" width="65" height="54" viewBox="0 0 65 54">'
+    '<defs>'
+    '<linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">'
+    '<stop offset="0%" stop-color="#4a5568"/><stop offset="100%" stop-color="#2d3748"/>'
+    '</linearGradient>'
+    '<linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">'
+    '<stop offset="0%" stop-color="#3182ce"/><stop offset="100%" stop-color="#2b6cb0"/>'
+    '</linearGradient>'
+    '</defs>'
+    '<rect x="1" y="1" width="63" height="52" rx="3" fill="url(#cg)" stroke="#1a202c" stroke-width="1.5"/>'
+    '<rect x="3" y="3" width="59" height="15" rx="2" fill="url(#pg)" stroke="#2b6cb0" stroke-width="0.5"/>'
+    '<rect x="6"  y="6" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>'
+    '<rect x="15" y="6" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>'
+    '<rect x="24" y="6" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>'
+    '<rect x="33" y="6" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>'
+    '<circle cx="49" cy="8" r="2.2" fill="#48bb78" stroke="#276749" stroke-width="0.5"/>'
+    '<circle cx="55" cy="8" r="2.2" fill="#f6e05e" stroke="#b7791f" stroke-width="0.5"/>'
+    '<circle cx="61" cy="8" r="2.2" fill="#fc8181" stroke="#c53030" stroke-width="0.5"/>'
+    '<rect x="43" y="11" width="19" height="5" rx="1" fill="#1a202c" stroke="#4a5568" stroke-width="0.3"/>'
+    '<circle cx="52" cy="13.5" r="2" fill="#2d3748" stroke="#4a90d9" stroke-width="0.8"/>'
+    '<rect x="3" y="20" width="59" height="15" rx="2" fill="url(#pg)" stroke="#2b6cb0" stroke-width="0.5"/>'
+    '<rect x="6"  y="23" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>'
+    '<rect x="15" y="23" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>'
+    '<rect x="24" y="23" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>'
+    '<rect x="33" y="23" width="7" height="9" rx="1" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>'
+    '<circle cx="49" cy="25" r="2.2" fill="#48bb78" stroke="#276749" stroke-width="0.5"/>'
+    '<circle cx="55" cy="25" r="2.2" fill="#48bb78" stroke="#276749" stroke-width="0.5"/>'
+    '<rect x="43" y="28" width="7" height="5" rx="0.5" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>'
+    '<rect x="52" y="28" width="7" height="5" rx="0.5" fill="#1a202c" stroke="#4a90d9" stroke-width="0.5"/>'
+    '<rect x="3" y="37" width="59" height="14" rx="2" fill="#2d3748" stroke="#4a5568" stroke-width="0.5"/>'
+    '<rect x="6"  y="40" width="22" height="1.5" rx="0.5" fill="#1a202c"/>'
+    '<rect x="6"  y="43" width="22" height="1.5" rx="0.5" fill="#1a202c"/>'
+    '<rect x="6"  y="46" width="22" height="1.5" rx="0.5" fill="#1a202c"/>'
+    '<rect x="6"  y="49" width="22" height="1.5" rx="0.5" fill="#1a202c"/>'
+    '<rect x="34" y="39" width="26" height="11" rx="1" fill="#1a202c" stroke="#4a5568" stroke-width="0.5"/>'
+    '<rect x="36" y="41" width="10" height="7" rx="0.5" fill="#2d3748" stroke="#4a90d9" stroke-width="0.4"/>'
+    '<rect x="48" y="41" width="10" height="7" rx="0.5" fill="#2d3748" stroke="#4a90d9" stroke-width="0.4"/>'
+    '</svg>'
+)
+
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
@@ -141,6 +184,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._save_gui_state_geometry = True
         self.restoreGeometry(QtCore.QByteArray().fromBase64(self._settings["geometry"].encode()))
         self.restoreState(QtCore.QByteArray().fromBase64(self._settings["state"].encode()))
+
+        # Add "Show IP Assignments" to the Tools menu
+        self._ipAssignmentAction = QtGui.QAction("Show IP Assignments…", self)
+        self._ipAssignmentAction.setStatusTip("Show IP address assignments for all devices in the topology")
+        self._ipAssignmentAction.triggered.connect(self._showIPAssignmentsSlot)
+        self.uiToolsMenu.addSeparator()
+        self.uiToolsMenu.addAction(self._ipAssignmentAction)
 
         # populate the view -> docks menu
         self.uiDocksMenu.addAction(self.uiTopologySummaryDockWidget.toggleViewAction())
@@ -927,11 +977,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         reply = QtWidgets.QMessageBox.question(self, "Confirm Start All", "Are you sure you want to start all devices?",
                                                    QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
-                                                   
+
         if reply == QtWidgets.QMessageBox.StandardButton.No:
             return
 
-        project = Topology.instance().project()
+        # Apply simulated DHCP assignments before starting so that
+        # every DHCP-mode VPCS node has a startup_script with the right IP.
+        topology = Topology.instance()
+        try:
+            from gns3.modules.builtin.dhcp_manager import DHCPManager
+            DHCPManager.instance().apply_topology(topology.nodes(), topology.links())
+        except Exception as e:
+            log.warning("DHCPManager apply failed: {}".format(e))
+
+        project = topology.project()
         if project is not None:
             project.start_all_nodes()
 
@@ -1070,6 +1129,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self._update_manager = UpdateManager()
         self._update_manager.checkForUpdate(self, silent)
+
+    def _showIPAssignmentsSlot(self):
+        """
+        Opens the IP Assignment table dialog showing all device IPs in the topology.
+        """
+
+        from gns3.dialogs.ip_assignment_dialog import IPAssignmentDialog
+        topology = Topology.instance()
+        dialog = IPAssignmentDialog(self, topology.nodes(), topology.links())
+        dialog.exec()
 
     def _setupWizardActionSlot(self):
         """
@@ -1529,6 +1598,62 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def _controllerConnectedSlot(self):
         self.updateRecentFileActions()
         self._refreshVisibleWidgets()
+        # Upload server icon then create Server template (staggered to let templates load first)
+        QtCore.QTimer.singleShot(1500, self._uploadServerSymbol)
+
+    def _uploadServerSymbol(self):
+        """Upload the rack-server SVG icon to the GNS3 server."""
+        import os
+        this_dir = os.path.dirname(os.path.abspath(__file__))
+        svg_path = os.path.normpath(os.path.join(this_dir, '..', 'resources', 'symbols', 'server.svg'))
+        if not os.path.isfile(svg_path):
+            # Fallback: write the SVG to a temp file
+            import tempfile
+            svg_path = os.path.join(tempfile.gettempdir(), 'gns3_server_rack.svg')
+            if not os.path.isfile(svg_path):
+                with open(svg_path, 'w', encoding='utf-8') as fh:
+                    fh.write(_SERVER_RACK_SVG)
+        from .controller import Controller
+        Controller.instance().uploadSymbol("server.svg", svg_path)
+        QtCore.QTimer.singleShot(1500, self._ensureServerTemplate)
+
+    def _ensureServerTemplate(self):
+        """Auto-create 'Server' template in the device panel if it doesn't exist."""
+        for tmpl in self._template_manager.templates().values():
+            if tmpl.name() == "Server":
+                self._ensureRouterTemplate()
+                return
+        from .controller import Controller
+        Controller.instance().post("/templates", self._serverTemplateCreatedCallback, body={
+            "name": "Server",
+            "template_type": "vpcs",
+            "symbol": "server.svg",
+            "compute_id": "local",
+            "category": "guest",
+            "default_name_format": "Server{0}",
+        })
+
+    def _serverTemplateCreatedCallback(self, result, error=False, **kwargs):
+        self._template_manager.refresh()
+        self._ensureRouterTemplate()
+
+    def _ensureRouterTemplate(self):
+        """Auto-create 'Router' template in the device panel if it doesn't exist."""
+        for tmpl in self._template_manager.templates().values():
+            if tmpl.name() == "Router":
+                return
+        from .controller import Controller
+        Controller.instance().post("/templates", self._routerTemplateCreatedCallback, body={
+            "name": "Router",
+            "template_type": "vpcs",
+            "symbol": ":/symbols/router.svg",
+            "compute_id": "local",
+            "category": "router",
+            "default_name_format": "Router{0}",
+        })
+
+    def _routerTemplateCreatedCallback(self, result, error=False, **kwargs):
+        self._template_manager.refresh()
 
     def run_later(self, counter, callback):
         """

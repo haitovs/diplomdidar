@@ -1,5 +1,5 @@
 {
-  "project_id": "83bf4c9a-16ea-4ab7-9fcf-e676eb74bc6a",
+  "project_id": "e0234082-8a28-4165-9345-e8ccdb43a792",
   "type": "topology",
   "revision": 9,
   "version": "2.2.56.1",
@@ -22,7 +22,7 @@
     "nodes": [
       {
         "compute_id": "local",
-        "node_id": "0d2ad412-7abe-47bd-b630-a26b502adaf6",
+        "node_id": "61da71d1-048f-4246-98df-8d638a6b7f60",
         "node_type": "vpcs",
         "name": "PC1-SubnetA",
         "console": 5010,
@@ -50,7 +50,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "ae5e5b73-d44f-4b5d-a6ab-93644f70ab1d",
+        "node_id": "14f006fd-be0e-4ec1-bd0f-eafa8494bf2d",
         "node_type": "vpcs",
         "name": "PC2-SubnetA",
         "console": 5011,
@@ -78,7 +78,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "43d33789-19d8-454a-9c2c-25c58ceb3120",
+        "node_id": "0b71fcec-f8a4-448e-a05f-7df2ef104bc4",
         "node_type": "vpcs",
         "name": "PC3-SubnetB",
         "console": 5012,
@@ -106,7 +106,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "a2bdb659-ec55-488b-b313-086daee22faa",
+        "node_id": "a6c5b763-430b-486a-8119-2e7e3681917a",
         "node_type": "ethernet_switch",
         "name": "Switch1",
         "console": null,
@@ -192,7 +192,7 @@
     ],
     "links": [
       {
-        "link_id": "4de48bb1-097a-4c18-8224-d5d8430db971",
+        "link_id": "1b2c61fa-1449-4b78-b416-057973099502",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -203,7 +203,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "0d2ad412-7abe-47bd-b630-a26b502adaf6",
+            "node_id": "61da71d1-048f-4246-98df-8d638a6b7f60",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -215,7 +215,7 @@
             }
           },
           {
-            "node_id": "a2bdb659-ec55-488b-b313-086daee22faa",
+            "node_id": "a6c5b763-430b-486a-8119-2e7e3681917a",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -229,7 +229,7 @@
         ]
       },
       {
-        "link_id": "b66786f1-40b6-4693-8051-ee2e8e10b5f9",
+        "link_id": "bd0ac1a2-233d-40ef-99c7-82a3fd4271ed",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -240,7 +240,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "ae5e5b73-d44f-4b5d-a6ab-93644f70ab1d",
+            "node_id": "14f006fd-be0e-4ec1-bd0f-eafa8494bf2d",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -252,7 +252,7 @@
             }
           },
           {
-            "node_id": "a2bdb659-ec55-488b-b313-086daee22faa",
+            "node_id": "a6c5b763-430b-486a-8119-2e7e3681917a",
             "adapter_number": 0,
             "port_number": 1,
             "label": {
@@ -266,7 +266,7 @@
         ]
       },
       {
-        "link_id": "d07d939c-562d-47e7-86a6-64392da37e0b",
+        "link_id": "240880e0-439d-4101-932e-f84df146417e",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -277,7 +277,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "43d33789-19d8-454a-9c2c-25c58ceb3120",
+            "node_id": "0b71fcec-f8a4-448e-a05f-7df2ef104bc4",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -289,7 +289,7 @@
             }
           },
           {
-            "node_id": "a2bdb659-ec55-488b-b313-086daee22faa",
+            "node_id": "a6c5b763-430b-486a-8119-2e7e3681917a",
             "adapter_number": 0,
             "port_number": 2,
             "label": {
@@ -305,31 +305,58 @@
     ],
     "drawings": [
       {
-        "drawing_id": "5239f92e-75c9-449c-a06e-9b30520e5da4",
+        "drawing_id": "1536024a-2ed0-4201-b408-28cdf4241bb5",
         "x": -200,
-        "y": -150,
+        "y": -390,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"14\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Case 2: Subnet Isolation</text></svg>"
+        "svg": "<svg width=\"500\" height=\"25\"><text x=\"2\" y=\"15\" font-family=\"sans-serif\" font-size=\"15\" font-weight=\"bold\" fill=\"#4a90d9\">Mesele 2: Podset Izol\u00fdasi\u00fdasy</text></svg>"
       },
       {
-        "drawing_id": "946d116d-c786-4e3b-ba09-0274cc3bffca",
-        "x": -280,
-        "y": -120,
+        "drawing_id": "c724262e-0960-4d27-b428-e28d3d8bda15",
+        "x": -400,
+        "y": -355,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">PC1 &amp; PC2 on 192.168.1.0/24 | PC3 on 192.168.2.0/24</text></svg>"
+        "svg": "<svg width=\"581\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\">\u00c7ep: PC1,PC2 = 192.168.1.x  |  Sag: PC3,PC4 = 192.168.2.x (iki A\u00ddRY podset)</text></svg>"
       },
       {
-        "drawing_id": "a08b4e86-b251-4110-953f-97c1d0686bb8",
-        "x": -350,
-        "y": 220,
+        "drawing_id": "309c1752-f0ff-48eb-80dc-9508f13f426e",
+        "x": -400,
+        "y": -325,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"10\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Test: PC1 ping PC2 = OK | PC1 ping PC3 = FAIL (different subnet)</text></svg>"
+        "svg": "<svg width=\"618\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#27ae60\">\u00d6wred\u00fd\u00e4r: A\u00fdry podsetd\u00e4ki enjamlar biri-birine ping edip bilme\u00fd\u00e4r \u2014 router gerek</text></svg>"
+      },
+      {
+        "drawing_id": "a99445a8-a46e-4023-b5cf-9e88755dccbd",
+        "x": -400,
+        "y": 260,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"521\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba BA\u015eLAMAK: \u00dda\u015fyl \u25ba PLAY d\u00fcwmesine basy\u0148 \u2192 \u00e4hli enjamlar i\u015fe ba\u015flar</text></svg>"
+      },
+      {
+        "drawing_id": "e5c4158c-3268-4db0-bab9-eb10c987268a",
+        "x": -400,
+        "y": 290,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"536\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba SYNAG 1: PC1-e 2\u00d7 basy\u0148 \u2192 ping 192.168.1.2 \u00fdazy\u0148 \u2192 OK (bir podsede)</text></svg>"
+      },
+      {
+        "drawing_id": "bdb4decd-0cf2-4f5c-a7fd-f244eba78f44",
+        "x": -400,
+        "y": 320,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"610\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#c0392b\">\u25ba SYNAG 2: PC1-de \u2192 ping 192.168.2.1 \u00fdazy\u0148 \u2192 \u00ddAL\u0147Y\u015e (ba\u015fga podset \u2014 izol\u00fdasi\u00fda)</text></svg>"
       }
     ],
     "computes": [

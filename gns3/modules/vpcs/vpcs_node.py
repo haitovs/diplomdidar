@@ -16,8 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-VPCS node implementation.
+VPCS node implementation (PC and Server device types).
 """
+
+import ipaddress
 
 from gns3.node import Node
 
@@ -27,7 +29,7 @@ log = logging.getLogger(__name__)
 
 class VPCSNode(Node):
     """
-    VPCS node.
+    VPCS node — represents either a PC or a Server end-device.
 
     :param module: parent module for this node
     :param server: GNS3 server instance
@@ -39,82 +41,164 @@ class VPCSNode(Node):
     def __init__(self, module, server, project):
         super().__init__(module, server, project)
 
-        vpcs_settings = {"startup_script": None,
-                         "console_type": "telnet",
-                         "console_auto_start": True}
+        self.settings().update({
+            "startup_script": None,
+            "console_type": "telnet",
+            "console_auto_start": True,
+            # Device identity
+            "device_type": "PC",
+            "server_role": "General Server",
+            # IP configuration
+            "use_dhcp": False,
+            "ip_address": "",
+            "subnet_mask": "255.255.255.0",
+            "gateway": "",
+        })
 
-        self.settings().update(vpcs_settings)
+    # ------------------------------------------------------------------ #
+    # Info
+    # ------------------------------------------------------------------ #
 
     def info(self):
         """
-        Returns information about this VPCS node.
+        Returns human-readable information about this node.
 
         :returns: formatted string
         """
 
-        info = """Node {name} is {state}
+        device_type = self._settings.get("device_type", "PC")
+        if device_type == "Server":
+            role = self._settings.get("server_role", "General Server")
+            type_info = "  Role: {}\n".format(role)
+        else:
+            type_info = ""
+
+        use_dhcp = self._settings.get("use_dhcp", False)
+        ip = self._settings.get("ip_address", "")
+        mask = self._settings.get("subnet_mask", "")
+        gw = self._settings.get("gateway", "")
+
+        if use_dhcp:
+            ip_info = "  IP configuration: DHCP (auto-assigned)\n"
+        elif ip:
+            ip_info = "  IP configuration: static {}/{} gw {}\n".format(ip, mask, gw)
+        else:
+            ip_info = "  IP configuration: not configured\n"
+
+        info = """{device_type} {name} is {state}
   Running on server {host} with port {port}
   Local ID is {id} and server ID is {node_id}
   Console is on port {console} and type is {console_type}
-""".format(name=self.name(),
-           id=self.id(),
-           node_id=self._node_id,
-           state=self.state(),
-           host=self.compute().name(),
-           port=self.compute().port(),
-           console=self._settings["console"],
-           console_type=self._settings["console_type"])
+{type_info}{ip_info}""".format(
+            device_type=device_type,
+            name=self.name(),
+            id=self.id(),
+            node_id=self._node_id,
+            state=self.state(),
+            host=self.compute().name(),
+            port=self.compute().port(),
+            console=self._settings["console"],
+            console_type=self._settings["console_type"],
+            type_info=type_info,
+            ip_info=ip_info,
+        )
 
         port_info = ""
         for port in self._ports:
             if port.isFree():
                 port_info += "     {port_name} is empty\n".format(port_name=port.name())
             else:
-                port_info += "     {port_name} {port_description}\n".format(port_name=port.name(),
-                                                                            port_description=port.description())
+                port_info += "     {port_name} {port_description}\n".format(
+                    port_name=port.name(),
+                    port_description=port.description())
 
         return info + port_info
 
-    def configFiles(self):
+    # ------------------------------------------------------------------ #
+    # Startup script helpers
+    # ------------------------------------------------------------------ #
+
+    def buildStartupScript(self):
         """
-        Name of the configuration files
+        Build and return a VPCS startup script from the current IP settings.
+        Returns None if no IP configuration is present.
         """
 
+        name = self.name()
+        use_dhcp = self._settings.get("use_dhcp", False)
+        ip = self._settings.get("ip_address", "").strip()
+        mask = self._settings.get("subnet_mask", "255.255.255.0").strip()
+        gw = self._settings.get("gateway", "").strip()
+
+        if use_dhcp:
+            # DHCP mode — DHCPManager will overwrite with static assignment;
+            # fall back to the VPCS native dhcp command if no switch pool found.
+            return "set pcname {}\ndhcp\n".format(name)
+
+        if ip:
+            try:
+                prefix = ipaddress.IPv4Network("0.0.0.0/{}".format(mask), strict=False).prefixlen
+            except ValueError:
+                prefix = 24
+            if gw:
+                return "set pcname {}\nip {}/{} {}\n".format(name, ip, prefix, gw)
+            return "set pcname {}\nip {}/{}\n".format(name, ip, prefix)
+
+        return "set pcname {}\n".format(name)
+
+    def applyIPConfig(self):
+        """
+        Rebuild startup_script from current IP settings and push to server.
+        Call after IP/DHCP settings change.
+        """
+
+        script = self.buildStartupScript()
+        if script is not None:
+            self._settings["startup_script"] = script
+            if self._node_id is not None:
+                self.update({"startup_script": script})
+
+    # ------------------------------------------------------------------ #
+    # Node interface
+    # ------------------------------------------------------------------ #
+
+    def configFiles(self):
         return ["startup.vpc"]
 
     def configPage(self):
-        """
-        Returns the configuration page widget to be used by the node properties dialog.
-
-        :returns: QWidget object
-        """
-
         from .pages.vpcs_node_configuration_page import VPCSNodeConfigurationPage
         return VPCSNodeConfigurationPage
 
-    @staticmethod
-    def defaultSymbol():
-        """
-        Returns the default symbol path for this node.
-
-        :returns: symbol path (or resource).
-        """
-
+    def defaultSymbol(self):
+        """Returns the default symbol based on device type."""
+        dt = self._settings.get("device_type")
+        if dt == "Server":
+            return "server.svg"
+        if dt == "Router":
+            return ":/symbols/router.svg"
         return ":/symbols/vpcs_guest.svg"
+
+    def symbol(self):
+        """Return stored symbol, falling back to the type-appropriate default."""
+        stored = self._settings.get("symbol")
+        # Only fall through to defaultSymbol for generic Qt defaults
+        if stored and stored not in (":/symbols/vpcs_guest.svg", ":/symbols/computer.svg"):
+            return stored
+        return self.defaultSymbol()
 
     @staticmethod
     def categories():
-        """
-        Returns the node categories the node is part of (used by the node panel).
-
-        :returns: list of node categories
-        """
-
         return [Node.end_devices]
 
     def __str__(self):
-
-        return "VPCS node"
+        device_type = self._settings.get("device_type", "PC")
+        if device_type == "Server":
+            role = self._settings.get("server_role", "General Server")
+            return "Server ({})".format(role)
+        if device_type == "Router":
+            role = self._settings.get("router_role", "Gateway Router")
+            return "Router ({})".format(role)
+        return "PC"
 
 
 # for compatibility pre version 2.0

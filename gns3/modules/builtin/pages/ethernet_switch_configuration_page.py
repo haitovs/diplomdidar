@@ -25,6 +25,7 @@ from gns3.node import Node
 
 from ..utils.tree_widget_item import TreeWidgetItem
 from ..ui.ethernet_switch_configuration_page_ui import Ui_ethernetSwitchConfigPageWidget
+from ..settings import SWITCH_MODELS, L3_SWITCH_MODELS, SWITCH_MODEL_PORT_COUNTS
 
 
 class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfigPageWidget):
@@ -38,12 +39,60 @@ class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfig
         super().__init__()
         self.setupUi(self)
         self._ports = {}
+        self._node = None
 
         # add the categories
         for name, category in Node.defaultCategories().items():
             self.uiCategoryComboBox.addItem(name, category)
 
-        # connect slots
+        # --- Model row added to the General group box ---
+        self._model_label = QtWidgets.QLabel("Switch model:", parent=self.uiGeneralGroupBox)
+        self.uiModelComboBox = QtWidgets.QComboBox(parent=self.uiGeneralGroupBox)
+        for m in SWITCH_MODELS:
+            self.uiModelComboBox.addItem(m)
+        self.gridLayout.addWidget(self._model_label, 5, 0, 1, 1)
+        self.gridLayout.addWidget(self.uiModelComboBox, 5, 1, 1, 1)
+        self.uiModelComboBox.currentIndexChanged.connect(self._modelChangedSlot)
+
+        # --- DHCP server configuration group box ---
+        self.uiDHCPGroupBox = QtWidgets.QGroupBox("DHCP Server Configuration", parent=self)
+        dhcp_grid = QtWidgets.QGridLayout(self.uiDHCPGroupBox)
+
+        self.uiDHCPEnabledCheckBox = QtWidgets.QCheckBox("Enable DHCP server on this switch")
+        dhcp_grid.addWidget(self.uiDHCPEnabledCheckBox, 0, 0, 1, 2)
+
+        dhcp_grid.addWidget(QtWidgets.QLabel("Subnet (CIDR):"), 1, 0)
+        self.uiDHCPSubnetLineEdit = QtWidgets.QLineEdit("192.168.1.0/24")
+        self.uiDHCPSubnetLineEdit.setPlaceholderText("e.g. 192.168.1.0/24")
+        dhcp_grid.addWidget(self.uiDHCPSubnetLineEdit, 1, 1)
+
+        dhcp_grid.addWidget(QtWidgets.QLabel("Pool start:"), 2, 0)
+        self.uiDHCPPoolStartLineEdit = QtWidgets.QLineEdit("192.168.1.100")
+        self.uiDHCPPoolStartLineEdit.setPlaceholderText("e.g. 192.168.1.100")
+        dhcp_grid.addWidget(self.uiDHCPPoolStartLineEdit, 2, 1)
+
+        dhcp_grid.addWidget(QtWidgets.QLabel("Pool end:"), 3, 0)
+        self.uiDHCPPoolEndLineEdit = QtWidgets.QLineEdit("192.168.1.200")
+        self.uiDHCPPoolEndLineEdit.setPlaceholderText("e.g. 192.168.1.200")
+        dhcp_grid.addWidget(self.uiDHCPPoolEndLineEdit, 3, 1)
+
+        dhcp_grid.addWidget(QtWidgets.QLabel("Gateway:"), 4, 0)
+        self.uiDHCPGatewayLineEdit = QtWidgets.QLineEdit("192.168.1.1")
+        self.uiDHCPGatewayLineEdit.setPlaceholderText("e.g. 192.168.1.1")
+        dhcp_grid.addWidget(self.uiDHCPGatewayLineEdit, 4, 1)
+
+        dhcp_grid.addWidget(QtWidgets.QLabel("DNS server:"), 5, 0)
+        self.uiDHCPDnsLineEdit = QtWidgets.QLineEdit("8.8.8.8")
+        self.uiDHCPDnsLineEdit.setPlaceholderText("e.g. 8.8.8.8")
+        dhcp_grid.addWidget(self.uiDHCPDnsLineEdit, 5, 1)
+
+        self.uiDHCPEnabledCheckBox.toggled.connect(self._dhcpToggled)
+        self._dhcpToggled(False)
+
+        # Row 4 of the outer grid, spanning both columns
+        self.gridLayout_2.addWidget(self.uiDHCPGroupBox, 4, 0, 1, 2)
+
+        # connect existing slots
         self.uiAddPushButton.clicked.connect(self._addPortSlot)
         self.uiDeletePushButton.clicked.connect(self._deletePortSlot)
         self.uiPortsTreeWidget.itemActivated.connect(self._portSelectedSlot)
@@ -56,11 +105,11 @@ class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfig
 
         self.uiSymbolToolButton.clicked.connect(self._symbolBrowserSlot)
 
-    def _symbolBrowserSlot(self):
-        """
-        Slot to open the symbol browser and select a new symbol.
-        """
+    # ------------------------------------------------------------------ #
+    # Slots
+    # ------------------------------------------------------------------ #
 
+    def _symbolBrowserSlot(self):
         symbol_path = self.uiSymbolLineEdit.text()
         dialog = SymbolSelectionDialog(self, symbol=symbol_path)
         dialog.show()
@@ -69,14 +118,46 @@ class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfig
             self.uiSymbolLineEdit.setText(new_symbol_path)
             self.uiSymbolLineEdit.setToolTip('<img src="{}"/>'.format(new_symbol_path))
 
-    def _portSelectedSlot(self, item, column):
-        """
-        Loads a selected port from the tree widget.
+    def _modelChangedSlot(self, _index):
+        """Auto-select symbol and pre-populate ports when model changes."""
+        model = self.uiModelComboBox.currentText()
+        # Update symbol to match L2/L3 type
+        if model in L3_SWITCH_MODELS:
+            self.uiSymbolLineEdit.setText(":/symbols/multilayer_switch.svg")
+        else:
+            self.uiSymbolLineEdit.setText(":/symbols/ethernet_switch.svg")
 
-        :param item: selected TreeWidgetItem instance
-        :param column: ignored
-        """
+        # Pre-populate ports only when there are none yet
+        if not self._ports:
+            port_count = SWITCH_MODEL_PORT_COUNTS.get(model, 8)
+            self.uiPortsTreeWidget.clear()
+            self._ports = {}
+            for i in range(port_count):
+                item = TreeWidgetItem(self.uiPortsTreeWidget)
+                item.setText(0, str(i))
+                item.setText(1, "1")
+                item.setText(2, "access")
+                item.setText(3, "")
+                self.uiPortsTreeWidget.addTopLevelItem(item)
+                self._ports[i] = {
+                    "name": "Ethernet{}".format(i),
+                    "port_number": i,
+                    "type": "access",
+                    "vlan": 1,
+                    "ethertype": "",
+                }
+            if self._ports:
+                self.uiPortSpinBox.setValue(max(self._ports) + 1)
 
+    def _dhcpToggled(self, enabled):
+        """Enable or disable DHCP pool fields."""
+        for widget in (self.uiDHCPSubnetLineEdit, self.uiDHCPPoolStartLineEdit,
+                       self.uiDHCPPoolEndLineEdit, self.uiDHCPGatewayLineEdit,
+                       self.uiDHCPDnsLineEdit):
+            widget.setEnabled(enabled)
+
+    def _portSelectedSlot(self, item, _column):
+        """Loads a selected port from the tree widget."""
         port = int(item.text(0))
         vlan = int(item.text(1))
         port_type = item.text(2)
@@ -89,55 +170,28 @@ class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfig
         index = self.uiPortEtherTypeComboBox.findText(port_ethertype)
         if index != -1:
             self.uiPortEtherTypeComboBox.setCurrentIndex(index)
-        if port_type == "qinq":
-            self.uiPortEtherTypeComboBox.setEnabled(True)
-        else:
-            self.uiPortEtherTypeComboBox.setEnabled(False)
+        self.uiPortEtherTypeComboBox.setEnabled(port_type == "qinq")
 
     def _portSelectionChangedSlot(self):
-        """
-        Enables the use of the delete button.
-        """
-
         item = self.uiPortsTreeWidget.currentItem()
-        if item:
-            self.uiDeletePushButton.setEnabled(True)
-        else:
-            self.uiDeletePushButton.setEnabled(False)
+        self.uiDeletePushButton.setEnabled(item is not None)
 
     def _typeSelectionChangedSlot(self):
-        """
-        Disable Q-in-Q EtherType for access and dot1q ports.
-        """
-
         port_type = self.uiPortTypeComboBox.currentText()
-        if port_type == "qinq":
-            self.uiPortEtherTypeComboBox.setEnabled(True)
-        else:
-            self.uiPortEtherTypeComboBox.setEnabled(False)
+        self.uiPortEtherTypeComboBox.setEnabled(port_type == "qinq")
 
     def _addPortSlot(self):
-        """
-        Adds a new port.
-        """
-
         port = self.uiPortSpinBox.value()
         vlan = self.uiVlanSpinBox.value()
         port_type = self.uiPortTypeComboBox.currentText()
-        if port_type == "qinq":
-            port_ethertype = self.uiPortEtherTypeComboBox.currentText()
-        else:
-            port_ethertype = ""
+        port_ethertype = self.uiPortEtherTypeComboBox.currentText() if port_type == "qinq" else ""
 
         if port in self._ports:
-            # update a given entry in the tree widget
             item = self.uiPortsTreeWidget.findItems(str(port), QtCore.Qt.MatchFlag.MatchFixedString)[0]
             item.setText(1, str(vlan))
             item.setText(2, port_type)
             item.setText(3, port_ethertype)
-
         else:
-            # add a new entry in the tree widget
             item = TreeWidgetItem(self.uiPortsTreeWidget)
             item.setText(0, str(port))
             item.setText(1, str(vlan))
@@ -145,35 +199,38 @@ class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfig
             item.setText(3, port_ethertype)
             self.uiPortsTreeWidget.addTopLevelItem(item)
 
-        self._ports[port] = {"name": "Ethernet{}".format(port),
-                             "port_number": port,
-                             "type": port_type,
-                             "vlan": vlan,
-                             "ethertype": port_ethertype}
-
+        self._ports[port] = {
+            "name": "Ethernet{}".format(port),
+            "port_number": port,
+            "type": port_type,
+            "vlan": vlan,
+            "ethertype": port_ethertype,
+        }
         self.uiPortSpinBox.setValue(max(self._ports) + 1)
         self.uiPortsTreeWidget.resizeColumnToContents(0)
 
     def _deletePortSlot(self):
-        """
-        Deletes a port.
-        """
-
         item = self.uiPortsTreeWidget.currentItem()
         if item:
             port = int(item.text(0))
             if self._node:
                 for node_port in self._node.ports():
                     if node_port.portNumber() == port and not node_port.isFree():
-                        QtWidgets.QMessageBox.critical(self, self._node.name(), "A link is connected to port {}, please remove it first".format(node_port.name()))
+                        QtWidgets.QMessageBox.critical(
+                            self, self._node.name(),
+                            "A link is connected to port {}, please remove it first".format(node_port.name()))
                         return
             del self._ports[port]
             self.uiPortsTreeWidget.takeTopLevelItem(self.uiPortsTreeWidget.indexOfTopLevelItem(item))
 
-        if len(self._ports):
+        if self._ports:
             self.uiPortSpinBox.setValue(max(self._ports) + 1)
         else:
             self.uiPortSpinBox.setValue(1)
+
+    # ------------------------------------------------------------------ #
+    # Load / Save
+    # ------------------------------------------------------------------ #
 
     def loadSettings(self, settings, node=None, group=False):
         """
@@ -194,18 +251,10 @@ class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfig
         self._node = node
 
         if not node:
-            # these are template settings
-
             self.uiNameLabel.setText("Template name:")
-
-            # load the default name format
             self.uiDefaultNameFormatLineEdit.setText(settings["default_name_format"])
-
-            # load the symbol
             self.uiSymbolLineEdit.setText(settings["symbol"])
             self.uiSymbolLineEdit.setToolTip('<img src="{}"/>'.format(settings["symbol"]))
-
-            # load the category
             index = self.uiCategoryComboBox.findData(settings["category"])
             if index != -1:
                 self.uiCategoryComboBox.setCurrentIndex(index)
@@ -217,8 +266,24 @@ class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfig
             self.uiSymbolToolButton.hide()
             self.uiCategoryComboBox.hide()
             self.uiCategoryLabel.hide()
-            self.uiCategoryComboBox.hide()
 
+        # Load switch model
+        model = settings.get("switch_model", "Generic Switch")
+        index = self.uiModelComboBox.findText(model)
+        if index != -1:
+            self.uiModelComboBox.blockSignals(True)
+            self.uiModelComboBox.setCurrentIndex(index)
+            self.uiModelComboBox.blockSignals(False)
+
+        # Load DHCP settings
+        self.uiDHCPEnabledCheckBox.setChecked(settings.get("dhcp_enabled", False))
+        self.uiDHCPSubnetLineEdit.setText(settings.get("dhcp_subnet", "192.168.1.0/24"))
+        self.uiDHCPPoolStartLineEdit.setText(settings.get("dhcp_pool_start", "192.168.1.100"))
+        self.uiDHCPPoolEndLineEdit.setText(settings.get("dhcp_pool_end", "192.168.1.200"))
+        self.uiDHCPGatewayLineEdit.setText(settings.get("dhcp_gateway", "192.168.1.1"))
+        self.uiDHCPDnsLineEdit.setText(settings.get("dhcp_dns", "8.8.8.8"))
+
+        # Load port mapping
         for port_info in settings["ports_mapping"]:
             item = TreeWidgetItem(self.uiPortsTreeWidget)
             item.setText(0, str(port_info["port_number"]))
@@ -228,14 +293,13 @@ class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfig
             self.uiPortsTreeWidget.addTopLevelItem(item)
             self._ports[port_info["port_number"]] = port_info
 
-        # load the console type
         index = self.uiConsoleTypeComboBox.findText(settings["console_type"])
         if index != -1:
             self.uiConsoleTypeComboBox.setCurrentIndex(index)
 
         self.uiPortsTreeWidget.resizeColumnToContents(0)
         self.uiPortsTreeWidget.resizeColumnToContents(1)
-        if len(self._ports) > 0:
+        if self._ports:
             self.uiPortSpinBox.setValue(max(self._ports) + 1)
 
     def saveSettings(self, settings, node=None, group=False):
@@ -248,7 +312,6 @@ class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfig
         """
 
         if not group:
-            # set the device name
             name = self.uiNameLineEdit.text()
             if not name:
                 QtWidgets.QMessageBox.critical(self, "Name", "Ethernet switch name cannot be empty!")
@@ -256,22 +319,27 @@ class EthernetSwitchConfigurationPage(QtWidgets.QWidget, Ui_ethernetSwitchConfig
                 settings["name"] = name
 
         if not node:
-            # these are template settings
-
-            # save the default name format
             default_name_format = self.uiDefaultNameFormatLineEdit.text().strip()
             if '{0}' not in default_name_format and '{id}' not in default_name_format:
-                QtWidgets.QMessageBox.critical(self, "Default name format", "The default name format must contain at least {0} or {id}")
+                QtWidgets.QMessageBox.critical(self, "Default name format",
+                                               "The default name format must contain at least {0} or {id}")
             else:
                 settings["default_name_format"] = default_name_format
 
-            symbol_path = self.uiSymbolLineEdit.text()
-            settings["symbol"] = symbol_path
-
+            settings["symbol"] = self.uiSymbolLineEdit.text()
             settings["category"] = self.uiCategoryComboBox.itemData(self.uiCategoryComboBox.currentIndex())
 
-        # save console type
-        settings["console_type"] = self.uiConsoleTypeComboBox.currentText().lower()
+        # Save switch model
+        settings["switch_model"] = self.uiModelComboBox.currentText()
 
+        # Save DHCP settings
+        settings["dhcp_enabled"] = self.uiDHCPEnabledCheckBox.isChecked()
+        settings["dhcp_subnet"] = self.uiDHCPSubnetLineEdit.text().strip()
+        settings["dhcp_pool_start"] = self.uiDHCPPoolStartLineEdit.text().strip()
+        settings["dhcp_pool_end"] = self.uiDHCPPoolEndLineEdit.text().strip()
+        settings["dhcp_gateway"] = self.uiDHCPGatewayLineEdit.text().strip()
+        settings["dhcp_dns"] = self.uiDHCPDnsLineEdit.text().strip()
+
+        settings["console_type"] = self.uiConsoleTypeComboBox.currentText().lower()
         settings["ports_mapping"] = list(self._ports.values())
         return settings

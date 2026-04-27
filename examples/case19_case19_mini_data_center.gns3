@@ -1,0 +1,1452 @@
+{
+  "project_id": "e13323c9-30aa-47f0-95e6-e6aa82a5c6a3",
+  "type": "topology",
+  "revision": 9,
+  "version": "2.2.56.1",
+  "name": "Case19-Mini-Data-Center",
+  "auto_start": false,
+  "auto_open": false,
+  "auto_close": true,
+  "scene_width": 2000,
+  "scene_height": 1000,
+  "zoom": 100,
+  "show_layers": false,
+  "snap_to_grid": false,
+  "show_grid": false,
+  "grid_size": 75,
+  "drawing_grid_size": 25,
+  "show_interface_labels": true,
+  "variables": null,
+  "supplier": null,
+  "topology": {
+    "nodes": [
+      {
+        "compute_id": "local",
+        "node_id": "b33ecdc3-c60a-41b4-85d9-ec7c1483d6b6",
+        "node_type": "ethernet_switch",
+        "name": "Aggregation-Cat4500",
+        "console": null,
+        "console_host": "127.0.0.1",
+        "console_type": "none",
+        "console_auto_start": false,
+        "x": 0,
+        "y": -100,
+        "z": 1,
+        "locked": false,
+        "symbol": ":/symbols/multilayer_switch.svg",
+        "label": {
+          "text": "Aggregation-Cat4500",
+          "x": 10,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "ports_mapping": [
+            {
+              "name": "0",
+              "port_number": 0,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "1",
+              "port_number": 1,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "2",
+              "port_number": 2,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "3",
+              "port_number": 3,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "4",
+              "port_number": 4,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "5",
+              "port_number": 5,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "6",
+              "port_number": 6,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "7",
+              "port_number": 7,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "8",
+              "port_number": 8,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "9",
+              "port_number": 9,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "10",
+              "port_number": 10,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "11",
+              "port_number": 11,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "12",
+              "port_number": 12,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "13",
+              "port_number": 13,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "14",
+              "port_number": 14,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "15",
+              "port_number": 15,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "16",
+              "port_number": 16,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "17",
+              "port_number": 17,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "18",
+              "port_number": 18,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "19",
+              "port_number": 19,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "20",
+              "port_number": 20,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "21",
+              "port_number": 21,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "22",
+              "port_number": 22,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "23",
+              "port_number": 23,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "24",
+              "port_number": 24,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "25",
+              "port_number": 25,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "26",
+              "port_number": 26,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "27",
+              "port_number": 27,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "28",
+              "port_number": 28,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "29",
+              "port_number": 29,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "30",
+              "port_number": 30,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "31",
+              "port_number": 31,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "32",
+              "port_number": 32,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "33",
+              "port_number": 33,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "34",
+              "port_number": 34,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "35",
+              "port_number": 35,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "36",
+              "port_number": 36,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "37",
+              "port_number": 37,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "38",
+              "port_number": 38,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "39",
+              "port_number": 39,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "40",
+              "port_number": 40,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "41",
+              "port_number": 41,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "42",
+              "port_number": 42,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "43",
+              "port_number": 43,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "44",
+              "port_number": 44,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "45",
+              "port_number": 45,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "46",
+              "port_number": 46,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "47",
+              "port_number": 47,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            }
+          ]
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "912ac74e-c873-41f4-b8cf-22426defd291",
+        "node_type": "ethernet_switch",
+        "name": "Server-Zone-2960",
+        "console": null,
+        "console_host": "127.0.0.1",
+        "console_type": "none",
+        "console_auto_start": false,
+        "x": -300,
+        "y": 100,
+        "z": 1,
+        "locked": false,
+        "symbol": ":/symbols/ethernet_switch.svg",
+        "label": {
+          "text": "Server-Zone-2960",
+          "x": 10,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "ports_mapping": [
+            {
+              "name": "0",
+              "port_number": 0,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "1",
+              "port_number": 1,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "2",
+              "port_number": 2,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "3",
+              "port_number": 3,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "4",
+              "port_number": 4,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "5",
+              "port_number": 5,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "6",
+              "port_number": 6,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "7",
+              "port_number": 7,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "8",
+              "port_number": 8,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "9",
+              "port_number": 9,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "10",
+              "port_number": 10,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "11",
+              "port_number": 11,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "12",
+              "port_number": 12,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "13",
+              "port_number": 13,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "14",
+              "port_number": 14,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "15",
+              "port_number": 15,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "16",
+              "port_number": 16,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "17",
+              "port_number": 17,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "18",
+              "port_number": 18,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "19",
+              "port_number": 19,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "20",
+              "port_number": 20,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "21",
+              "port_number": 21,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "22",
+              "port_number": 22,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "23",
+              "port_number": 23,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            }
+          ]
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "c713a21c-52ff-428b-90ba-5053411106e7",
+        "node_type": "ethernet_switch",
+        "name": "Client-Zone-2960",
+        "console": null,
+        "console_host": "127.0.0.1",
+        "console_type": "none",
+        "console_auto_start": false,
+        "x": 300,
+        "y": 100,
+        "z": 1,
+        "locked": false,
+        "symbol": ":/symbols/ethernet_switch.svg",
+        "label": {
+          "text": "Client-Zone-2960",
+          "x": 10,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "ports_mapping": [
+            {
+              "name": "0",
+              "port_number": 0,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "1",
+              "port_number": 1,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "2",
+              "port_number": 2,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "3",
+              "port_number": 3,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "4",
+              "port_number": 4,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "5",
+              "port_number": 5,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "6",
+              "port_number": 6,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "7",
+              "port_number": 7,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "8",
+              "port_number": 8,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "9",
+              "port_number": 9,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "10",
+              "port_number": 10,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "11",
+              "port_number": 11,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "12",
+              "port_number": 12,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "13",
+              "port_number": 13,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "14",
+              "port_number": 14,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "15",
+              "port_number": 15,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "16",
+              "port_number": 16,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "17",
+              "port_number": 17,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "18",
+              "port_number": 18,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "19",
+              "port_number": 19,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "20",
+              "port_number": 20,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "21",
+              "port_number": 21,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "22",
+              "port_number": 22,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            },
+            {
+              "name": "23",
+              "port_number": 23,
+              "type": "access",
+              "vlan": 1,
+              "ethertype": ""
+            }
+          ]
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "b1c393c6-d3a7-4205-b042-d75e3ca11a37",
+        "node_type": "vpcs",
+        "name": "Web-Server-1",
+        "console": 5180,
+        "console_host": "127.0.0.1",
+        "console_type": "telnet",
+        "console_auto_start": false,
+        "x": -450,
+        "y": 280,
+        "z": 1,
+        "locked": false,
+        "symbol": "server.svg",
+        "label": {
+          "text": "Web-Server-1",
+          "x": 17,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "startup_script": "set pcname Web-Server-1\nip 10.19.1.10/24 10.19.1.1\n"
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "22b1480b-62ad-49e8-a336-6b0cc93a2264",
+        "node_type": "vpcs",
+        "name": "Web-Server-2",
+        "console": 5181,
+        "console_host": "127.0.0.1",
+        "console_type": "telnet",
+        "console_auto_start": false,
+        "x": -300,
+        "y": 280,
+        "z": 1,
+        "locked": false,
+        "symbol": "server.svg",
+        "label": {
+          "text": "Web-Server-2",
+          "x": 17,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "startup_script": "set pcname Web-Server-2\nip 10.19.1.11/24 10.19.1.1\n"
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "94bad5a7-ede8-4eac-9d36-8464370740da",
+        "node_type": "vpcs",
+        "name": "File-Server-1",
+        "console": 5182,
+        "console_host": "127.0.0.1",
+        "console_type": "telnet",
+        "console_auto_start": false,
+        "x": -150,
+        "y": 280,
+        "z": 1,
+        "locked": false,
+        "symbol": "server.svg",
+        "label": {
+          "text": "File-Server-1",
+          "x": 17,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "startup_script": "set pcname File-Server-1\nip 10.19.1.12/24 10.19.1.1\n"
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "b0dee8ea-5c30-4461-a2f6-fda7644b7e85",
+        "node_type": "vpcs",
+        "name": "Mail-Server",
+        "console": 5183,
+        "console_host": "127.0.0.1",
+        "console_type": "telnet",
+        "console_auto_start": false,
+        "x": 0,
+        "y": 280,
+        "z": 1,
+        "locked": false,
+        "symbol": "server.svg",
+        "label": {
+          "text": "Mail-Server",
+          "x": 17,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "startup_script": "set pcname Mail-Server\nip 10.19.1.13/24 10.19.1.1\n"
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "95201f27-c0b7-4729-86d7-bdff3cd34765",
+        "node_type": "vpcs",
+        "name": "Client1",
+        "console": 5184,
+        "console_host": "127.0.0.1",
+        "console_type": "telnet",
+        "console_auto_start": false,
+        "x": 150,
+        "y": 280,
+        "z": 1,
+        "locked": false,
+        "symbol": ":/symbols/vpcs_guest.svg",
+        "label": {
+          "text": "Client1",
+          "x": 17,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "startup_script": "set pcname Client1\nip 10.19.2.100/24 10.19.2.1\n"
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "77294b41-234b-4367-a3f7-16c5c124421a",
+        "node_type": "vpcs",
+        "name": "Client2",
+        "console": 5185,
+        "console_host": "127.0.0.1",
+        "console_type": "telnet",
+        "console_auto_start": false,
+        "x": 250,
+        "y": 280,
+        "z": 1,
+        "locked": false,
+        "symbol": ":/symbols/vpcs_guest.svg",
+        "label": {
+          "text": "Client2",
+          "x": 17,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "startup_script": "set pcname Client2\nip 10.19.2.101/24 10.19.2.1\n"
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "af3ad3e7-bdee-41cf-959e-33be901dfac6",
+        "node_type": "vpcs",
+        "name": "Client3",
+        "console": 5186,
+        "console_host": "127.0.0.1",
+        "console_type": "telnet",
+        "console_auto_start": false,
+        "x": 350,
+        "y": 280,
+        "z": 1,
+        "locked": false,
+        "symbol": ":/symbols/vpcs_guest.svg",
+        "label": {
+          "text": "Client3",
+          "x": 17,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "startup_script": "set pcname Client3\nip 10.19.2.102/24 10.19.2.1\n"
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      },
+      {
+        "compute_id": "local",
+        "node_id": "da3f266b-d9bb-4a66-9b55-597c534883c7",
+        "node_type": "vpcs",
+        "name": "Client4",
+        "console": 5187,
+        "console_host": "127.0.0.1",
+        "console_type": "telnet",
+        "console_auto_start": false,
+        "x": 450,
+        "y": 280,
+        "z": 1,
+        "locked": false,
+        "symbol": ":/symbols/vpcs_guest.svg",
+        "label": {
+          "text": "Client4",
+          "x": 17,
+          "y": -25,
+          "rotation": 0,
+          "style": "font-size: 10;"
+        },
+        "properties": {
+          "startup_script": "set pcname Client4\nip 10.19.2.103/24 10.19.2.1\n"
+        },
+        "port_name_format": "Ethernet{0}",
+        "port_segment_size": 0,
+        "first_port_name": null
+      }
+    ],
+    "links": [
+      {
+        "link_id": "3d6446f7-ebf3-4d44-b922-dcc842eaea63",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "b33ecdc3-c60a-41b4-85d9-ec7c1483d6b6",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "912ac74e-c873-41f4-b8cf-22426defd291",
+            "adapter_number": 0,
+            "port_number": 47,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "78c4a4e0-4457-4caa-b29a-665b156ea2dc",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "b33ecdc3-c60a-41b4-85d9-ec7c1483d6b6",
+            "adapter_number": 0,
+            "port_number": 1,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "c713a21c-52ff-428b-90ba-5053411106e7",
+            "adapter_number": 0,
+            "port_number": 23,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "1c6ba27c-82ee-418c-95c3-600be5d3b433",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "b1c393c6-d3a7-4205-b042-d75e3ca11a37",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "912ac74e-c873-41f4-b8cf-22426defd291",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "4349f57f-a855-43f4-88ff-1490011c2538",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "22b1480b-62ad-49e8-a336-6b0cc93a2264",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "912ac74e-c873-41f4-b8cf-22426defd291",
+            "adapter_number": 0,
+            "port_number": 1,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "983cc911-f8d9-4303-8fd4-809c80c5aa60",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "94bad5a7-ede8-4eac-9d36-8464370740da",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "912ac74e-c873-41f4-b8cf-22426defd291",
+            "adapter_number": 0,
+            "port_number": 2,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "fe208326-5c59-446e-affb-90c8f1c5c5d2",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "b0dee8ea-5c30-4461-a2f6-fda7644b7e85",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "912ac74e-c873-41f4-b8cf-22426defd291",
+            "adapter_number": 0,
+            "port_number": 3,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "b940af48-57d2-42fe-bc87-8d984e382480",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "95201f27-c0b7-4729-86d7-bdff3cd34765",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "c713a21c-52ff-428b-90ba-5053411106e7",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "a9421e90-d744-445a-b733-929f385960f7",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "77294b41-234b-4367-a3f7-16c5c124421a",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "c713a21c-52ff-428b-90ba-5053411106e7",
+            "adapter_number": 0,
+            "port_number": 1,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "01184e9a-a2b3-41d9-ae33-e2dd2e84c4bd",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "af3ad3e7-bdee-41cf-959e-33be901dfac6",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "c713a21c-52ff-428b-90ba-5053411106e7",
+            "adapter_number": 0,
+            "port_number": 2,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      },
+      {
+        "link_id": "06d06058-1cc5-4d66-95f7-cbf4d9249bbe",
+        "link_type": "ethernet",
+        "suspend": false,
+        "filters": {},
+        "capturing": false,
+        "capture_file_name": null,
+        "capture_file_path": null,
+        "capture_compute_id": null,
+        "link_style": {},
+        "nodes": [
+          {
+            "node_id": "da3f266b-d9bb-4a66-9b55-597c534883c7",
+            "adapter_number": 0,
+            "port_number": 0,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          },
+          {
+            "node_id": "c713a21c-52ff-428b-90ba-5053411106e7",
+            "adapter_number": 0,
+            "port_number": 3,
+            "label": {
+              "text": "",
+              "x": 0,
+              "y": 0,
+              "rotation": 0,
+              "style": ""
+            }
+          }
+        ]
+      }
+    ],
+    "drawings": [
+      {
+        "drawing_id": "2f3855d2-0f87-4366-a4e4-81a9d09429fe",
+        "x": -200,
+        "y": -310,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"500\" height=\"25\"><text x=\"2\" y=\"15\" font-family=\"sans-serif\" font-size=\"15\" font-weight=\"bold\" fill=\"#4a90d9\">Mesele 19: Mini Maglumat Merkezi</text></svg>"
+      },
+      {
+        "drawing_id": "84733d2a-eb76-43b0-a469-e795af47f015",
+        "x": -430,
+        "y": -275,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"738\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\">Serwer zolagy (10.19.1.x): Web,Web,File,Mail serwerler  |  M\u00fc\u015fderi zolagy (10.19.2.x): 4 m\u00fc\u015fderi</text></svg>"
+      },
+      {
+        "drawing_id": "0a876661-0a3f-4dcf-a2f9-aed5fb4c7ea5",
+        "x": -430,
+        "y": -245,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"753\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#27ae60\">\u00d6wred\u00fd\u00e4r: Maglumat merkezinde serwerler we m\u00fc\u015fderiler a\u00fdry zolaklarda bol\u00fdar \u2014 howpsuz we tertipli</text></svg>"
+      },
+      {
+        "drawing_id": "5a251c72-42f5-4c39-a584-7afbd1de68f8",
+        "x": -430,
+        "y": 390,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"521\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba BA\u015eLAMAK: \u00dda\u015fyl \u25ba PLAY d\u00fcwmesine basy\u0148 \u2192 \u00e4hli enjamlar i\u015fe ba\u015flar</text></svg>"
+      },
+      {
+        "drawing_id": "0ae72033-eaa9-48d5-bc8e-7a93cd87fb38",
+        "x": -430,
+        "y": 420,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"566\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba SYNAG: Client1-e 2\u00d7 basy\u0148 \u2192 ping 10.19.1.10 (Web-Server-1) \u2192 OK bolmaly</text></svg>"
+      }
+    ],
+    "computes": [
+      {
+        "compute_id": "local",
+        "name": "Local",
+        "protocol": "http",
+        "host": "127.0.0.1",
+        "port": 3080,
+        "user": "admin",
+        "connected": true,
+        "cpu_usage_percent": null,
+        "memory_usage_percent": null,
+        "last_error": null,
+        "capabilities": {
+          "version": "2.2.56.1",
+          "node_types": [
+            "vpcs",
+            "ethernet_switch",
+            "ethernet_hub",
+            "cloud",
+            "nat"
+          ],
+          "platform": "darwin"
+        }
+      }
+    ]
+  }
+}

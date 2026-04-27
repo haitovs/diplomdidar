@@ -1,5 +1,5 @@
 {
-  "project_id": "ac6f274b-a0fe-4973-a373-197281cfa9b4",
+  "project_id": "e489d205-e546-4fa3-8f58-a5219f6182ac",
   "type": "topology",
   "revision": 9,
   "version": "2.2.56.1",
@@ -22,7 +22,7 @@
     "nodes": [
       {
         "compute_id": "local",
-        "node_id": "45ab3a9f-7a4d-40da-b892-f1c408d0a4ee",
+        "node_id": "db1bce1d-8b09-470a-840a-51431f8c8972",
         "node_type": "vpcs",
         "name": "PC1",
         "console": 5110,
@@ -50,7 +50,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "39f89436-c42a-4691-87bd-5922e5839478",
+        "node_id": "8800f04b-fbde-477d-8042-293edc7c9113",
         "node_type": "vpcs",
         "name": "PC2",
         "console": 5111,
@@ -78,7 +78,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "bf044f3c-ebf8-4698-b892-2f98b295a452",
+        "node_id": "fd97d36a-3e2f-430c-90bd-aafa1f545936",
         "node_type": "vpcs",
         "name": "PC3",
         "console": 5112,
@@ -106,7 +106,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "374a7cd1-92e3-4668-8fbf-aee51afa0726",
+        "node_id": "b903d2f4-7329-4386-af23-70e3c8f931a6",
         "node_type": "vpcs",
         "name": "PC4",
         "console": 5113,
@@ -134,7 +134,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "2e40ccaa-1136-4c21-aa70-bf726876705d",
+        "node_id": "118113bf-0744-4efe-aa3e-05d72805652f",
         "node_type": "ethernet_switch",
         "name": "Switch1",
         "console": null,
@@ -219,7 +219,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "eb393286-0ab5-49d5-89c0-9befe70b7ee7",
+        "node_id": "edbda066-7942-4b59-94e4-91bad08a63fa",
         "node_type": "ethernet_switch",
         "name": "Switch2",
         "console": null,
@@ -304,7 +304,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "ae89bfbd-02b1-47b6-bf8c-3831ab02704f",
+        "node_id": "e607e87a-c98a-4a1f-bc15-78d29ebcef98",
         "node_type": "ethernet_switch",
         "name": "Switch3",
         "console": null,
@@ -389,7 +389,7 @@
       },
       {
         "compute_id": "local",
-        "node_id": "51ec8b2a-67bb-45a7-90dd-9d65bad14872",
+        "node_id": "6423d8c7-4161-4c30-875d-5e56cbbcdd2b",
         "node_type": "ethernet_switch",
         "name": "Switch4",
         "console": null,
@@ -475,7 +475,7 @@
     ],
     "links": [
       {
-        "link_id": "98f23088-153e-4fa9-9e54-02e7018f840e",
+        "link_id": "5dbd30bc-334d-4e34-afa1-66b49d073e48",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -486,7 +486,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "45ab3a9f-7a4d-40da-b892-f1c408d0a4ee",
+            "node_id": "db1bce1d-8b09-470a-840a-51431f8c8972",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -498,7 +498,7 @@
             }
           },
           {
-            "node_id": "2e40ccaa-1136-4c21-aa70-bf726876705d",
+            "node_id": "118113bf-0744-4efe-aa3e-05d72805652f",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -512,7 +512,7 @@
         ]
       },
       {
-        "link_id": "ed8e2490-b126-4af8-8ba0-82d3e7b4ccd4",
+        "link_id": "9fac96ad-ebe2-4caa-bd39-1a6ca677114f",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -523,7 +523,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "39f89436-c42a-4691-87bd-5922e5839478",
+            "node_id": "8800f04b-fbde-477d-8042-293edc7c9113",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -535,7 +535,7 @@
             }
           },
           {
-            "node_id": "eb393286-0ab5-49d5-89c0-9befe70b7ee7",
+            "node_id": "edbda066-7942-4b59-94e4-91bad08a63fa",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -549,7 +549,7 @@
         ]
       },
       {
-        "link_id": "844f3c85-08df-40d0-bee7-8cadd50b5b13",
+        "link_id": "4520c41a-9c10-45da-a5a8-05a7cf90088e",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -560,7 +560,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "bf044f3c-ebf8-4698-b892-2f98b295a452",
+            "node_id": "fd97d36a-3e2f-430c-90bd-aafa1f545936",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -572,7 +572,7 @@
             }
           },
           {
-            "node_id": "ae89bfbd-02b1-47b6-bf8c-3831ab02704f",
+            "node_id": "e607e87a-c98a-4a1f-bc15-78d29ebcef98",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -586,7 +586,7 @@
         ]
       },
       {
-        "link_id": "9b3e31a2-6023-44a3-a33c-07a3f743f48f",
+        "link_id": "4cf1428b-ac75-4c00-a79a-1dadfd9155c0",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -597,7 +597,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "374a7cd1-92e3-4668-8fbf-aee51afa0726",
+            "node_id": "b903d2f4-7329-4386-af23-70e3c8f931a6",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -609,7 +609,7 @@
             }
           },
           {
-            "node_id": "51ec8b2a-67bb-45a7-90dd-9d65bad14872",
+            "node_id": "6423d8c7-4161-4c30-875d-5e56cbbcdd2b",
             "adapter_number": 0,
             "port_number": 0,
             "label": {
@@ -623,7 +623,7 @@
         ]
       },
       {
-        "link_id": "4587a637-7977-4255-ab32-e45bf29b5281",
+        "link_id": "47635bfc-e9c6-4c9b-9847-3451ea363be3",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -634,7 +634,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "2e40ccaa-1136-4c21-aa70-bf726876705d",
+            "node_id": "118113bf-0744-4efe-aa3e-05d72805652f",
             "adapter_number": 0,
             "port_number": 4,
             "label": {
@@ -646,7 +646,7 @@
             }
           },
           {
-            "node_id": "eb393286-0ab5-49d5-89c0-9befe70b7ee7",
+            "node_id": "edbda066-7942-4b59-94e4-91bad08a63fa",
             "adapter_number": 0,
             "port_number": 5,
             "label": {
@@ -660,7 +660,7 @@
         ]
       },
       {
-        "link_id": "dd6a7ae4-e04c-4283-a285-3e15d91edd65",
+        "link_id": "57cf18a4-8664-4e71-bbd7-cd683680c1c1",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -671,7 +671,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "2e40ccaa-1136-4c21-aa70-bf726876705d",
+            "node_id": "118113bf-0744-4efe-aa3e-05d72805652f",
             "adapter_number": 0,
             "port_number": 5,
             "label": {
@@ -683,7 +683,7 @@
             }
           },
           {
-            "node_id": "ae89bfbd-02b1-47b6-bf8c-3831ab02704f",
+            "node_id": "e607e87a-c98a-4a1f-bc15-78d29ebcef98",
             "adapter_number": 0,
             "port_number": 4,
             "label": {
@@ -697,7 +697,7 @@
         ]
       },
       {
-        "link_id": "6ef1a944-f1ed-4c53-b8f5-0c7572aa6be2",
+        "link_id": "7a798473-2fa9-4ef4-9a30-a9c2e87929a1",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -708,7 +708,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "2e40ccaa-1136-4c21-aa70-bf726876705d",
+            "node_id": "118113bf-0744-4efe-aa3e-05d72805652f",
             "adapter_number": 0,
             "port_number": 6,
             "label": {
@@ -720,7 +720,7 @@
             }
           },
           {
-            "node_id": "51ec8b2a-67bb-45a7-90dd-9d65bad14872",
+            "node_id": "6423d8c7-4161-4c30-875d-5e56cbbcdd2b",
             "adapter_number": 0,
             "port_number": 4,
             "label": {
@@ -734,7 +734,7 @@
         ]
       },
       {
-        "link_id": "f78c1d32-8177-4f96-9811-0c127f355e28",
+        "link_id": "e89c87e2-8bab-4018-a254-1c6637d95eb4",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -745,7 +745,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "eb393286-0ab5-49d5-89c0-9befe70b7ee7",
+            "node_id": "edbda066-7942-4b59-94e4-91bad08a63fa",
             "adapter_number": 0,
             "port_number": 4,
             "label": {
@@ -757,7 +757,7 @@
             }
           },
           {
-            "node_id": "ae89bfbd-02b1-47b6-bf8c-3831ab02704f",
+            "node_id": "e607e87a-c98a-4a1f-bc15-78d29ebcef98",
             "adapter_number": 0,
             "port_number": 5,
             "label": {
@@ -771,7 +771,7 @@
         ]
       },
       {
-        "link_id": "7782d91c-2a9a-483e-b11f-3b2a52492625",
+        "link_id": "62801ff0-c104-4b82-9c3b-c84edc6ec74b",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -782,7 +782,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "eb393286-0ab5-49d5-89c0-9befe70b7ee7",
+            "node_id": "edbda066-7942-4b59-94e4-91bad08a63fa",
             "adapter_number": 0,
             "port_number": 6,
             "label": {
@@ -794,7 +794,7 @@
             }
           },
           {
-            "node_id": "51ec8b2a-67bb-45a7-90dd-9d65bad14872",
+            "node_id": "6423d8c7-4161-4c30-875d-5e56cbbcdd2b",
             "adapter_number": 0,
             "port_number": 5,
             "label": {
@@ -808,7 +808,7 @@
         ]
       },
       {
-        "link_id": "7f8d1c0e-d4b2-4878-b7a3-accf0a6e75b0",
+        "link_id": "c8869d50-7ec3-4eb0-9126-6f31ef9d0a00",
         "link_type": "ethernet",
         "suspend": false,
         "filters": {},
@@ -819,7 +819,7 @@
         "link_style": {},
         "nodes": [
           {
-            "node_id": "ae89bfbd-02b1-47b6-bf8c-3831ab02704f",
+            "node_id": "e607e87a-c98a-4a1f-bc15-78d29ebcef98",
             "adapter_number": 0,
             "port_number": 6,
             "label": {
@@ -831,7 +831,7 @@
             }
           },
           {
-            "node_id": "51ec8b2a-67bb-45a7-90dd-9d65bad14872",
+            "node_id": "6423d8c7-4161-4c30-875d-5e56cbbcdd2b",
             "adapter_number": 0,
             "port_number": 6,
             "label": {
@@ -847,31 +847,58 @@
     ],
     "drawings": [
       {
-        "drawing_id": "c467fd79-7a9e-48b2-bd53-82847f5030da",
+        "drawing_id": "9797fdde-25f4-4d25-9c7a-dfbb1cc48c7a",
         "x": -200,
-        "y": -280,
+        "y": -310,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"14\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Case 12: Full Mesh Topology</text></svg>"
+        "svg": "<svg width=\"500\" height=\"25\"><text x=\"2\" y=\"15\" font-family=\"sans-serif\" font-size=\"15\" font-weight=\"bold\" fill=\"#4a90d9\">Mesele 12: Doly \u00d6rg\u00fcn Topologi\u00fdasy (Full Mesh)</text></svg>"
       },
       {
-        "drawing_id": "0267588f-343f-4ae9-b05b-a38df7c2c08f",
-        "x": -300,
-        "y": -250,
+        "drawing_id": "1cbdc7cf-577e-41fd-9485-b0bc5de5d081",
+        "x": -400,
+        "y": -275,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">4 Switches, each connected to every other (172.20.0.x/24)</text></svg>"
+        "svg": "<svg width=\"581\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#4a90d9\">4 kommutator \u2014 her biri be\u00fdleki 3-si bilen birikdirilen (jemi 6 baglany\u015fyk)</text></svg>"
       },
       {
-        "drawing_id": "68ede19b-e7f4-4f8e-9dd3-a73f6c814768",
-        "x": -350,
-        "y": 250,
+        "drawing_id": "9ca40b29-de60-4991-bda9-543ffb4300df",
+        "x": -400,
+        "y": -245,
         "z": 2,
         "locked": false,
         "rotation": 0,
-        "svg": "<svg width=\"400\" height=\"50\"><text font-family=\"monospace\" font-size=\"10\" font-weight=\"bold\" fill=\"#4a90d9\" fill-opacity=\"1.0\">Test: All PCs can ping each other. Multiple paths = redundancy.</text></svg>"
+        "svg": "<svg width=\"730\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#27ae60\">\u00d6wred\u00fd\u00e4r: Doly \u00f6rg\u00fcn \u2014 i\u0148 ygtybarly, \u00fd\u00f6ne kabel sany k\u00f6p; maglumat islendik \u00fdoldan ge\u00e7ip bil\u00fd\u00e4r</text></svg>"
+      },
+      {
+        "drawing_id": "7b7c501e-41a8-4575-a1e0-74f831b77eba",
+        "x": -400,
+        "y": 280,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"521\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba BA\u015eLAMAK: \u00dda\u015fyl \u25ba PLAY d\u00fcwmesine basy\u0148 \u2192 \u00e4hli enjamlar i\u015fe ba\u015flar</text></svg>"
+      },
+      {
+        "drawing_id": "0ebe578b-10c5-4c52-9a4e-7711672dd388",
+        "x": -400,
+        "y": 310,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"500\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba SYNAG 1: PC1-e 2\u00d7 basy\u0148 \u2192 ping 172.20.0.4 (PC4) \u2192 OK</text></svg>"
+      },
+      {
+        "drawing_id": "a0c47311-4e89-486b-8b34-b65b6487843d",
+        "x": -400,
+        "y": 340,
+        "z": 2,
+        "locked": false,
+        "rotation": 0,
+        "svg": "<svg width=\"708\" height=\"21\"><text x=\"2\" y=\"11\" font-family=\"sans-serif\" font-size=\"11\" font-weight=\"bold\" fill=\"#e67e22\">\u25ba SYNAG 2: Islendik baglany\u015fygy \u00f6\u00e7\u00fcri\u0148 \u2192 t\u00e4zeden ping synany\u0148 \u2192 \u00fdene OK (alternatiw \u00fdol bar)</text></svg>"
       }
     ],
     "computes": [

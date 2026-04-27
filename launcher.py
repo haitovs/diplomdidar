@@ -31,7 +31,6 @@ if sys.stdout is None or sys.stderr is None:
         if sys.stderr is None:
             sys.stderr = devnull
 
-import threading
 import time
 
 
@@ -59,28 +58,36 @@ def setup_vpcs_path():
     os.environ['PATH'] = exe_dir + os.pathsep + os.environ.get('PATH', '')
 
 
-def start_server_thread():
-    """Start GNS3 server in a background thread."""
-    def run_server():
-        try:
-            from gns3server.main import main as server_main
-            original_argv = sys.argv[:]
-            sys.argv = ['gns3server', '--local', '--port', '3080']
-            try:
-                server_main()
-            except SystemExit:
-                pass
-            finally:
-                sys.argv = original_argv
-        except Exception as e:
-            try:
-                print(f"Server error: {e}", file=sys.stderr)
-            except Exception:
-                pass
+def start_server_subprocess():
+    """Start GNS3 server as a subprocess so it runs in its own main thread."""
+    import subprocess
 
-    server_thread = threading.Thread(target=run_server, daemon=True)
-    server_thread.start()
-    return server_thread
+    # Resolve the gns3server entry-point or fall back to running its module
+    server_cmd = [sys.executable, '-m', 'gns3server', '--local', '--port', '3080']
+
+    # Try the installed entry-point first
+    if getattr(sys, 'frozen', False):
+        # PyInstaller bundle: gns3server is embedded, use module form
+        pass
+    else:
+        # Dev: check if gns3server script is on PATH next to python
+        bin_dir = os.path.dirname(sys.executable)
+        for name in ('gns3server', 'gns3server.exe'):
+            candidate = os.path.join(bin_dir, name)
+            if os.path.isfile(candidate):
+                server_cmd = [candidate, '--local', '--port', '3080']
+                break
+
+    try:
+        proc = subprocess.Popen(
+            server_cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return proc
+    except Exception as e:
+        print(f"Server start error: {e}", file=sys.stderr)
+        return None
 
 
 def write_gui_config():
@@ -193,8 +200,9 @@ def main():
     kill_orphan_simulator_processes()
     setup_vpcs_path()
     write_gui_config()
-    start_server_thread()
-    wait_for_server()
+    start_server_subprocess()
+    if not wait_for_server():
+        print("WARNING: GNS3 server did not start in time — canvas may be empty.", file=sys.stderr)
 
     from gns3.main import main as gns3_main
     gns3_main()

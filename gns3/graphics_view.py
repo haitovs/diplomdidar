@@ -341,6 +341,14 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
             if link.initialized():
                 self.addLinkSlot(link.id())
+
+            # Assign DHCP IP immediately when a DHCP-mode PC connects to a DHCP switch
+            try:
+                from gns3.modules.builtin.dhcp_manager import DHCPManager
+                DHCPManager.instance().assign_on_link(source_node, destination_node)
+            except Exception:
+                pass
+
         return link
 
     def addLinkSlot(self, link_id):
