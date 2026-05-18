@@ -54,8 +54,12 @@ echo "[..] Installing PyQt6..."
 pip install PyQt6 2>&1
 
 # Install GNS3 server (backend required by the GUI)
+# Pin to the EXACT GUI version (2.2.56.1). GNS3 enforces an exact client/server
+# match: any mismatch (e.g. server 2.2.59) makes every controller API call fail
+# with "Client version X is not the same as server version Y", so projects,
+# templates, computes, and appliances never load in the GUI.
 echo "[..] Installing GNS3 server..."
-pip install gns3-server 2>&1
+pip install 'gns3-server==2.2.56.1' 2>&1
 
 # Install project requirements
 echo "[..] Installing project requirements..."
